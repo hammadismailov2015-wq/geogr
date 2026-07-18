@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Гео-Тренажёр · 6 класс</title>
+  <meta name="description" content="Интерактивный тренажёр по географии: океаны, моря, реки и атмосфера." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-globe">🌍</span>
+      <div>
+        <h1>Гео-Тренажёр</h1>
+        <p class="brand-sub">Океаны · Моря · Реки · Атмосфера</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="streak" id="streakBox" title="Лучшая серия правильных ответов">
+        <span>🔥</span><span id="bestStreak">0</span>
+      </div>
+      <button class="ghost-btn" id="themeBtn" title="Сменить тему">🌙</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- ЭКРАН: ГЛАВНАЯ -->
+    <section class="screen active" id="screen-home">
+      <div class="hero">
+        <h2>Выбери тему и проверь знания</h2>
+        <p class="hero-sub">Тренажёр по географии для 6 класса — с уровнем посложнее. Отвечай на вопросы, набирай очки и повышай уровень знатока планеты.</p>
+      </div>
+
+      <div class="topic-grid" id="topicGrid"><!-- заполняется из JS --></div>
+
+      <div class="mode-row">
+        <button class="mode-btn exam" id="examBtn">
+          <span class="mode-ico">🎓</span>
+          <span class="mode-txt">
+            <strong>Экзамен</strong>
+            <small>20 вопросов по всем темам вперемешку</small>
+          </span>
+        </button>
+        <button class="mode-btn learn" id="factsBtn">
+          <span class="mode-ico">💡</span>
+          <span class="mode-txt">
+            <strong>Карточки-факты</strong>
+            <small>Сначала изучи, потом тренируйся</small>
+          </span>
+        </button>
+      </div>
+
+      <div class="stats-strip" id="statsStrip"></div>
+    </section>
+
+    <!-- ЭКРАН: ФАКТЫ / КАРТОЧКИ -->
+    <section class="screen" id="screen-facts">
+      <div class="facts-head">
+        <button class="back-btn" data-nav="home">← Назад</button>
+        <h2 id="factsTitle">Карточки-факты</h2>
+      </div>
+      <div class="facts-tabs" id="factsTabs"></div>
+      <div class="facts-list" id="factsList"></div>
+    </section>
+
+    <!-- ЭКРАН: КВИЗ -->
+    <section class="screen" id="screen-quiz">
+      <div class="quiz-head">
+        <button class="back-btn" id="quitBtn">← Выйти</button>
+        <div class="quiz-progress">
+          <div class="qbar"><div class="qbar-fill" id="qbarFill"></div></div>
+          <span class="qcount" id="qCount">1 / 10</span>
+        </div>
+        <div class="quiz-score">⭐ <span id="quizScore">0</span></div>
+      </div>
+
+      <div class="quiz-card" id="quizCard">
+        <div class="q-topic" id="qTopic">Океаны</div>
+        <h2 class="q-text" id="qText">Вопрос…</h2>
+        <div class="q-options" id="qOptions"></div>
+        <div class="q-explain" id="qExplain" hidden></div>
+      </div>
+
+      <div class="quiz-foot">
+        <div class="combo" id="comboBox" hidden>🔥 Серия: <span id="comboNum">0</span></div>
+        <button class="primary-btn" id="nextBtn" disabled>Дальше →</button>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: РЕЗУЛЬТАТ -->
+    <section class="screen" id="screen-result">
+      <div class="result-card">
+        <div class="result-badge" id="resultBadge">🏆</div>
+        <h2 id="resultTitle">Отлично!</h2>
+        <p class="result-score"><span id="resultScore">0</span> / <span id="resultTotal">0</span></p>
+        <div class="result-ring">
+          <svg viewBox="0 0 120 120" width="140" height="140">
+            <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+            <circle class="ring-fg" id="ring" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <span class="ring-pct" id="ringPct">0%</span>
+        </div>
+        <p class="result-msg" id="resultMsg"></p>
+        <div class="result-meta" id="resultMeta"></div>
+        <div class="result-actions">
+          <button class="primary-btn" id="retryBtn">Пройти ещё раз</button>
+          <button class="ghost-btn big" data-nav="home">На главную</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Сделано для урока географии · 6 класс</span>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
