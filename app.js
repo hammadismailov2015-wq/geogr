@@ -248,6 +248,7 @@ function renderHome() {
     const card = document.createElement("button");
     card.className = "topic-card";
     card.style.setProperty("--accent", t.color);
+    card.dataset.search = (t.title + " " + t.desc).toLowerCase().replace(/ё/g, "е");
     card.innerHTML = `
       <div class="tc-icon">${t.icon}</div>
       <div class="tc-body">
@@ -263,6 +264,22 @@ function renderHome() {
     grid.appendChild(card);
   });
   renderStats();
+  if ($("#topicSearch") && $("#topicSearch").value) filterTopics();
+}
+
+/* Поиск (фильтр) тем по названию и описанию */
+function filterTopics() {
+  const q = ($("#topicSearch").value || "").trim().toLowerCase().replace(/ё/g, "е");
+  // Ищем по основе слова, чтобы «море» находило «Моря», «гора» — «Горы» и т.п.
+  const stem = q.length >= 4 ? q.slice(0, -1) : q;
+  let shown = 0;
+  $$("#topicGrid .topic-card").forEach((card) => {
+    const match = !q || card.dataset.search.includes(stem);
+    card.style.display = match ? "" : "none";
+    if (match) shown++;
+  });
+  const empty = $("#topicEmpty");
+  if (empty) empty.hidden = shown !== 0;
 }
 
 function renderStats() {
@@ -335,6 +352,9 @@ function init() {
   applyTheme(Store.data.theme || "dark");
   $("#bestStreak").textContent = Store.data.bestStreak || 0;
   renderHome();
+
+  const search = $("#topicSearch");
+  if (search) search.addEventListener("input", filterTopics);
 
   $("#examBtn").addEventListener("click", startExam);
   $("#factsBtn").addEventListener("click", () => { renderFacts(); showScreen("facts"); });

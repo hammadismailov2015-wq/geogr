@@ -54,7 +54,13 @@
         </button>
       </div>
 
+      <div class="topic-search">
+        <span class="ts-ico">🔍</span>
+        <input type="search" id="topicSearch" placeholder="Поиск темы…" autocomplete="off" aria-label="Поиск темы" />
+      </div>
+
       <div class="topic-grid" id="topicGrid"><!-- заполняется из JS --></div>
+      <p class="topic-empty" id="topicEmpty" hidden>Ничего не найдено 🙁 Попробуй другое слово.</p>
 
       <div class="stats-strip" id="statsStrip"></div>
     </section>
