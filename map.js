@@ -145,7 +145,7 @@
     clearMarks();
     const t = G.queue[G.i];
     const word = t.kind === "continent" ? WORD.continent : t.kind === "ocean" ? WORD.ocean : WORD[t.type];
-    $("#mapPrompt").innerHTML = `Найди ${word}: <b>${t.name}</b>`;
+    $("#mapPrompt").innerHTML = `Найдите ${word}: <b>${t.name}</b>`;
     $("#mapCount").textContent = `${G.i + 1} / ${G.queue.length}`;
     $("#mapScore").textContent = G.score;
     $("#mapBar").style.width = `${(G.i / G.queue.length) * 100}%`;
@@ -221,10 +221,10 @@
     $("#mapBar").style.width = "100%";
     const total = G.queue.length, sc = G.score, pct = Math.round((sc / total) * 100);
     let msg;
-    if (pct === 100) msg = "🏆 Идеально! Ты отлично знаешь карту.";
-    else if (pct >= 70) msg = "🌟 Здорово! Почти всё нашла.";
-    else if (pct >= 40) msg = "👍 Неплохо! Потренируйся ещё.";
-    else msg = "🌱 Смелее — с каждым разом будешь находить больше!";
+    if (pct === 100) msg = "🏆 Идеально! Вы отлично знаете карту.";
+    else if (pct >= 70) msg = "🌟 Здорово! Почти всё нашли.";
+    else if (pct >= 40) msg = "👍 Неплохо! Потренируйтесь ещё.";
+    else msg = "🌱 Смелее — с каждым разом будете находить больше!";
     $("#mapPrompt").innerHTML = `🏁 Итог: <b>${sc} из ${total}</b>`;
     const fb = $("#mapFeedback");
     fb.hidden = false;
