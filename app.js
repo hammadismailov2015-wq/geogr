@@ -7,7 +7,7 @@ const STORE_KEY = "geo-trainer-v1";
 
 /* ---------- Хранилище прогресса ---------- */
 const Store = {
-  data: { bestStreak: 0, topics: {}, theme: "dark" },
+  data: { bestStreak: 0, topics: {}, theme: "dark", palette: "ocean" },
   load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
@@ -346,10 +346,49 @@ function applyTheme(theme) {
   Store.save();
 }
 
+/* ---------- Цвет фона (палитры) ---------- */
+const PALETTES = [
+  { id: "ocean",    name: "Небо",    light: "#dfeaff", dark: "#0b1220" },
+  { id: "mint",     name: "Мята",    light: "#d5f2e2", dark: "#0a1a14" },
+  { id: "lavender", name: "Сирень",  light: "#e7dcfb", dark: "#140e22" },
+  { id: "peach",    name: "Персик",  light: "#fbe0d6", dark: "#1f1012" },
+  { id: "honey",    name: "Мёд",     light: "#fbeecb", dark: "#1b1608" },
+  { id: "graphite", name: "Графит",  light: "#e3e7ef", dark: "#0e1013" },
+];
+
+function applyPalette(id) {
+  if (!PALETTES.some((p) => p.id === id)) id = "ocean";
+  document.documentElement.setAttribute("data-palette", id);
+  Store.data.palette = id;
+  Store.save();
+  $$("#ppGrid .pp-swatch").forEach((el) => el.classList.toggle("active", el.dataset.id === id));
+}
+
+function buildPalette() {
+  const grid = $("#ppGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  PALETTES.forEach((p) => {
+    const b = document.createElement("button");
+    b.className = "pp-swatch" + (p.id === Store.data.palette ? " active" : "");
+    b.type = "button";
+    b.dataset.id = p.id;
+    b.title = p.name;
+    b.innerHTML = `<span class="pp-dot" style="background:linear-gradient(135deg, ${p.light} 0 50%, ${p.dark} 50% 100%)"></span><span class="pp-name">${p.name}</span>`;
+    b.addEventListener("click", () => {
+      applyPalette(p.id);
+      $("#palettePop").hidden = true;
+    });
+    grid.appendChild(b);
+  });
+}
+
 /* ---------- Инициализация ---------- */
 function init() {
   Store.load();
   applyTheme(Store.data.theme || "dark");
+  buildPalette();
+  applyPalette(Store.data.palette || "ocean");
   $("#bestStreak").textContent = Store.data.bestStreak || 0;
   renderHome();
 
@@ -373,6 +412,14 @@ function init() {
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
   });
+
+  const palBtn = $("#paletteBtn"), palPop = $("#palettePop");
+  if (palBtn && palPop) {
+    palBtn.addEventListener("click", (e) => { e.stopPropagation(); palPop.hidden = !palPop.hidden; });
+    document.addEventListener("click", (e) => {
+      if (!palPop.hidden && !palPop.contains(e.target) && e.target !== palBtn) palPop.hidden = true;
+    });
+  }
 
   $$("[data-nav]").forEach((b) =>
     b.addEventListener("click", () => { renderHome(); showScreen(b.dataset.nav); })
