@@ -255,20 +255,28 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
 /* Футер */
 .footer { position: relative; z-index: 2; text-align: center; color: var(--muted); font-size: 12.5px; padding: 20px; }
 
-/* Игра «Найди на карте» — кнопка на главной */
-.map-cta {
-  width: 100%; display: flex; align-items: center; gap: 16px; cursor: pointer; text-align: left;
-  margin: 20px 0 4px; color: var(--text);
-  background: linear-gradient(135deg, #1b6ec2, #35b0ab);
-  border: 1px solid transparent; border-radius: 18px; padding: 18px 20px;
-  transition: transform .18s, box-shadow .2s, filter .2s;
+/* Три кнопки-режима в один ряд наверху */
+.top-actions {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0 22px;
 }
-.map-cta:hover { transform: translateY(-3px); box-shadow: var(--shadow); filter: brightness(1.05); }
-.map-cta-ico { font-size: 36px; }
-.map-cta-txt { flex: 1; }
-.map-cta-txt strong { display: block; font-size: 18px; color: #fff; }
-.map-cta-txt small { color: rgba(255, 255, 255, .85); font-size: 12.5px; }
-.map-cta-go { color: #fff; opacity: .8; font-size: 14px; }
+.act-btn {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 5px;
+  cursor: pointer; color: var(--text);
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px 10px;
+  transition: transform .18s, border-color .2s, box-shadow .2s, filter .2s;
+}
+.act-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.act-btn.exam:hover { border-color: #b98bff; }
+.act-btn.learn:hover { border-color: var(--good); }
+.act-btn.map {
+  background: linear-gradient(135deg, #1b6ec2, #35b0ab); border-color: transparent;
+}
+.act-btn.map:hover { filter: brightness(1.06); }
+.act-btn.map strong { color: #fff; }
+.act-btn.map small { color: rgba(255, 255, 255, .85); }
+.act-ico { font-size: 30px; }
+.act-btn strong { font-size: 15px; }
+.act-btn small { font-size: 11.5px; color: var(--muted); line-height: 1.2; }
 
 /* Экран карты */
 .map-prompt { text-align: center; font-size: clamp(17px, 3.5vw, 22px); font-weight: 700; margin: 6px 0 12px; }
@@ -314,9 +322,12 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
 
 /* Адаптив */
 @media (max-width: 560px) {
-  .map-cta { flex-wrap: wrap; }
   .map-hint { display: none; }
-  .mode-row { grid-template-columns: 1fr; }
+  .top-actions { gap: 8px; }
+  .act-btn { padding: 12px 6px; border-radius: 12px; gap: 3px; }
+  .act-ico { font-size: 24px; }
+  .act-btn strong { font-size: 12px; }
+  .act-btn small { display: none; }
   .stats-strip { grid-template-columns: 1fr; }
   .stat { display: flex; align-items: center; justify-content: space-between; }
   .stat b { font-size: 22px; }

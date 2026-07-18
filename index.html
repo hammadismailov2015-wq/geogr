@@ -36,33 +36,25 @@
         <p class="hero-sub">Тренажёр по географии для 6 класса — с уровнем посложнее. Отвечай на вопросы, набирай очки и повышай уровень знатока планеты.</p>
       </div>
 
-      <button class="map-cta" id="mapBtn">
-        <span class="map-cta-ico">🗺️</span>
-        <span class="map-cta-txt">
-          <strong>Игра «Найди на карте»</strong>
-          <small>Показываем карту мира — найди материк, океан, реку, гору, вулкан и другое</small>
-        </span>
-        <span class="map-cta-go">▶</span>
-      </button>
-
-      <div class="topic-grid" id="topicGrid"><!-- заполняется из JS --></div>
-
-      <div class="mode-row">
-        <button class="mode-btn exam" id="examBtn">
-          <span class="mode-ico">🎓</span>
-          <span class="mode-txt">
-            <strong>Экзамен</strong>
-            <small>20 вопросов по всем темам вперемешку</small>
-          </span>
+      <div class="top-actions">
+        <button class="act-btn exam" id="examBtn">
+          <span class="act-ico">🎓</span>
+          <strong>Экзамен</strong>
+          <small>20 вопросов вперемешку</small>
         </button>
-        <button class="mode-btn learn" id="factsBtn">
-          <span class="mode-ico">💡</span>
-          <span class="mode-txt">
-            <strong>Карточки-факты</strong>
-            <small>Сначала изучи, потом тренируйся</small>
-          </span>
+        <button class="act-btn learn" id="factsBtn">
+          <span class="act-ico">💡</span>
+          <strong>Карточки-факты</strong>
+          <small>Сначала изучи тему</small>
+        </button>
+        <button class="act-btn map" id="mapBtn">
+          <span class="act-ico">🗺️</span>
+          <strong>Найди на карте</strong>
+          <small>Игра по карте мира</small>
         </button>
       </div>
+
+      <div class="topic-grid" id="topicGrid"><!-- заполняется из JS --></div>
 
       <div class="stats-strip" id="statsStrip"></div>
     </section>
