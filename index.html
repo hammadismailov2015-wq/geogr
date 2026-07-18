@@ -38,6 +38,15 @@
 
       <div class="topic-grid" id="topicGrid"><!-- заполняется из JS --></div>
 
+      <button class="map-cta" id="mapBtn">
+        <span class="map-cta-ico">🗺️</span>
+        <span class="map-cta-txt">
+          <strong>Игра «Найди на карте»</strong>
+          <small>Показываем карту мира — найди материк, океан, реку, гору, вулкан и другое</small>
+        </span>
+        <span class="map-cta-go">▶</span>
+      </button>
+
       <div class="mode-row">
         <button class="mode-btn exam" id="examBtn">
           <span class="mode-ico">🎓</span>
@@ -66,6 +75,27 @@
       </div>
       <div class="facts-tabs" id="factsTabs"></div>
       <div class="facts-list" id="factsList"></div>
+    </section>
+
+    <!-- ЭКРАН: ИГРА «НАЙДИ НА КАРТЕ» -->
+    <section class="screen" id="screen-map">
+      <div class="quiz-head">
+        <button class="back-btn" id="mapQuit">← Выйти</button>
+        <div class="quiz-progress">
+          <div class="qbar"><div class="qbar-fill" id="mapBar"></div></div>
+          <span class="qcount" id="mapCount">1 / 12</span>
+        </div>
+        <div class="quiz-score">⭐ <span id="mapScore">0</span></div>
+      </div>
+
+      <div class="map-prompt" id="mapPrompt">Найди: …</div>
+      <div class="map-wrap"><div id="mapHost"></div></div>
+      <div class="map-feedback" id="mapFeedback" hidden></div>
+
+      <div class="quiz-foot">
+        <div class="map-hint">Нажми на нужное место на карте</div>
+        <button class="primary-btn" id="mapNext" disabled>Дальше →</button>
+      </div>
     </section>
 
     <!-- ЭКРАН: КВИЗ -->
@@ -121,5 +151,6 @@
 
   <script src="data.js"></script>
   <script src="app.js"></script>
+  <script src="map.js"></script>
 </body>
 </html>
