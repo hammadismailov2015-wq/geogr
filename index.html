@@ -43,6 +43,13 @@
         <p class="hero-sub">Тренажёр по географии для 6 класса — с уровнем посложнее. Отвечайте на вопросы, набирайте очки и повышайте уровень знатока планеты.</p>
       </div>
 
+      <button class="time-toggle" id="timeToggle" aria-pressed="false" title="Отвечать на время">
+        <span class="tt-ico">⏱</span>
+        <span class="tt-label">Режим на время</span>
+        <span class="tt-switch"><span class="tt-knob"></span></span>
+        <span class="tt-state" id="timeState">Выкл</span>
+      </button>
+
       <div class="top-actions">
         <button class="act-btn exam" id="examBtn">
           <span class="act-ico">🎓</span>
@@ -112,6 +119,7 @@
           <span class="qcount" id="qCount">1 / 10</span>
         </div>
         <div class="quiz-score">⭐ <span id="quizScore">0</span></div>
+        <div class="quiz-timer" id="quizTimer" hidden>⏱ <span id="timerNum">20</span></div>
       </div>
 
       <div class="quiz-card" id="quizCard">

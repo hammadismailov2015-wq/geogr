@@ -7,7 +7,7 @@ const STORE_KEY = "geo-trainer-v1";
 
 /* ---------- Хранилище прогресса ---------- */
 const Store = {
-  data: { bestStreak: 0, topics: {}, theme: "dark", palette: "ocean" },
+  data: { bestStreak: 0, topics: {}, theme: "dark", palette: "ocean", timed: false },
   load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
@@ -90,8 +90,50 @@ const Quiz = {
     this.mode = mode || "topic";
     this.label = label || "";
     this.wrongTopics = {};
+    this.timed = !!Store.data.timed;
     showScreen("quiz");
     this.render();
+  },
+
+  /* ----- Таймер (режим на время) ----- */
+  QTIME: 20,
+  stopTimer() { if (this.timerId) { clearInterval(this.timerId); this.timerId = null; } },
+  startTimer() {
+    this.stopTimer();
+    const box = $("#quizTimer");
+    if (!this.timed) { box.hidden = true; return; }
+    box.hidden = false;
+    this.timeLeft = this.QTIME;
+    this.paintTimer();
+    this.timerId = setInterval(() => {
+      this.timeLeft--;
+      this.paintTimer();
+      if (this.timeLeft <= 0) { this.stopTimer(); this.onTimeout(); }
+    }, 1000);
+  },
+  paintTimer() {
+    $("#timerNum").textContent = this.timeLeft;
+    $("#quizTimer").classList.toggle("low", this.timeLeft <= 5);
+  },
+  onTimeout() {
+    if (this.answered) return;
+    this.answered = true;
+    const item = this.list[this.index];
+    $$("#qOptions .opt").forEach((b, idx) => {
+      b.disabled = true;
+      if (idx === item.answer) b.classList.add("correct");
+    });
+    this.combo = 0;
+    this.wrongTopics[item.topic] = (this.wrongTopics[item.topic] || 0) + 1;
+    const combo = $("#comboBox");
+    combo.hidden = true;
+    const explain = $("#qExplain");
+    explain.innerHTML = `<strong>Время вышло ⏱</strong> ${item.explain}`;
+    explain.hidden = false;
+    explain.classList.remove("ok");
+    explain.classList.add("no");
+    $("#nextBtn").disabled = false;
+    Store.save();
   },
 
   render() {
@@ -129,10 +171,13 @@ const Quiz = {
     $("#quizCard").classList.remove("card-in");
     void $("#quizCard").offsetWidth; // перезапуск анимации
     $("#quizCard").classList.add("card-in");
+
+    this.startTimer();
   },
 
   choose(i, btn) {
     if (this.answered) return;
+    this.stopTimer();
     this.answered = true;
     const item = this.list[this.index];
     const correct = i === item.answer;
@@ -175,6 +220,7 @@ const Quiz = {
 
   next() {
     if (!this.answered) return;
+    this.stopTimer();
     if (this.index < this.list.length - 1) {
       this.index++;
       this.render();
@@ -184,6 +230,7 @@ const Quiz = {
   },
 
   finish() {
+    this.stopTimer();
     $("#qbarFill").style.width = "100%";
     const total = this.list.length;
     const score = this.score;
@@ -405,10 +452,27 @@ function init() {
   });
   $("#quitBtn").addEventListener("click", () => {
     if (confirm("Выйти из тренировки? Прогресс этого квиза не сохранится.")) {
+      Quiz.stopTimer();
       renderHome();
       showScreen("home");
     }
   });
+
+  const timeToggle = $("#timeToggle");
+  if (timeToggle) {
+    const paintToggle = () => {
+      const on = !!Store.data.timed;
+      timeToggle.classList.toggle("on", on);
+      timeToggle.setAttribute("aria-pressed", on ? "true" : "false");
+      $("#timeState").textContent = on ? "Вкл" : "Выкл";
+    };
+    paintToggle();
+    timeToggle.addEventListener("click", () => {
+      Store.data.timed = !Store.data.timed;
+      Store.save();
+      paintToggle();
+    });
+  }
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
   });
