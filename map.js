@@ -1,80 +1,85 @@
 /* ==========================================================================
    ИГРА «НАЙДИ НА КАРТЕ»
-   Отдельный модуль: карта мира + задания «найди материк / океан / реку …».
-   Ничего из quiz-логики (app.js) здесь не используется — только показ экрана.
+   Настоящая карта мира (worldmap.svg, равнопромежуточная проекция) как фон.
+   Поверх неё — невидимые кликабельные зоны материков/океанов и точки объектов,
+   размещённые по реальным координатам (долгота/широта).
+   Логика игры не зависит от quiz-части (app.js).
    ========================================================================== */
 "use strict";
 
 (function () {
-  // Размер «холста» карты (условные координаты, не настоящие градусы).
-  const W = 1000, H = 520;
+  const W = 1000, H = 556; // размер холста карты (пропорции worldmap.svg)
 
-  // --- Материки: каждый — многоугольник (список точек [x, y]) ---
+  // Перевод долготы/широты в координаты карты (проекция линейная):
+  const projX = (lon) => ((lon + 180) / 360) * W;
+  const projY = (lat) => 286 - lat * 3.2;
+
+  // --- Материки: контуры заданы по долготе/широте (потом переводятся в пиксели) ---
   const CONTINENTS = [
-    { id: "na", name: "Северная Америка", poly: [[150,90],[260,80],[300,120],[280,170],[300,200],[250,240],[200,235],[170,190],[140,150]] },
-    { id: "sa", name: "Южная Америка", poly: [[270,270],[320,265],[345,310],[330,370],[300,420],[275,400],[265,340]] },
-    { id: "eu", name: "Европа", poly: [[470,110],[540,100],[560,140],[520,165],[475,150]] },
-    { id: "af", name: "Африка", poly: [[480,195],[575,190],[600,250],[560,330],[520,350],[495,290],[480,240]] },
-    { id: "as", name: "Азия", poly: [[575,95],[760,85],[830,120],[820,170],[740,200],[660,205],[600,175],[575,140]] },
-    { id: "au", name: "Австралия", poly: [[800,320],[880,315],[900,355],[860,390],[805,375]] },
-    { id: "an", name: "Антарктида", poly: [[150,470],[880,470],[880,510],[150,510]] },
+    { id: "na", name: "Северная Америка", ll: [[-168,66],[-125,70],[-80,72],[-55,60],[-52,45],[-78,24],[-105,15],[-125,30],[-160,55]] },
+    { id: "sa", name: "Южная Америка", ll: [[-82,10],[-60,12],[-35,-5],[-35,-23],[-55,-40],[-70,-55],[-75,-40],[-82,-5]] },
+    { id: "eu", name: "Европа", ll: [[-10,58],[-10,43],[5,36],[28,36],[40,46],[40,60],[30,71],[5,62]] },
+    { id: "af", name: "Африка", ll: [[-18,35],[10,37],[35,32],[52,12],[50,-10],[35,-35],[18,-35],[10,-18],[-5,5],[-18,20]] },
+    { id: "as", name: "Азия", ll: [[42,46],[60,78],[120,75],[180,68],[180,50],[140,35],[122,12],[95,5],[78,8],[60,25],[46,14],[42,30]] },
+    { id: "au", name: "Австралия", ll: [[113,-11],[133,-11],[154,-20],[150,-38],[130,-33],[115,-35],[112,-22]] },
+    { id: "an", name: "Антарктида", ll: [[-180,-63],[180,-63],[180,-88],[-180,-88]] },
   ];
 
-  // --- Океаны: невидимые зоны для клика, подпись показывается после ответа ---
+  // --- Океаны: кликабельные зоны в открытой воде ---
   const OCEANS = [
-    { id: "pac", name: "Тихий", poly: [[10,90],[120,90],[120,430],[10,430]] },
-    { id: "atl", name: "Атлантический", poly: [[360,110],[465,110],[465,400],[360,400]] },
-    { id: "ind", name: "Индийский", poly: [[630,300],[790,300],[790,440],[630,440]] },
-    { id: "arc", name: "Северный Ледовитый", poly: [[150,15],[820,15],[820,60],[150,60]] },
-    { id: "sou", name: "Южный", poly: [[150,435],[880,435],[880,462],[150,462]] },
+    { id: "pac", name: "Тихий", ll: [[-160,40],[-100,40],[-100,-30],[-160,-30]] },
+    { id: "atl", name: "Атлантический", ll: [[-48,48],[-18,48],[-18,-32],[-48,-32]] },
+    { id: "ind", name: "Индийский", ll: [[58,2],[95,2],[95,-35],[58,-35]] },
+    { id: "arc", name: "Северный Ледовитый", ll: [[-160,78],[150,78],[150,86],[-160,86]] },
+    { id: "sou", name: "Южный", ll: [[-150,-56],[150,-56],[150,-62],[-150,-62]] },
   ];
 
-  // --- Точечные объекты: реки, озёра, горы и т.д. ---
+  // --- Точечные объекты по реальным координатам [долгота, широта] ---
   const FEATURES = [
-    { id: "nil",   type: "river",     name: "Нил",                x: 565, y: 225 },
-    { id: "amaz",  type: "river",     name: "Амазонка",           x: 300, y: 300 },
-    { id: "volga", type: "river",     name: "Волга",              x: 562, y: 158 },
-    { id: "baikal",type: "lake",      name: "Байкал",             x: 725, y: 165 },
-    { id: "caspi", type: "lake",      name: "Каспийское",         x: 600, y: 180 },
-    { id: "swamp", type: "swamp",     name: "Васюганское болото", x: 665, y: 120 },
-    { id: "vic",   type: "waterfall", name: "Виктория",           x: 538, y: 308 },
-    { id: "glac",  type: "glacier",   name: "Ледник Антарктиды",  x: 470, y: 488 },
-    { id: "evr",   type: "mountain",  name: "Эверест",            x: 700, y: 198 },
-    { id: "klu",   type: "volcano",   name: "Ключевская Сопка",   x: 820, y: 115 },
-    { id: "msk",   type: "city",      name: "Москва",             x: 520, y: 135 },
-    { id: "jpn",   type: "country",   name: "Япония",             x: 860, y: 182 },
+    { id: "nil",   type: "river",     name: "Нил",                lon: 32,   lat: 22 },
+    { id: "amaz",  type: "river",     name: "Амазонка",           lon: -60,  lat: -3 },
+    { id: "volga", type: "river",     name: "Волга",              lon: 47,   lat: 49 },
+    { id: "baikal",type: "lake",      name: "Байкал",             lon: 108,  lat: 53 },
+    { id: "caspi", type: "lake",      name: "Каспийское",         lon: 51,   lat: 42 },
+    { id: "swamp", type: "swamp",     name: "Васюганское болото", lon: 78,   lat: 57 },
+    { id: "vic",   type: "waterfall", name: "Виктория",           lon: 26,   lat: -18 },
+    { id: "glac",  type: "glacier",   name: "Ледник Антарктиды",  lon: 15,   lat: -76 },
+    { id: "evr",   type: "mountain",  name: "Эверест",            lon: 87,   lat: 28 },
+    { id: "klu",   type: "volcano",   name: "Ключевская Сопка",   lon: 160,  lat: 56 },
+    { id: "msk",   type: "city",      name: "Москва",             lon: 37.6, lat: 55.8 },
+    { id: "jpn",   type: "country",   name: "Япония",             lon: 138,  lat: 37 },
   ];
 
-  // Как называть тип объекта в задании «Найди …»
   const WORD = {
     continent: "материк", ocean: "океан", river: "реку", lake: "озеро",
     swamp: "болото", waterfall: "водопад", glacier: "ледник",
     mountain: "гору", volcano: "вулкан", city: "город", country: "страну",
   };
 
-  // ---------- Вспомогательные функции ----------
   const $ = (s) => document.querySelector(s);
+
+  // Переводим контуры материков/океанов из долготы/широты в пиксели карты
+  CONTINENTS.concat(OCEANS).forEach((s) => {
+    s.poly = s.ll.map(([lon, lat]) => [projX(lon), projY(lat)]);
+    s.c = centroid(s.poly);
+  });
+  FEATURES.forEach((f) => { f.x = projX(f.lon); f.y = projY(f.lat); });
 
   function centroid(poly) {
     let x = 0, y = 0;
     poly.forEach((p) => { x += p[0]; y += p[1]; });
     return { x: x / poly.length, y: y / poly.length };
   }
-
-  // Находится ли точка внутри многоугольника (алгоритм «испускания луча»)
   function inPoly(px, py, poly) {
     let inside = false;
     for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-      const xi = poly[i][0], yi = poly[i][1];
-      const xj = poly[j][0], yj = poly[j][1];
-      const hit = (yi > py) !== (yj > py) &&
-        px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
+      const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+      const hit = (yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
       if (hit) inside = !inside;
     }
     return inside;
   }
-
-  function pointsStr(poly) { return poly.map((p) => p.join(",")).join(" "); }
+  const ptsStr = (poly) => poly.map((p) => p.join(",")).join(" ");
   function shuffle(a) {
     a = a.slice();
     for (let i = a.length - 1; i > 0; i--) {
@@ -84,30 +89,21 @@
     return a;
   }
 
-  // ---------- Построение SVG-карты (один раз) ----------
+  // ---------- Построение SVG-карты ----------
   function buildSVG() {
     let s = `<svg class="geomap" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Карта мира">`;
-    // Океанские зоны (прозрачные, подсвечиваются только при ответе)
-    OCEANS.forEach((o) => {
-      s += `<polygon id="o-${o.id}" class="ocean-zone" points="${pointsStr(o.poly)}"></polygon>`;
-    });
-    // Материки
-    CONTINENTS.forEach((c) => {
-      s += `<polygon id="c-${c.id}" class="land" points="${pointsStr(c.poly)}"></polygon>`;
-    });
-    // Подписи материков и океанов (спрятаны, показываются после ответа)
-    CONTINENTS.forEach((c) => {
-      const m = centroid(c.poly);
-      s += `<text id="tc-${c.id}" class="mlabel" x="${m.x}" y="${m.y}">${c.name}</text>`;
-    });
-    OCEANS.forEach((o) => {
-      const m = centroid(o.poly);
-      s += `<text id="to-${o.id}" class="mlabel ocean" x="${m.x}" y="${m.y}">${o.name}</text>`;
-    });
-    // Точечные объекты + подписи
+    // Фон — настоящая карта мира
+    s += `<image href="worldmap.svg" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"></image>`;
+    // Кликабельные (невидимые) зоны материков и океанов
+    OCEANS.forEach((o) => { s += `<polygon id="o-${o.id}" class="zone" points="${ptsStr(o.poly)}"></polygon>`; });
+    CONTINENTS.forEach((c) => { s += `<polygon id="c-${c.id}" class="zone" points="${ptsStr(c.poly)}"></polygon>`; });
+    // Подписи (спрятаны, показываются после ответа)
+    CONTINENTS.forEach((c) => { s += `<text id="tc-${c.id}" class="mlabel" x="${c.c.x}" y="${c.c.y}">${c.name}</text>`; });
+    OCEANS.forEach((o) => { s += `<text id="to-${o.id}" class="mlabel ocean" x="${o.c.x}" y="${o.c.y}">${o.name}</text>`; });
+    // Точки-объекты
     FEATURES.forEach((f) => {
-      s += `<circle id="f-${f.id}" class="feat" cx="${f.x}" cy="${f.y}" r="7"></circle>`;
-      s += `<text id="tf-${f.id}" class="flabel" x="${f.x}" y="${f.y - 12}">${f.name}</text>`;
+      s += `<circle id="f-${f.id}" class="feat" cx="${f.x}" cy="${f.y}" r="8"></circle>`;
+      s += `<text id="tf-${f.id}" class="flabel" x="${f.x}" y="${f.y - 13}">${f.name}</text>`;
     });
     s += `</svg>`;
     return s;
@@ -119,8 +115,8 @@
 
   function buildQueue() {
     const all = []
-      .concat(CONTINENTS.map((c) => ({ kind: "continent", id: c.id, name: c.name, cx: centroid(c.poly).x, cy: centroid(c.poly).y })))
-      .concat(OCEANS.map((o) => ({ kind: "ocean", id: o.id, name: o.name, cx: centroid(o.poly).x, cy: centroid(o.poly).y })))
+      .concat(CONTINENTS.map((c) => ({ kind: "continent", id: c.id, name: c.name, cx: c.c.x, cy: c.c.y })))
+      .concat(OCEANS.map((o) => ({ kind: "ocean", id: o.id, name: o.name, cx: o.c.x, cy: o.c.y })))
       .concat(FEATURES.map((f) => ({ kind: "feature", type: f.type, id: f.id, name: f.name, cx: f.x, cy: f.y })));
     return shuffle(all).slice(0, 12);
   }
@@ -133,7 +129,7 @@
     }
     G.queue = buildQueue();
     G.i = 0; G.score = 0; G.finished = false;
-    if (window.showScreen) window.showScreen("map"); // функция из app.js
+    if (window.showScreen) window.showScreen("map");
     render();
   }
 
@@ -148,23 +144,19 @@
     G.answered = false;
     clearMarks();
     const t = G.queue[G.i];
-    const word = t.kind === "continent" ? WORD.continent
-      : t.kind === "ocean" ? WORD.ocean : WORD[t.type];
+    const word = t.kind === "continent" ? WORD.continent : t.kind === "ocean" ? WORD.ocean : WORD[t.type];
     $("#mapPrompt").innerHTML = `Найди ${word}: <b>${t.name}</b>`;
     $("#mapCount").textContent = `${G.i + 1} / ${G.queue.length}`;
     $("#mapScore").textContent = G.score;
     $("#mapBar").style.width = `${(G.i / G.queue.length) * 100}%`;
     $("#mapFeedback").hidden = true;
-    // Точки-объекты видны только на «точечных» заданиях
     svg.classList.toggle("show-feats", t.kind === "feature");
     const next = $("#mapNext");
     next.disabled = true;
     next.textContent = G.i === G.queue.length - 1 ? "Завершить ✓" : "Дальше →";
-    // Хук для автотестов: где находится правильный ответ (в координатах карты)
     window.__mapTarget = { kind: t.kind, id: t.id, x: t.cx, y: t.cy };
   }
 
-  // Перевод координат клика мыши в координаты карты
   function toMap(evt) {
     const pt = svg.createSVGPoint();
     pt.x = evt.clientX; pt.y = evt.clientY;
@@ -178,15 +170,13 @@
     let correct = false;
 
     if (t.kind === "feature") {
-      // Ближайшая точка к клику
       let best = null, bestD = Infinity;
       FEATURES.forEach((f) => {
         const d = (f.x - p.x) ** 2 + (f.y - p.y) ** 2;
         if (d < bestD) { bestD = d; best = f; }
       });
       correct = best && best.id === t.id;
-      const chosen = $("#f-" + best.id);
-      chosen.classList.add(correct ? "correct-feat" : "wrong-feat");
+      $("#f-" + best.id).classList.add(correct ? "correct-feat" : "wrong-feat");
       $("#tf-" + best.id).classList.add("show");
       if (!correct) {
         $("#f-" + t.id).classList.add("correct-feat");
@@ -199,7 +189,6 @@
       let found = null;
       set.forEach((sh) => { if (inPoly(p.x, p.y, sh.poly)) found = sh; });
       correct = found && found.id === t.id;
-      // Всегда подсвечиваем правильное место зелёным
       $("#" + pref + t.id).classList.add("correct-shape");
       $("#" + tpref + t.id).classList.add("show");
       if (found && !correct) {
@@ -221,7 +210,7 @@
   }
 
   function next() {
-    if (G.finished) { start(); return; }         // «Играть снова»
+    if (G.finished) { start(); return; }
     if (!G.answered) return;
     if (G.i < G.queue.length - 1) { G.i++; render(); }
     else finish();
@@ -249,7 +238,6 @@
     window.__mapTarget = null;
   }
 
-  // ---------- Подключение к странице ----------
   document.addEventListener("DOMContentLoaded", () => {
     const btn = $("#mapBtn");
     if (btn) btn.addEventListener("click", start);

@@ -280,12 +280,10 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
 .geomap {
   width: 100%; height: auto; display: block; border-radius: 12px;
   background: linear-gradient(180deg, #bfe3f5, #9ecbe8);
-  touch-action: manipulation;
+  cursor: pointer; touch-action: manipulation;
 }
-.land { fill: #b7d99b; stroke: #6fa257; stroke-width: 1.5; transition: fill .15s; }
-.geomap .land:hover { fill: #d0ecb6; cursor: pointer; }
-.ocean-zone { fill: transparent; stroke: none; cursor: pointer; }
-.feat { fill: #e64a3b; stroke: #fff; stroke-width: 2; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.zone { fill: transparent; stroke: none; }
+.feat { fill: #e64a3b; stroke: #fff; stroke-width: 2.5; opacity: 0; pointer-events: none; transition: opacity .15s; }
 .geomap.show-feats .feat { opacity: 1; }
 .geomap.show-feats { cursor: crosshair; }
 
@@ -300,11 +298,9 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
 }
 .mlabel.show, .flabel.show { opacity: 1; }
 
-.correct-shape { fill: #35c46b !important; }
-.wrong-shape { fill: #ff5a6a !important; }
-.ocean-zone.correct-shape { fill: rgba(53, 196, 107, .55) !important; }
-.ocean-zone.wrong-shape { fill: rgba(255, 90, 106, .45) !important; }
-.correct-feat { fill: #35c46b !important; }
+.correct-shape { fill: rgba(53, 196, 107, .55) !important; stroke: #1f7a45; stroke-width: 2; }
+.wrong-shape { fill: rgba(255, 90, 106, .5) !important; stroke: #a3212e; stroke-width: 2; }
+.correct-feat { fill: #35c46b !important; r: 10; }
 .wrong-feat { fill: #ff5a6a !important; }
 
 .map-feedback {
