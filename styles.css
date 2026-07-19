@@ -273,6 +273,27 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
 .tt-state { font-size: 13px; font-weight: 700; color: var(--muted); min-width: 34px; text-align: right; }
 .time-toggle.on .tt-state { color: var(--good); }
 
+/* Выбор времени на вопрос */
+.time-opts {
+  display: flex; flex-direction: column; gap: 8px;
+  margin: -6px 0 14px; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  animation: fade .25s;
+}
+.time-opts[hidden] { display: none; }
+.time-opts .to-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.to-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.to-chip {
+  flex: 1 1 auto; min-width: 52px; cursor: pointer;
+  padding: 9px 6px; border-radius: 10px; font-weight: 800; font-size: 14px;
+  color: var(--text); background: var(--card-2); border: 1px solid var(--border);
+  transition: border-color .15s, background .15s, color .15s, transform .1s;
+}
+.to-chip:hover { transform: translateY(-1px); }
+.to-chip.on {
+  color: #fff; background: var(--good); border-color: var(--good);
+}
+
 .quiz-card {
   background: var(--card); border: 1px solid var(--border); border-radius: 20px;
   padding: clamp(18px, 4vw, 30px); box-shadow: var(--shadow);

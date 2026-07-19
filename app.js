@@ -7,7 +7,7 @@ const STORE_KEY = "geo-trainer-v1";
 
 /* ---------- Хранилище прогресса ---------- */
 const Store = {
-  data: { bestStreak: 0, points: 0, topics: {}, theme: "dark", palette: "ocean", timed: false },
+  data: { bestStreak: 0, points: 0, topics: {}, theme: "dark", palette: "ocean", timed: false, qtime: 20 },
   load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
@@ -92,19 +92,19 @@ const Quiz = {
     this.label = label || "";
     this.wrongTopics = {};
     this.timed = !!Store.data.timed;
+    this.qtime = Store.data.qtime || 20;
     showScreen("quiz");
     this.render();
   },
 
   /* ----- Таймер (режим на время) ----- */
-  QTIME: 20,
   stopTimer() { if (this.timerId) { clearInterval(this.timerId); this.timerId = null; } },
   startTimer() {
     this.stopTimer();
     const box = $("#quizTimer");
     if (!this.timed) { box.hidden = true; return; }
     box.hidden = false;
-    this.timeLeft = this.QTIME;
+    this.timeLeft = this.qtime;
     this.paintTimer();
     this.timerId = setInterval(() => {
       this.timeLeft--;
@@ -114,7 +114,8 @@ const Quiz = {
   },
   paintTimer() {
     $("#timerNum").textContent = this.timeLeft;
-    $("#quizTimer").classList.toggle("low", this.timeLeft <= 5);
+    const lowAt = Math.min(5, Math.ceil(this.qtime / 2));
+    $("#quizTimer").classList.toggle("low", this.timeLeft <= lowAt);
   },
   onTimeout() {
     if (this.answered) return;
@@ -454,18 +455,30 @@ function init() {
 
   const timeToggle = $("#timeToggle");
   if (timeToggle) {
+    const chips = $$("#toChips .to-chip");
+    const paintChips = () => {
+      const sec = Store.data.qtime || 20;
+      chips.forEach((c) => c.classList.toggle("on", Number(c.dataset.sec) === sec));
+    };
     const paintToggle = () => {
       const on = !!Store.data.timed;
       timeToggle.classList.toggle("on", on);
       timeToggle.setAttribute("aria-pressed", on ? "true" : "false");
       $("#timeState").textContent = on ? "Вкл" : "Выкл";
+      $("#timeOpts").hidden = !on;            // выбор секунд — только когда режим включён
     };
+    paintChips();
     paintToggle();
     timeToggle.addEventListener("click", () => {
       Store.data.timed = !Store.data.timed;
       Store.save();
       paintToggle();
     });
+    chips.forEach((c) => c.addEventListener("click", () => {
+      Store.data.qtime = Number(c.dataset.sec);
+      Store.save();
+      paintChips();
+    }));
   }
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
