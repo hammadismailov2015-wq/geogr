@@ -437,21 +437,33 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
   filter: drop-shadow(0 0 4px rgba(255, 106, 0, .75));
 }
 .route-cursor { fill: #fff; stroke: #ff6a00; stroke-width: 3; }
-.wp .wp-dot { fill: #cbd5e1; stroke: #64748b; stroke-width: 2; transition: fill .2s; }
-.wp.show .wp-dot { fill: #ff6a00; stroke: #fff; r: 7; }
-.wp.start .wp-dot { fill: #16a34a; stroke: #fff; }
-.wp .wp-name, .wp .wp-date {
-  text-anchor: middle; opacity: 0; pointer-events: none;
-  paint-order: stroke; stroke: #fff; stroke-width: 3.5px; stroke-linejoin: round;
-  transition: opacity .25s;
-}
-.wp .wp-name { font: 800 14px "Segoe UI", sans-serif; fill: #7c2d12; }
-.wp .wp-date { font: 700 13px "Segoe UI", sans-serif; fill: #b45309; }
-.wp.show .wp-name, .wp.show .wp-date { opacity: 1; }
+.wp .wp-dot { fill: #e2e8f0; stroke: #64748b; stroke-width: 2; transition: fill .2s, stroke .2s, r .2s; }
+.wp.show .wp-dot { fill: #ff6a00; stroke: #fff; r: 8.5; }
+.wp.start.show .wp-dot { fill: #16a34a; }
+.wp-mini { fill: #cbd5e1; stroke: #64748b; stroke-width: 1.5; }
 .route-tag {
-  font: 800 13px "Segoe UI", sans-serif; fill: #166534; text-anchor: middle;
-  paint-order: stroke; stroke: #fff; stroke-width: 3.5px; stroke-linejoin: round;
+  font: 800 14px "Segoe UI", sans-serif; fill: #166534; text-anchor: middle;
+  paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round;
 }
+
+/* Крупный список пройденных остановок с датами */
+.route-log { display: flex; flex-direction: column; gap: 7px; margin-top: 12px; }
+.rlog-item {
+  display: flex; align-items: center; gap: 11px; padding: 9px 13px; border-radius: 11px;
+  background: var(--card-2); border: 1px solid var(--border); animation: rlogIn .3s ease;
+}
+.rlog-n {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  background: #ff6a00; color: #fff; font-weight: 800; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.rlog-item.start .rlog-n { background: #16a34a; }
+.rlog-place { flex: 1; min-width: 0; font-weight: 700; font-size: 15.5px; }
+.rlog-date {
+  margin-left: auto; flex: none; font-weight: 800; font-size: 14.5px;
+  color: var(--brand); white-space: nowrap;
+}
+@keyframes rlogIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 /* Адаптив */
 @media (max-width: 560px) {

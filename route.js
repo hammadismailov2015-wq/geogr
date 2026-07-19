@@ -132,20 +132,22 @@
     s += `<polyline class="route-base" points="${ptsAttr(path)}"></polyline>`;
     // Подсвеченная (пройденная) часть — обновляется при обводке
     s += `<polyline class="route-prog" id="routeProg" points=""></polyline>`;
-    // Опорные точки с подписями (название + дата)
+    // Опорные точки: у ключевых (с датой) — кружок-маркер, у промежуточных —
+    // маленькая точка. Названия и даты вынесены в крупный список под картой,
+    // чтобы на маленьком экране ничего не наползало и всё читалось чётко.
     exp.pts.forEach((p, i) => {
-      const cls = i === 0 ? "wp start" : i === exp.pts.length - 1 ? "wp end" : "wp";
-      const up = p.y > 70;                     // подпись сверху, если есть место
-      const ly = up ? p.y - 16 : p.y + 26;
-      s += `<g class="${cls}" id="wp-${i}">`;
-      s += `<circle class="wp-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="6"></circle>`;
-      s += `<text class="wp-name" x="${p.x.toFixed(1)}" y="${ly.toFixed(1)}">${p.n}</text>`;
-      if (p.d) s += `<text class="wp-date" x="${p.x.toFixed(1)}" y="${(ly + 15).toFixed(1)}">${p.d}</text>`;
-      s += `</g>`;
+      if (p.d) {
+        const cls = i === 0 ? "wp start" : i === exp.pts.length - 1 ? "wp end" : "wp";
+        s += `<g class="${cls}" id="wp-${i}">`;
+        s += `<circle class="wp-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="7"></circle>`;
+        s += `</g>`;
+      } else {
+        s += `<circle class="wp-mini" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.5"></circle>`;
+      }
     });
-    // Метки «Старт» / «Финиш»
-    const a = exp.pts[0], z = exp.pts[exp.pts.length - 1];
-    s += `<text class="route-tag" x="${a.x.toFixed(1)}" y="${(a.y + (a.y > 70 ? -30 : 42)).toFixed(1)}">▶ старт</text>`;
+    // Метка «старт»
+    const a = exp.pts[0];
+    s += `<text class="route-tag" x="${a.x.toFixed(1)}" y="${(a.y - 18).toFixed(1)}">▶ старт</text>`;
     // Курсор (голова обводки)
     s += `<circle class="route-cursor" id="routeCursor" cx="${a.x.toFixed(1)}" cy="${a.y.toFixed(1)}" r="9" opacity="0"></circle>`;
     s += `</svg>`;
@@ -159,8 +161,10 @@
     G.svg = svg;
     G.progIdx = 0; G.done = false; G.tracing = false;
 
-    // Стартовую точку показываем сразу
+    // Список остановок под картой — очищаем и сразу добавляем старт
+    resetLog();
     $("#wp-0").classList.add("show");
+    addLogItem(exp.pts[0]);
 
     $("#routePrompt").innerHTML =
       `<span class="rp-name">${exp.name}</span>` +
@@ -219,13 +223,15 @@
     cursor.setAttribute("cy", cur[1].toFixed(1));
     cursor.setAttribute("opacity", "1");
 
-    // Раскрываем достигнутые опорные точки
+    // Раскрываем достигнутые ключевые точки и добавляем их в список
+    const exp = EXPLORERS[G.idx];
     G.wp.forEach((wi, i) => {
-      if (k >= wi) {
+      const pt = exp.pts[i];
+      if (k >= wi && pt.d) {
         const g = $("#wp-" + i);
         if (g && !g.classList.contains("show")) {
           g.classList.add("show");
-          if (EXPLORERS[G.idx].pts[i].d) flashDate(EXPLORERS[G.idx].pts[i]);
+          addLogItem(pt);
         }
       }
     });
@@ -237,11 +243,22 @@
     if (k >= G.path.length - 1) finishExplorer();
   }
 
-  function flashDate(p) {
-    const fb = $("#routeFeedback");
-    fb.hidden = false;
-    fb.className = "map-feedback ok";
-    fb.innerHTML = `📍 <b>${p.n}</b> — <span class="hl-green">${p.d}</span>`;
+  function resetLog() {
+    const log = $("#routeLog");
+    if (log) log.innerHTML = "";
+    G.logN = 0;
+  }
+  function addLogItem(p) {
+    const log = $("#routeLog");
+    if (!log) return;
+    G.logN = (G.logN || 0) + 1;
+    const row = document.createElement("div");
+    row.className = "rlog-item" + (G.logN === 1 ? " start" : "");
+    row.innerHTML =
+      `<span class="rlog-n">${G.logN}</span>` +
+      `<span class="rlog-place">${p.n}</span>` +
+      (p.d ? `<span class="rlog-date">${p.d}</span>` : "");
+    log.appendChild(row);
   }
 
   function finishExplorer() {
