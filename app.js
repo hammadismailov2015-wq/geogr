@@ -46,6 +46,7 @@ function prepareQuestion(item, topicTitle) {
     q: item.q,
     explain: item.explain,
     topic: topicTitle,
+    img: item.img || null,
     options: mixed.map((o) => o.text),
     answer: mixed.findIndex((o) => o.correct),
   };
@@ -141,6 +142,9 @@ const Quiz = {
     this.answered = false;
     $("#qTopic").textContent = item.topic;
     $("#qText").textContent = item.q;
+    const pic = $("#qPic");
+    if (item.img && window.PICS) { pic.innerHTML = PICS.render(item.img); pic.hidden = false; }
+    else { pic.hidden = true; pic.innerHTML = ""; }
     $("#qCount").textContent = `${this.index + 1} / ${this.list.length}`;
     $("#quizScore").textContent = this.score;
     $("#qbarFill").style.width = `${(this.index / this.list.length) * 100}%`;

@@ -304,6 +304,12 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
 .opt.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, var(--card-2)); }
 .opt.wrong .opt-key { background: var(--bad); color: #2a0508; border-color: var(--bad); }
 
+.q-pic { margin: 4px 0 16px; display: flex; justify-content: center; }
+.q-pic svg {
+  width: 100%; max-width: 330px; height: auto; display: block;
+  background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
+}
+
 .q-explain {
   margin-top: 18px; padding: 14px 16px; border-radius: 12px; font-size: 14.5px;
   border: 1px solid var(--border); background: var(--card-2); animation: fade .3s;
