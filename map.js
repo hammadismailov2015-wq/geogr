@@ -155,6 +155,7 @@
     next.disabled = true;
     next.textContent = G.i === G.queue.length - 1 ? "Завершить ✓" : "Дальше →";
     window.__mapTarget = { kind: t.kind, id: t.id, x: t.cx, y: t.cy };
+    startTimer();
   }
 
   function toMap(evt) {
@@ -165,6 +166,7 @@
 
   function onClick(evt) {
     if (G.answered || G.finished) return;
+    stopTimer();
     const p = toMap(evt);
     const t = G.queue[G.i];
     let correct = false;
@@ -221,6 +223,7 @@
   function next() {
     if (G.finished) { start(); return; }
     if (!G.answered) return;
+    stopTimer();
     if (G.i < G.queue.length - 1) { G.i++; render(); }
     else finish();
   }
@@ -245,6 +248,50 @@
     nb.disabled = false;
     nb.textContent = "Играть снова ↻";
     window.__mapTarget = null;
+    stopTimer();
+    $("#mapTimer").hidden = true;
+  }
+
+  /* ----- Таймер (режим на время) ----- */
+  function stopTimer() { if (G.timerId) { clearInterval(G.timerId); G.timerId = null; } }
+  function startTimer() {
+    stopTimer();
+    const box = $("#mapTimer");
+    G.timed = !!(typeof Store !== "undefined" && Store.data.timed);
+    if (!G.timed || G.finished) { box.hidden = true; return; }
+    G.qtime = (typeof Store !== "undefined" && Store.data.qtime) || 20;
+    box.hidden = false;
+    G.timeLeft = G.qtime;
+    paintTimer();
+    G.timerId = setInterval(() => {
+      G.timeLeft--;
+      paintTimer();
+      if (G.timeLeft <= 0) { stopTimer(); onTimeout(); }
+    }, 1000);
+  }
+  function paintTimer() {
+    $("#mapTimerNum").textContent = G.timeLeft;
+    const lowAt = Math.min(5, Math.ceil(G.qtime / 2));
+    $("#mapTimer").classList.toggle("low", G.timeLeft <= lowAt);
+  }
+  function onTimeout() {
+    if (G.answered || G.finished) return;
+    G.answered = true;
+    const t = G.queue[G.i];
+    if (t.kind === "feature") {
+      $("#f-" + t.id).classList.add("correct-feat");
+      $("#tf-" + t.id).classList.add("show");
+    } else {
+      const pref = t.kind === "continent" ? "c-" : "o-";
+      const tpref = t.kind === "continent" ? "tc-" : "to-";
+      $("#" + pref + t.id).classList.add("correct-shape");
+      $("#" + tpref + t.id).classList.add("show");
+    }
+    const fb = $("#mapFeedback");
+    fb.hidden = false;
+    fb.className = "map-feedback no";
+    fb.innerHTML = `<strong>⏱ Время вышло!</strong> Правильное место подсвечено <span class="hl-green">зелёным</span>.`;
+    $("#mapNext").disabled = false;
   }
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -253,6 +300,7 @@
     $("#mapNext").addEventListener("click", next);
     const quit = $("#mapQuit");
     if (quit) quit.addEventListener("click", () => {
+      stopTimer();
       if (typeof renderHome === "function") renderHome();
       if (window.showScreen) window.showScreen("home");
     });
