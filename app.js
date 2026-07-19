@@ -7,7 +7,7 @@ const STORE_KEY = "geo-trainer-v1";
 
 /* ---------- Хранилище прогресса ---------- */
 const Store = {
-  data: { bestStreak: 0, topics: {}, theme: "dark", palette: "ocean", timed: false },
+  data: { bestStreak: 0, points: 0, topics: {}, theme: "dark", palette: "ocean", timed: false },
   load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
@@ -124,10 +124,7 @@ const Quiz = {
       b.disabled = true;
       if (idx === item.answer) b.classList.add("correct");
     });
-    this.combo = 0;
     this.wrongTopics[item.topic] = (this.wrongTopics[item.topic] || 0) + 1;
-    const combo = $("#comboBox");
-    combo.hidden = true;
     const explain = $("#qExplain");
     explain.innerHTML = `<strong>Время вышло ⏱</strong> ${item.explain}`;
     explain.hidden = false;
@@ -152,10 +149,6 @@ const Quiz = {
     const explain = $("#qExplain");
     explain.hidden = true;
     explain.textContent = "";
-
-    const combo = $("#comboBox");
-    combo.hidden = this.combo < 2;
-    $("#comboNum").textContent = this.combo;
 
     const next = $("#nextBtn");
     next.disabled = true;
@@ -195,22 +188,15 @@ const Quiz = {
     if (correct) {
       btn.classList.add("correct");
       this.score++;
-      this.combo++;
-      if (this.combo > Store.data.bestStreak) {
-        Store.data.bestStreak = this.combo;
-        $("#bestStreak").textContent = this.combo;
-      }
+      Store.data.points = (Store.data.points || 0) + 1;   // очко за правильный ответ
+      $("#totalPoints").textContent = Store.data.points;
     } else {
       btn.classList.add("wrong");
-      this.combo = 0;
       const key = item.topic;
       this.wrongTopics[key] = (this.wrongTopics[key] || 0) + 1;
     }
 
     $("#quizScore").textContent = this.score;
-    const combo = $("#comboBox");
-    combo.hidden = this.combo < 2;
-    $("#comboNum").textContent = this.combo;
 
     const explain = $("#qExplain");
     explain.innerHTML = `<strong>${correct ? "Верно! ✅" : "Не совсем 🤔"}</strong> ${item.explain}`;
@@ -340,7 +326,7 @@ function renderStats() {
   strip.innerHTML = `
     <div class="stat"><b>${totalQ}</b><span>всего вопросов</span></div>
     <div class="stat"><b>${plays}</b><span>пройдено тренировок</span></div>
-    <div class="stat"><b>${Store.data.bestStreak}</b><span>лучшая серия 🔥</span></div>`;
+    <div class="stat"><b>${Store.data.points || 0}</b><span>очки ⭐</span></div>`;
 }
 
 function startTopic(id) {
@@ -444,7 +430,7 @@ function init() {
   applyTheme(Store.data.theme || "dark");
   buildPalette();
   applyPalette(Store.data.palette || "ocean");
-  $("#bestStreak").textContent = Store.data.bestStreak || 0;
+  $("#totalPoints").textContent = Store.data.points || 0;
   renderHome();
 
   const search = $("#topicSearch");
