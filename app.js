@@ -345,8 +345,12 @@ function renderStats() {
 
 function startTopic(id) {
   const list = buildQuiz([id]);
+  // Вопросы с картинками ставим в начало, чтобы их всегда было видно
+  const withPic = list.filter((q) => q.img);
+  const rest = list.filter((q) => !q.img);
+  const ordered = withPic.concat(rest);
   Quiz.topicId = id;
-  Quiz.start(list, TOPICS[id].title, "topic");
+  Quiz.start(ordered, TOPICS[id].title, "topic");
 }
 
 function startExam() {
