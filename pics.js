@@ -57,6 +57,13 @@ window.PICS = (function () {
       for (let r = 0; r < 4; r++)
         for (let col = 0; col < 5; col++)
           g += `<circle cx="${X + 10 + col * (cw - 18) / 4}" cy="${Y + 9 + r * (ch - 16) / 3}" r="2.3" fill="#fff"/>`;
+    } else if (c === "eu") {
+      g = `<rect x="${X}" y="${Y}" width="${Wd}" height="${Ht}" fill="#003399"/>`;
+      const ecx = X + Wd / 2, ecy = Y + Ht / 2, rad = Ht * 0.33;
+      for (let i = 0; i < 12; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 6;
+        g += star(ecx + rad * Math.cos(a), ecy + rad * Math.sin(a), 9, "#ffcc00");
+      }
     }
     g += `<rect x="${X}" y="${Y}" width="${Wd}" height="${Ht}" fill="none" stroke="#334155" stroke-width="2"/>`;
     return frame(g);
@@ -350,6 +357,98 @@ window.PICS = (function () {
     return frame(s);
   }
 
+  // Пятиконечная звезда
+  function star(cx, cy, r, fill) {
+    const pts = [];
+    for (let i = 0; i < 10; i++) {
+      const rr = i % 2 ? r * 0.42 : r;
+      const a = -Math.PI / 2 + i * Math.PI / 5;
+      pts.push((cx + rr * Math.cos(a)).toFixed(1) + "," + (cy + rr * Math.sin(a)).toFixed(1));
+    }
+    return `<polygon points="${pts.join(" ")}" fill="${fill}"/>`;
+  }
+
+  // ---------- ОКЕАН: рельеф дна ----------
+  function oceanfloor(hi) {
+    let s = `<rect x="0" y="0" width="320" height="46" fill="#cfe8f7"/>`;
+    s += `<rect x="0" y="46" width="320" height="144" fill="#4a9fd4"/>`;
+    s += `<polygon points="0,28 56,34 66,72 135,86 180,150 250,150 258,150 266,178 274,150 320,150 320,190 0,190" fill="#7a6b5f"/>`;
+    const P = { shelf: [100, 80], slope: [156, 120], bed: [214, 152], trench: [266, 172] };
+    const p = P[hi] || P.shelf;
+    s += ring(p[0], p[1], hi === "trench" ? 15 : 18);
+    return frame(s);
+  }
+
+  // ---------- МОРЯ: залив и пролив ----------
+  function seamap(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#4a9fd4"/>`;
+    s += `<path d="M0,30 L86,30 Q48,95 86,160 L0,160 Z" fill="#8bbf6a"/>`;               // суша с заливом
+    s += `<path d="M320,18 L320,82 L232,82 Q252,48 240,18 Z" fill="#8bbf6a"/>`;           // земля 1
+    s += `<path d="M320,110 L320,178 L240,178 Q250,142 232,110 Z" fill="#8bbf6a"/>`;      // земля 2 (между ними пролив)
+    const P = { sea: [162, 40], bay: [58, 95], strait: [284, 96] };
+    const p = P[hi] || P.sea;
+    s += ring(p[0], p[1], 20);
+    return frame(s);
+  }
+
+  // ---------- ОСТРОВ / ПОЛУОСТРОВ ----------
+  function island(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#4a9fd4"/>`;
+    s += `<path d="M320,70 L320,190 L120,190 L155,150 Q205,140 235,120 Q285,96 320,70 Z" fill="#8bbf6a"/>`; // материк с полуостровом
+    s += `<ellipse cx="86" cy="78" rx="44" ry="30" fill="#8bbf6a"/>`;                     // остров
+    const P = { island: [86, 78], peninsula: [236, 120] };
+    const p = P[hi] || P.island;
+    s += ring(p[0], p[1], 24);
+    return frame(s);
+  }
+
+  // ---------- ПЛАН МЕСТНОСТИ: условные знаки ----------
+  function mapsign(sym) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#f2ede0"/>`;
+    if (sym === "forest") {
+      s += `<g fill="#2e7d32">`;
+      [[112, 82], [152, 70], [192, 84], [132, 112], [176, 110], [212, 100]].forEach((c) => s += `<circle cx="${c[0]}" cy="${c[1]}" r="12"/>`);
+      s += `</g>`;
+    } else if (sym === "meadow") {
+      s += `<g stroke="#2e7d32" stroke-width="3" stroke-linecap="round">`;
+      [[120, 82], [170, 82], [145, 112], [195, 112], [118, 118]].forEach((c) => { s += `<line x1="${c[0] - 4}" y1="${c[1]}" x2="${c[0] - 4}" y2="${c[1] - 16}"/><line x1="${c[0] + 4}" y1="${c[1]}" x2="${c[0] + 4}" y2="${c[1] - 16}"/>`; });
+      s += `</g>`;
+    } else if (sym === "swamp") {
+      s += `<g stroke="#1565c0" stroke-width="3.5" stroke-linecap="round">`;
+      [72, 95, 118].forEach((y) => { [130, 172, 214].forEach((x) => s += `<line x1="${x - 16}" y1="${y}" x2="${x + 16}" y2="${y}"/>`); });
+      s += `</g>`;
+    } else if (sym === "river") {
+      s += `<path d="M60,50 Q120,80 150,102 Q185,126 252,150" fill="none" stroke="#2b8ed6" stroke-width="5" stroke-linecap="round"/>`;
+    }
+    return frame(s);
+  }
+
+  // ---------- ЯЗЫКИ: письменность ----------
+  function script(sym) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#f2ede0"/>`;
+    const txt = sym === "cyrillic" ? "Абв" : sym === "latin" ? "Abc" : "文字";
+    s += `<text x="160" y="120" text-anchor="middle" font-size="70" font-weight="800" font-family="Segoe UI, sans-serif" fill="#3949ab">${txt}</text>`;
+    return frame(s);
+  }
+
+  // ---------- ЧАСОВЫЕ ПОЯСА: день и ночь ----------
+  function daynight(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#0b1230"/>`;
+    [[250, 28], [292, 58], [268, 150], [302, 112]].forEach((c) => s += `<circle cx="${c[0]}" cy="${c[1]}" r="1.5" fill="#fff"/>`);
+    s += `<circle cx="16" cy="95" r="30" fill="#ffd54a"/>`;
+    s += `<g stroke="#ffd54a" stroke-width="4" stroke-linecap="round"><line x1="52" y1="95" x2="74" y2="95"/><line x1="40" y1="62" x2="58" y2="74"/><line x1="40" y1="128" x2="58" y2="116"/></g>`;
+    const cx = 190, cy = 95, R = 72;
+    s += `<path d="M${cx},${cy - R} A${R},${R} 0 0,0 ${cx},${cy + R} Z" fill="#4a9fd4"/>`;   // день (левая)
+    s += `<path d="M${cx},${cy - R} A${R},${R} 0 0,1 ${cx},${cy + R} Z" fill="#16233f"/>`;   // ночь (правая)
+    s += `<ellipse cx="${cx - 34}" cy="${cy - 4}" rx="17" ry="26" fill="#6fae4f"/>`;
+    s += `<line x1="${cx}" y1="${cy - R}" x2="${cx}" y2="${cy + R}" stroke="#fff" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#9fc7e0" stroke-width="2"/>`;
+    const P = { day: [cx - 38, cy], night: [cx + 38, cy] };
+    const p = P[hi] || P.night;
+    s += ring(p[0], p[1], 22);
+    return frame(s);
+  }
+
   function frame(inner) {
     return `<svg viewBox="0 0 320 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Схема">${inner}</svg>`;
   }
@@ -376,6 +475,12 @@ window.PICS = (function () {
       if (spec.kind === "quake") return quake(spec.hi);
       if (spec.kind === "watercycle") return watercycle(spec.hi);
       if (spec.kind === "current") return current(spec.hi);
+      if (spec.kind === "oceanfloor") return oceanfloor(spec.hi);
+      if (spec.kind === "seamap") return seamap(spec.hi);
+      if (spec.kind === "island") return island(spec.hi);
+      if (spec.kind === "mapsign") return mapsign(spec.sym);
+      if (spec.kind === "script") return script(spec.sym);
+      if (spec.kind === "daynight") return daynight(spec.hi);
       return "";
     },
   };
