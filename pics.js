@@ -286,6 +286,70 @@ window.PICS = (function () {
     return frame(s);
   }
 
+  // ---------- ВУЛКАН (в разрезе) ----------
+  function volcano(hi) {
+    let s = `<rect x="0" y="0" width="320" height="150" fill="#cfe8f7"/>`;
+    s += `<rect x="0" y="150" width="320" height="40" fill="#5d4037"/>`;
+    s += `<ellipse cx="160" cy="172" rx="36" ry="13" fill="#e64a19"/><ellipse cx="160" cy="172" rx="36" ry="13" fill="none" stroke="#ffab91" stroke-width="1.5"/>`; // очаг
+    s += `<polygon points="44,150 160,44 276,150" fill="#8a7a6d"/>`;                                  // конус
+    s += `<polygon points="156,150 164,150 168,168 152,168" fill="#ff7043"/>`;                        // канал к очагу
+    s += `<polygon points="153,58 167,58 174,150 146,150" fill="#ff5722"/>`;                          // жерло
+    s += `<polygon points="158,52 172,52 214,150 196,150" fill="#ff8a50"/>`;                          // лава по склону
+    s += `<ellipse cx="160" cy="52" rx="14" ry="6" fill="#bf360c"/>`;                                 // кратер
+    s += `<g fill="#cfd8dc" opacity="0.85"><circle cx="160" cy="34" r="10"/><circle cx="150" cy="26" r="8"/><circle cx="173" cy="24" r="9"/></g>`; // дым
+    const P = { crater: [160, 50], vent: [160, 104], chamber: [160, 172], lava: [200, 120] };
+    const p = P[hi] || P.crater;
+    s += ring(p[0], p[1], hi === "chamber" ? 24 : 18);
+    return frame(s);
+  }
+
+  // ---------- ЗЕМЛЕТРЯСЕНИЕ (в разрезе) ----------
+  function quake(hi) {
+    let s = `<rect x="0" y="0" width="320" height="72" fill="#cfe8f7"/>`;
+    s += `<rect x="0" y="72" width="320" height="118" fill="#a9835d"/>`;
+    s += `<g fill="none" stroke="#e64a19" stroke-width="2.5"><circle cx="160" cy="150" r="24"/><circle cx="160" cy="150" r="42" opacity="0.6"/><circle cx="160" cy="150" r="60" opacity="0.35"/></g>`;
+    s += `<line x1="160" y1="150" x2="160" y2="72" stroke="#4e342e" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+    s += `<polygon points="160,136 165,148 178,150 165,152 160,164 155,152 142,150 155,148" fill="#ffca28" stroke="#e64a19" stroke-width="1.5"/>`; // очаг
+    const house = (x) => `<rect x="${x - 9}" y="54" width="18" height="16" fill="#eceff1" stroke="#90a4ae"/><polygon points="${x - 12},54 ${x},42 ${x + 12},54" fill="#b0413e"/>`;
+    s += house(132) + house(160) + house(188);
+    s += `<circle cx="160" cy="72" r="6" fill="#e11d2a" stroke="#fff" stroke-width="2"/>`;            // эпицентр
+    const P = { focus: [160, 150], epicenter: [160, 72], waves: [110, 128] };
+    const p = P[hi] || P.focus;
+    s += ring(p[0], p[1], 18);
+    return frame(s);
+  }
+
+  // ---------- КРУГОВОРОТ ВОДЫ ----------
+  function watercycle(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#dff1fb"/>`;
+    s += `<circle cx="284" cy="30" r="20" fill="#ffcf33"/>`;
+    s += `<path d="M0,120 Q90,110 150,150 L150,190 L0,190 Z" fill="#3f8fc0"/>`;                        // море
+    s += `<path d="M150,190 L150,150 Q210,120 260,150 L320,150 L320,190 Z" fill="#7cae5b"/>`;         // суша
+    s += `<polygon points="228,150 264,96 300,150" fill="#9e8b7e"/><polygon points="250,124 264,96 278,124 271,120 264,124 257,120" fill="#fff"/>`;
+    s += `<g fill="#ffffff"><ellipse cx="150" cy="50" rx="40" ry="20"/><ellipse cx="126" cy="58" rx="22" ry="15"/><ellipse cx="174" cy="58" rx="22" ry="15"/></g>`; // облако
+    s += `<g stroke="#2b7fb0" stroke-width="3" fill="none"><path d="M70,112 L70,76 M64,86 L70,76 L76,86"/><path d="M96,116 L96,82 M90,92 L96,82 L102,92"/></g>`; // испарение
+    s += `<g stroke="#2b7fb0" stroke-width="3" stroke-linecap="round"><line x1="206" y1="76" x2="201" y2="96"/><line x1="223" y1="76" x2="218" y2="96"/><line x1="240" y1="76" x2="235" y2="96"/></g>`; // осадки
+    s += `<path d="M262,150 Q210,150 150,168" fill="none" stroke="#2b8ed6" stroke-width="5" stroke-linecap="round"/>`; // река
+    const P = { evaporation: [82, 94], cloud: [150, 50], rain: [223, 88], river: [188, 158] };
+    const p = P[hi] || P.evaporation;
+    s += ring(p[0], p[1], 20);
+    return frame(s);
+  }
+
+  // ---------- МОРСКИЕ ТЕЧЕНИЯ ----------
+  function current(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#4a9fd4"/>`;
+    s += `<path d="M0,0 L90,0 Q70,60 100,100 Q70,150 90,190 L0,190 Z" fill="#8bbf6a"/>`;              // суша
+    s += `<path d="M150,170 Q120,110 150,50" fill="none" stroke="#e53935" stroke-width="7" stroke-linecap="round"/>`; // тёплое
+    s += `<polygon points="150,42 140,60 160,60" fill="#e53935"/>`;
+    s += `<path d="M240,30 Q272,100 240,160" fill="none" stroke="#1e88e5" stroke-width="7" stroke-linecap="round"/>`;  // холодное
+    s += `<polygon points="240,168 230,150 250,150" fill="#1e88e5"/>`;
+    const P = { warm: [135, 110], cold: [258, 96] };
+    const p = P[hi] || P.warm;
+    s += ring(p[0], p[1], 22);
+    return frame(s);
+  }
+
   function frame(inner) {
     return `<svg viewBox="0 0 320 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Схема">${inner}</svg>`;
   }
@@ -308,6 +372,10 @@ window.PICS = (function () {
       if (spec.kind === "weather") return weather(spec.sym);
       if (spec.kind === "zone") return zone(spec.sym);
       if (spec.kind === "soil") return soil(spec.hi);
+      if (spec.kind === "volcano") return volcano(spec.hi);
+      if (spec.kind === "quake") return quake(spec.hi);
+      if (spec.kind === "watercycle") return watercycle(spec.hi);
+      if (spec.kind === "current") return current(spec.hi);
       return "";
     },
   };
