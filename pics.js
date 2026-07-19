@@ -98,6 +98,194 @@ window.PICS = (function () {
     return frame(s);
   }
 
+  // ---------- ЛИТОСФЕРА: строение Земли ----------
+  function earth(hi) {
+    const cx = 160, cy = 96;
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#0b1020"/>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="86" fill="#e2733b"/>`;                                  // мантия
+    s += `<circle cx="${cx}" cy="${cy}" r="86" fill="none" stroke="#5d4037" stroke-width="7"/>`;   // земная кора
+    s += `<circle cx="${cx}" cy="${cy}" r="32" fill="#ffb300"/>`;                                   // ядро
+    s += `<circle cx="${cx}" cy="${cy}" r="32" fill="none" stroke="#ff8f00" stroke-width="3"/>`;
+    const P = { crust: [cx, cy - 84], mantle: [cx + 58, cy - 20], core: [cx, cy] };
+    const p = P[hi] || P.core;
+    s += ring(p[0], p[1], hi === "core" ? 20 : 16);
+    return frame(s);
+  }
+
+  // ---------- АТМОСФЕРА: слои ----------
+  function atmos(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#1e2b63"/>`;                          // верхние слои
+    s += `<rect x="0" y="72" width="320" height="54" fill="#7fb2e6"/>`;                             // стратосфера
+    s += `<rect x="0" y="126" width="320" height="46" fill="#bfe3f5"/>`;                            // тропосфера
+    s += `<rect x="0" y="172" width="320" height="18" fill="#7bbf6a"/>`;                            // земля
+    s += `<circle cx="40" cy="24" r="1.6" fill="#fff"/><circle cx="120" cy="18" r="1.4" fill="#fff"/><circle cx="230" cy="30" r="1.7" fill="#fff"/><circle cx="285" cy="16" r="1.4" fill="#fff"/>`;
+    s += `<g fill="#ffffff"><ellipse cx="210" cy="150" rx="28" ry="11"/><ellipse cx="190" cy="153" rx="16" ry="9"/></g>`;
+    s += `<polygon points="28,172 58,140 88,172" fill="#8d6e63"/><polygon points="58,172 58,140 88,172" fill="#795548"/>`;
+    const P = { upper: [120, 40], strato: [120, 99], tropo: [90, 150] };
+    const p = P[hi] || P.tropo;
+    s += ring(p[0], p[1], 17);
+    return frame(s);
+  }
+
+  // ---------- ОЗЁРА И БОЛОТА ----------
+  function waterland(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#cfe8c4"/>`;
+    s += `<ellipse cx="92" cy="102" rx="72" ry="46" fill="#3fa6dd"/>`;
+    s += `<ellipse cx="92" cy="102" rx="72" ry="46" fill="none" stroke="#2b7fb0" stroke-width="2"/>`;
+    s += `<ellipse cx="242" cy="120" rx="64" ry="42" fill="#6f9e5a"/>`;
+    s += `<ellipse cx="228" cy="126" rx="13" ry="6" fill="#4a86a8"/><ellipse cx="262" cy="114" rx="11" ry="5" fill="#4a86a8"/><ellipse cx="250" cy="138" rx="9" ry="4" fill="#4a86a8"/>`;
+    s += `<g stroke="#3f6b3a" stroke-width="2.4" stroke-linecap="round">`;
+    [[214, 120], [236, 108], [258, 128], [276, 118]].forEach((c) => { s += `<line x1="${c[0]}" y1="${c[1]}" x2="${c[0]}" y2="${c[1] - 16}"/>`; });
+    s += `</g>`;
+    const P = { lake: [92, 102], swamp: [242, 120] };
+    const p = P[hi] || P.lake;
+    s += ring(p[0], p[1], 22);
+    return frame(s);
+  }
+
+  // ---------- КООРДИНАТЫ: градусная сетка ----------
+  function grid(hi) {
+    const cx = 160, cy = 96, R = 84;
+    let s = `<circle cx="${cx}" cy="${cy}" r="${R}" fill="#bfe0f2" stroke="#2b6f9e" stroke-width="2"/>`;
+    s += `<clipPath id="gc"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath>`;
+    s += `<g clip-path="url(#gc)" stroke="#6a97b5" stroke-width="1.4" fill="none">`;
+    for (let dy = -56; dy <= 56; dy += 28) s += `<line x1="${cx - R}" y1="${cy + dy}" x2="${cx + R}" y2="${cy + dy}"/>`;
+    s += `<line x1="${cx}" y1="${cy - R}" x2="${cx}" y2="${cy + R}"/>`;
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="30" ry="${R}"/><ellipse cx="${cx}" cy="${cy}" rx="60" ry="${R}"/>`;
+    s += `</g>`;
+    s += `<line x1="${cx - R}" y1="${cy}" x2="${cx + R}" y2="${cy}" stroke="#12557f" stroke-width="2.6"/>`;
+    const P = { equator: [cx - 42, cy], meridian: [cx, cy - 42], parallel: [cx - 24, cy - 56] };
+    const p = P[hi] || P.equator;
+    s += ring(p[0], p[1], 17);
+    return frame(s);
+  }
+
+  // ---------- ЛЕДНИК ----------
+  function glacier(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#d7eefb"/>`;
+    s += `<rect x="0" y="152" width="320" height="38" fill="#bfe3f5"/>`;
+    s += `<polygon points="28,156 150,28 272,156" fill="#8a8f98"/>`;
+    s += `<polygon points="112,70 150,28 188,70 168,62 150,70 132,62" fill="#ffffff"/>`;
+    s += `<polygon points="150,58 170,118 150,160 130,118" fill="#eaf6ff" stroke="#bcdcef" stroke-width="1.5"/>`;
+    const P = { ice: [150, 118], snow: [150, 48] };
+    const p = P[hi] || P.ice;
+    s += ring(p[0], p[1], 19);
+    return frame(s);
+  }
+
+  // ---------- АЙСБЕРГ ----------
+  function iceberg(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#bfe3f5"/>`;
+    s += `<rect x="0" y="84" width="320" height="106" fill="#3f8fc0"/>`;
+    s += `<polygon points="122,84 150,150 220,156 236,84" fill="#cfeaf7" opacity="0.92"/>`;
+    s += `<polygon points="150,84 176,40 206,84" fill="#ffffff" stroke="#d6ecfb" stroke-width="1.5"/>`;
+    s += `<line x1="0" y1="84" x2="320" y2="84" stroke="#eaf6ff" stroke-width="2" stroke-dasharray="7 5"/>`;
+    if (hi === "under") s += ring(176, 122, 26);
+    return frame(s);
+  }
+
+  // ---------- ПОДЗЕМНЫЕ ВОДЫ ----------
+  function ground(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#cfe8f7"/>`;
+    s += `<rect x="0" y="44" width="320" height="26" fill="#8bbf6a"/>`;                             // почва
+    s += `<rect x="0" y="70" width="320" height="34" fill="#e9d7a6"/>`;                             // песок
+    s += `<rect x="0" y="104" width="320" height="20" fill="#7fb7d6"/>`;                            // вода в порах
+    s += `<rect x="0" y="124" width="320" height="66" fill="#9c7b57"/>`;                            // глина (водоупор)
+    s += `<rect x="150" y="40" width="16" height="64" fill="#6b6b6b"/>`;                            // колодец
+    s += `<rect x="150" y="104" width="16" height="20" fill="#2b7fb0"/>`;
+    const P = { aquifer: [74, 113], aquiclude: [74, 152], well: [158, 90] };
+    const p = P[hi] || P.aquifer;
+    s += ring(p[0], p[1], 18);
+    return frame(s);
+  }
+
+  // ---------- СОЛНЕЧНАЯ СИСТЕМА ----------
+  function solar(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#0b1230"/>`;
+    [[40, 26], [120, 20], [230, 34], [292, 22], [70, 150], [260, 158]].forEach((c) => { s += `<circle cx="${c[0]}" cy="${c[1]}" r="1.5" fill="#fff"/>`; });
+    s += `<circle cx="16" cy="95" r="40" fill="#ffd54a"/><circle cx="16" cy="95" r="40" fill="none" stroke="#ffb300" stroke-width="2"/>`;
+    s += `<ellipse cx="252" cy="95" rx="27" ry="8" fill="none" stroke="#cbb37a" stroke-width="3" transform="rotate(-18 252 95)"/>`;
+    const pl = [[70, 6, "#b0a08f"], [100, 9, "#d9a066"], [132, 10, "#3f8fd6"], [160, 7, "#c1440e"], [206, 20, "#d9b38c"], [252, 15, "#e3c98a"], [288, 10, "#9fe0e6"], [312, 8, "#4b6fd6"]];
+    pl.forEach((c) => { s += `<circle cx="${c[0]}" cy="95" r="${c[1]}" fill="${c[2]}"/>`; });
+    const P = { sun: [16, 95, 28], earth: [132, 95, 16], jupiter: [206, 95, 26], saturn: [252, 95, 24] };
+    const p = P[hi] || P.earth;
+    s += ring(p[0], p[1], p[2]);
+    return frame(s);
+  }
+
+  // ---------- ПОГОДА: значки ----------
+  function weather(sym) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#dff1fb"/>`;
+    const cloud = (cx, cy, f) =>
+      `<g fill="${f || "#c8d3de"}"><ellipse cx="${cx}" cy="${cy}" rx="48" ry="24"/>` +
+      `<ellipse cx="${cx - 32}" cy="${cy + 10}" rx="26" ry="18"/><ellipse cx="${cx + 32}" cy="${cy + 10}" rx="26" ry="18"/>` +
+      `<rect x="${cx - 58}" y="${cy + 6}" width="116" height="22" rx="11"/></g>`;
+    if (sym === "sun") {
+      s += `<g stroke="#f6a821" stroke-width="6" stroke-linecap="round">`;
+      for (let a = 0; a < 360; a += 45) {
+        const r = a * Math.PI / 180;
+        s += `<line x1="${(160 + Math.cos(r) * 46).toFixed(1)}" y1="${(95 + Math.sin(r) * 46).toFixed(1)}" x2="${(160 + Math.cos(r) * 66).toFixed(1)}" y2="${(95 + Math.sin(r) * 66).toFixed(1)}"/>`;
+      }
+      s += `</g><circle cx="160" cy="95" r="34" fill="#ffcf33" stroke="#f6a821" stroke-width="3"/>`;
+    } else if (sym === "rain") {
+      s += cloud(160, 70);
+      s += `<g stroke="#3f8fd6" stroke-width="4" stroke-linecap="round">`;
+      [120, 150, 180, 210].forEach((x) => { s += `<line x1="${x}" y1="116" x2="${x - 8}" y2="146"/>`; });
+      s += `</g>`;
+    } else if (sym === "snow") {
+      s += cloud(160, 70);
+      s += `<g fill="#ffffff" stroke="#b6c6d2" stroke-width="1">`;
+      [[120, 132], [150, 142], [180, 132], [210, 142], [135, 160], [195, 160]].forEach((c) => { s += `<circle cx="${c[0]}" cy="${c[1]}" r="5"/>`; });
+      s += `</g>`;
+    } else if (sym === "storm") {
+      s += cloud(160, 68, "#8894a2");
+      s += `<polygon points="150,110 176,110 160,136 178,136 146,176 158,144 140,144" fill="#ffd23f" stroke="#e0a500" stroke-width="1.5"/>`;
+    }
+    return frame(s);
+  }
+
+  // ---------- ПРИРОДНЫЕ ЗОНЫ: пейзажи ----------
+  function zone(sym) {
+    let s = "";
+    if (sym === "desert") {
+      s += `<rect x="0" y="0" width="320" height="120" fill="#cfe8f7"/><circle cx="255" cy="44" r="26" fill="#ffcf33"/>`;
+      s += `<rect x="0" y="108" width="320" height="82" fill="#f0d488"/>`;
+      s += `<path d="M0,150 Q80,120 160,150 T320,150 L320,190 L0,190 Z" fill="#e6c46e"/>`;
+      s += `<g fill="#3f9e57"><rect x="150" y="118" width="12" height="48" rx="6"/><rect x="132" y="130" width="10" height="22" rx="5"/><rect x="170" y="126" width="10" height="26" rx="5"/></g>`;
+    } else if (sym === "taiga") {
+      s += `<rect x="0" y="0" width="320" height="140" fill="#cfe8f7"/><rect x="0" y="130" width="320" height="60" fill="#7cae5b"/>`;
+      const fir = (x, b) => `<g fill="#1f6b3a"><polygon points="${x},${b - 70} ${x - 24},${b - 30} ${x + 24},${b - 30}"/><polygon points="${x},${b - 52} ${x - 28},${b - 6} ${x + 28},${b - 6}"/></g><rect x="${x - 4}" y="${b - 8}" width="8" height="14" fill="#6b4a2b"/>`;
+      s += fir(70, 148) + fir(160, 152) + fir(250, 148);
+    } else if (sym === "tundra") {
+      s += `<rect x="0" y="0" width="320" height="130" fill="#c3d3dd"/><circle cx="60" cy="40" r="20" fill="#ffe6a0"/>`;
+      s += `<rect x="0" y="120" width="320" height="70" fill="#cdd8cc"/>`;
+      s += `<g fill="#ffffff"><ellipse cx="90" cy="150" rx="34" ry="10"/><ellipse cx="220" cy="165" rx="44" ry="12"/><ellipse cx="272" cy="140" rx="24" ry="8"/></g>`;
+      s += `<g fill="#6b7f4a"><circle cx="150" cy="150" r="5"/><circle cx="166" cy="152" r="4"/><circle cx="58" cy="170" r="5"/></g>`;
+    } else if (sym === "steppe") {
+      s += `<rect x="0" y="0" width="320" height="120" fill="#cfe8f7"/><circle cx="255" cy="40" r="24" fill="#ffcf33"/>`;
+      s += `<rect x="0" y="112" width="320" height="78" fill="#c9b24a"/>`;
+      s += `<g stroke="#9c8f3a" stroke-width="2.4" stroke-linecap="round">`;
+      [30, 70, 120, 175, 225, 285].forEach((x) => { s += `<line x1="${x}" y1="150" x2="${x - 5}" y2="128"/><line x1="${x}" y1="150" x2="${x + 5}" y2="128"/><line x1="${x}" y1="150" x2="${x}" y2="126"/>`; });
+      s += `</g>`;
+    }
+    return frame(s);
+  }
+
+  // ---------- ПОЧВА: горизонты (разрез) ----------
+  function soil(hi) {
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#cfe8f7"/>`;
+    s += `<rect x="0" y="30" width="320" height="20" fill="#6fae4f"/>`;                             // трава
+    s += `<rect x="0" y="50" width="320" height="42" fill="#4a3527"/>`;                             // перегнойный (тёмный)
+    s += `<rect x="0" y="92" width="320" height="40" fill="#8a6b4a"/>`;                             // переходный
+    s += `<rect x="0" y="132" width="320" height="58" fill="#9c9186"/>`;                            // материнская порода
+    s += `<g fill="#7d7266"><circle cx="60" cy="160" r="8"/><circle cx="150" cy="170" r="10"/><circle cx="250" cy="158" r="9"/><circle cx="212" cy="177" r="7"/></g>`;
+    s += `<g stroke="#3f2d1e" stroke-width="2" fill="none"><path d="M80,50 q-6,20 4,40"/><path d="M160,50 q8,18 -2,38"/><path d="M240,50 q-4,22 6,40"/></g>`;
+    const P = { humus: [70, 71], rock: [70, 160] };
+    const p = P[hi] || P.humus;
+    s += ring(p[0], p[1], 18);
+    return frame(s);
+  }
+
   function frame(inner) {
     return `<svg viewBox="0 0 320 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Схема">${inner}</svg>`;
   }
@@ -109,6 +297,17 @@ window.PICS = (function () {
       if (spec.kind === "flag") return flag(spec.c);
       if (spec.kind === "compass") return compass(spec.hi);
       if (spec.kind === "mountain") return mountain(spec.hi);
+      if (spec.kind === "earth") return earth(spec.hi);
+      if (spec.kind === "atmos") return atmos(spec.hi);
+      if (spec.kind === "waterland") return waterland(spec.hi);
+      if (spec.kind === "grid") return grid(spec.hi);
+      if (spec.kind === "glacier") return glacier(spec.hi);
+      if (spec.kind === "iceberg") return iceberg(spec.hi);
+      if (spec.kind === "ground") return ground(spec.hi);
+      if (spec.kind === "solar") return solar(spec.hi);
+      if (spec.kind === "weather") return weather(spec.sym);
+      if (spec.kind === "zone") return zone(spec.sym);
+      if (spec.kind === "soil") return soil(spec.hi);
       return "";
     },
   };
