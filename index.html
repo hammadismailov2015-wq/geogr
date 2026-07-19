@@ -6,7 +6,15 @@
   <title>Гео-Тренажёр · 6 класс</title>
   <meta name="description" content="Интерактивный тренажёр по географии: океаны, моря, реки и атмосфера." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Подключаем стили со свежей версией, чтобы после обновлений не оставался
+    // старый кэшированный styles.css. На file:// query не добавляем.
+    (function () {
+      var online = location.protocol === "http:" || location.protocol === "https:";
+      var href = "styles.css" + (online ? "?v=" + Date.now() : "");
+      document.write('<link rel="stylesheet" href="' + href + '">');
+    })();
+  </script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
 </head>
 <body>
