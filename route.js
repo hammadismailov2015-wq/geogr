@@ -126,30 +126,51 @@
     const { path, wp } = buildPath(exp.pts);
     G.path = path; G.wp = wp;
 
-    let s = `<svg class="routemap" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Карта маршрута">`;
+    // --- Приближаем карту к области маршрута: «вырезаем» лишнее, регион на весь холст ---
+    const xs = exp.pts.map((p) => p.x), ys = exp.pts.map((p) => p.y);
+    let minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    let minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    const padX = (maxX - minX) * 0.16 + 36, padY = (maxY - minY) * 0.16 + 44;
+    minX -= padX; maxX += padX; minY -= padY; maxY += padY;
+    let rw = maxX - minX, rh = maxY - minY;
+    const targetA = 1.5;                         // приятное соотношение сторон карты
+    if (rw / rh < targetA) { const nw = rh * targetA; minX -= (nw - rw) / 2; rw = nw; }
+    else { const nh = rw / targetA; minY -= (nh - rh) / 2; rh = nh; }
+    if (rw > W) { minX = 0; rw = W; } else if (minX < 0) { minX = 0; }
+    if (minX + rw > W) minX = W - rw;
+    if (rh > H) { minY = 0; rh = H; } else if (minY < 0) { minY = 0; }
+    if (minY + rh > H) minY = H - rh;
+
+    // Размеры точек/шрифта — доля от ширины региона, чтобы на экране были
+    // одинаково крупными при любом приближении.
+    const dotR = rw * 0.021; G.dotR = dotR;
+    const miniR = rw * 0.013;
+    const curR = rw * 0.03;
+    const tagF = rw * 0.045;
+
+    let s = `<svg class="routemap" viewBox="${minX.toFixed(1)} ${minY.toFixed(1)} ${rw.toFixed(1)} ${rh.toFixed(1)}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Карта маршрута">`;
     s += `<image href="worldmap.svg" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"></image>`;
     // Серая линия всего маршрута
     s += `<polyline class="route-base" points="${ptsAttr(path)}"></polyline>`;
     // Подсвеченная (пройденная) часть — обновляется при обводке
     s += `<polyline class="route-prog" id="routeProg" points=""></polyline>`;
     // Опорные точки: у ключевых (с датой) — кружок-маркер, у промежуточных —
-    // маленькая точка. Названия и даты вынесены в крупный список под картой,
-    // чтобы на маленьком экране ничего не наползало и всё читалось чётко.
+    // маленькая точка. Названия и даты — в крупном списке под картой.
     exp.pts.forEach((p, i) => {
       if (p.d) {
         const cls = i === 0 ? "wp start" : i === exp.pts.length - 1 ? "wp end" : "wp";
         s += `<g class="${cls}" id="wp-${i}">`;
-        s += `<circle class="wp-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="7"></circle>`;
+        s += `<circle class="wp-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${dotR.toFixed(2)}"></circle>`;
         s += `</g>`;
       } else {
-        s += `<circle class="wp-mini" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.5"></circle>`;
+        s += `<circle class="wp-mini" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${miniR.toFixed(2)}"></circle>`;
       }
     });
     // Метка «старт»
     const a = exp.pts[0];
-    s += `<text class="route-tag" x="${a.x.toFixed(1)}" y="${(a.y - 18).toFixed(1)}">▶ старт</text>`;
+    s += `<text class="route-tag" x="${a.x.toFixed(1)}" y="${(a.y - dotR * 1.9).toFixed(1)}" font-size="${tagF.toFixed(1)}">▶ старт</text>`;
     // Курсор (голова обводки)
-    s += `<circle class="route-cursor" id="routeCursor" cx="${a.x.toFixed(1)}" cy="${a.y.toFixed(1)}" r="9" opacity="0"></circle>`;
+    s += `<circle class="route-cursor" id="routeCursor" cx="${a.x.toFixed(1)}" cy="${a.y.toFixed(1)}" r="${curR.toFixed(2)}" opacity="0"></circle>`;
     s += `</svg>`;
     return s;
   }
@@ -163,7 +184,7 @@
 
     // Список остановок под картой — очищаем и сразу добавляем старт
     resetLog();
-    $("#wp-0").classList.add("show");
+    revealDot(0);
     addLogItem(exp.pts[0]);
 
     $("#routePrompt").innerHTML =
@@ -227,13 +248,7 @@
     const exp = EXPLORERS[G.idx];
     G.wp.forEach((wi, i) => {
       const pt = exp.pts[i];
-      if (k >= wi && pt.d) {
-        const g = $("#wp-" + i);
-        if (g && !g.classList.contains("show")) {
-          g.classList.add("show");
-          addLogItem(pt);
-        }
-      }
+      if (k >= wi && pt.d && revealDot(i)) addLogItem(pt);
     });
 
     const pct = Math.round((k / (G.path.length - 1)) * 100);
@@ -243,6 +258,14 @@
     if (k >= G.path.length - 1) finishExplorer();
   }
 
+  function revealDot(i) {
+    const g = $("#wp-" + i);
+    if (!g || g.classList.contains("show")) return false;
+    g.classList.add("show");
+    const dot = g.querySelector(".wp-dot");
+    if (dot) dot.setAttribute("r", (G.dotR * 1.28).toFixed(2));
+    return true;
+  }
   function resetLog() {
     const log = $("#routeLog");
     if (log) log.innerHTML = "";
