@@ -404,21 +404,34 @@ window.PICS = (function () {
 
   // ---------- ПЛАН МЕСТНОСТИ: условные знаки ----------
   function mapsign(sym) {
-    let s = `<rect x="0" y="0" width="320" height="190" fill="#f2ede0"/>`;
+    let s = `<rect x="0" y="0" width="320" height="190" fill="#dff1fb"/>`;
     if (sym === "forest") {
-      s += `<g fill="#2e7d32">`;
-      [[112, 82], [152, 70], [192, 84], [132, 112], [176, 110], [212, 100]].forEach((c) => s += `<circle cx="${c[0]}" cy="${c[1]}" r="12"/>`);
-      s += `</g>`;
+      s += `<rect x="0" y="150" width="320" height="40" fill="#8fbf6a"/>`;               // трава
+      const tree = (x, sc) =>
+        `<rect x="${x - 4 * sc}" y="${150 - 26 * sc}" width="${8 * sc}" height="${26 * sc}" fill="#7a4a25"/>` +
+        `<circle cx="${x}" cy="${150 - 40 * sc}" r="${20 * sc}" fill="#2e7d32"/>` +
+        `<circle cx="${x - 13 * sc}" cy="${150 - 30 * sc}" r="${14 * sc}" fill="#358a34"/>` +
+        `<circle cx="${x + 13 * sc}" cy="${150 - 30 * sc}" r="${14 * sc}" fill="#358a34"/>`;
+      s += tree(100, 1) + tree(215, 1) + tree(158, 1.15);
     } else if (sym === "meadow") {
-      s += `<g stroke="#2e7d32" stroke-width="3" stroke-linecap="round">`;
-      [[120, 82], [170, 82], [145, 112], [195, 112], [118, 118]].forEach((c) => { s += `<line x1="${c[0] - 4}" y1="${c[1]}" x2="${c[0] - 4}" y2="${c[1] - 16}"/><line x1="${c[0] + 4}" y1="${c[1]}" x2="${c[0] + 4}" y2="${c[1] - 16}"/>`; });
+      s += `<rect x="0" y="118" width="320" height="72" fill="#9ccf74"/>`;                // луг
+      s += `<g stroke="#3f7d2e" stroke-width="3" stroke-linecap="round" fill="none">`;
+      [66, 104, 142, 180, 218, 256].forEach((x) => { s += `<path d="M${x},152 q-7,-22 -3,-32 M${x},152 q1,-28 1,-36 M${x},152 q9,-20 7,-30"/>`; });
       s += `</g>`;
+      s += `<circle cx="128" cy="120" r="5" fill="#ffd23f"/><circle cx="205" cy="128" r="5" fill="#e57373"/>`; // цветы
     } else if (sym === "swamp") {
-      s += `<g stroke="#1565c0" stroke-width="3.5" stroke-linecap="round">`;
-      [72, 95, 118].forEach((y) => { [130, 172, 214].forEach((x) => s += `<line x1="${x - 16}" y1="${y}" x2="${x + 16}" y2="${y}"/>`); });
+      s += `<rect x="0" y="112" width="320" height="78" fill="#6f9e7f"/>`;                // топь
+      s += `<g fill="#4a86a8"><ellipse cx="108" cy="152" rx="36" ry="9"/><ellipse cx="212" cy="142" rx="30" ry="8"/><ellipse cx="160" cy="168" rx="26" ry="7"/></g>`; // вода
+      s += `<g stroke="#4e6b3a" stroke-width="3" stroke-linecap="round">`;
+      [92, 132, 198, 240].forEach((x) => s += `<line x1="${x}" y1="150" x2="${x}" y2="114"/>`);
+      s += `</g>`;
+      s += `<g fill="#6d4c2b">`;
+      [92, 132, 198, 240].forEach((x) => s += `<rect x="${x - 3}" y="108" width="6" height="14" rx="3"/>`); // початки камыша
       s += `</g>`;
     } else if (sym === "river") {
-      s += `<path d="M60,50 Q120,80 150,102 Q185,126 252,150" fill="none" stroke="#2b8ed6" stroke-width="5" stroke-linecap="round"/>`;
+      s += `<rect x="0" y="0" width="320" height="190" fill="#9ccf74"/>`;                 // берега
+      s += `<path d="M44,30 Q150,70 150,110 Q150,150 262,168 L280,156 Q168,140 168,110 Q168,80 60,20 Z" fill="#3b93d6"/>`;
+      s += `<path d="M52,26 Q159,66 159,110 Q159,150 270,162" fill="none" stroke="#bfe3f5" stroke-width="2"/>`;
     }
     return frame(s);
   }
