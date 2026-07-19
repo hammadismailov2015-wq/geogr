@@ -123,11 +123,11 @@ const Quiz = {
     const item = this.list[this.index];
     $$("#qOptions .opt").forEach((b, idx) => {
       b.disabled = true;
-      if (idx === item.answer) b.classList.add("correct");
+      if (idx === item.answer) b.classList.add("wrong");   // не успели — подсвечиваем красным
     });
     this.wrongTopics[item.topic] = (this.wrongTopics[item.topic] || 0) + 1;
     const explain = $("#qExplain");
-    explain.innerHTML = `<strong>Время вышло ⏱</strong> ${item.explain}`;
+    explain.innerHTML = `<strong>⏱ Время вышло!</strong> Правильный ответ выделен. ${item.explain}`;
     explain.hidden = false;
     explain.classList.remove("ok");
     explain.classList.add("no");

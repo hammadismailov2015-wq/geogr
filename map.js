@@ -198,7 +198,16 @@
     }
 
     G.answered = true;
-    if (correct) G.score++;
+    if (correct) {
+      G.score++;
+      // Очко в общий счёт ⭐ (как в викторине)
+      if (typeof Store !== "undefined") {
+        Store.data.points = (Store.data.points || 0) + 1;
+        Store.save();
+        const tp = $("#totalPoints");
+        if (tp) tp.textContent = Store.data.points;
+      }
+    }
     $("#mapScore").textContent = G.score;
     const fb = $("#mapFeedback");
     fb.hidden = false;
