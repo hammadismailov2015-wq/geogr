@@ -66,6 +66,11 @@
           <strong>Найдите на карте</strong>
           <small>Игра по карте мира</small>
         </button>
+        <button class="act-btn route" id="routeBtn">
+          <span class="act-ico">🧭</span>
+          <strong>По маршруту</strong>
+          <small>Путешествия первооткрывателей</small>
+        </button>
       </div>
 
       <div class="topic-search">
@@ -107,6 +112,27 @@
       <div class="quiz-foot">
         <div class="map-hint">Нажмите на нужное место на карте</div>
         <button class="primary-btn" id="mapNext" disabled>Дальше →</button>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: ИГРА «ПО МАРШРУТУ ПУТЕШЕСТВЕННИКОВ» -->
+    <section class="screen" id="screen-route">
+      <div class="quiz-head">
+        <button class="back-btn" id="routeQuit">← Выйти</button>
+        <div class="quiz-progress">
+          <div class="qbar"><div class="qbar-fill" id="routeBar"></div></div>
+          <span class="qcount" id="routeCount">1 / 5</span>
+        </div>
+        <div class="quiz-score">🧭 <span id="routePct">0%</span></div>
+      </div>
+
+      <div class="route-prompt" id="routePrompt"></div>
+      <div class="map-wrap"><div id="routeHost"></div></div>
+      <div class="map-feedback" id="routeFeedback" hidden></div>
+
+      <div class="quiz-foot">
+        <div class="map-hint" id="routeHint">Проведите пальцем (или мышкой с зажатой кнопкой) по серой линии маршрута — от старта к финишу</div>
+        <button class="primary-btn" id="routeNext" disabled>Следующий путешественник →</button>
       </div>
     </section>
 
@@ -168,7 +194,7 @@
     (function () {
       var online = location.protocol === "http:" || location.protocol === "https:";
       var q = online ? "?v=" + Date.now() : "";
-      ["data.js", "app.js", "map.js"].forEach(function (src) {
+      ["data.js", "app.js", "map.js", "route.js"].forEach(function (src) {
         document.write('<script src="' + src + q + '"><\/script>');
       });
     })();
