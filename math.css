@@ -43,13 +43,30 @@ html, body { margin: 0; padding: 0; }
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(139, 92, 246, .18), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgba(34, 211, 238, .12), transparent 55%),
+    radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb, var(--brand-2) 22%, transparent), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 55%),
     var(--bg);
   color: var(--text);
   min-height: 100vh;
   line-height: 1.5;
 }
+
+/* ---------- ПАЛИТРЫ (цвет оформления) ----------
+   Каждая палитра меняет фон и акцентные цвета.
+   В тёмной теме — тёмные тона, в светлой (.light) — светлые. */
+:root[data-palette="indigo"]  { --brand:#6366f1; --brand-2:#8b5cf6; --accent:#22d3ee; --bg:#0f172a; --bg-soft:#1e293b; }
+:root[data-palette="ocean"]   { --brand:#3b82f6; --brand-2:#06b6d4; --accent:#38bdf8; --bg:#0b1220; --bg-soft:#0f2036; }
+:root[data-palette="mint"]    { --brand:#10b981; --brand-2:#22c55e; --accent:#34d399; --bg:#08160f; --bg-soft:#0e241a; }
+:root[data-palette="rose"]    { --brand:#f43f5e; --brand-2:#ec4899; --accent:#fb7185; --bg:#180d13; --bg-soft:#26141d; }
+:root[data-palette="amber"]   { --brand:#f59e0b; --brand-2:#f97316; --accent:#fbbf24; --bg:#191206; --bg-soft:#261d0d; }
+:root[data-palette="graphite"]{ --brand:#64748b; --brand-2:#475569; --accent:#94a3b8; --bg:#0f1115; --bg-soft:#181b22; }
+
+:root.light[data-palette="indigo"]  { --brand:#4f46e5; --brand-2:#7c3aed; --accent:#0891b2; --bg:#eef2ff; --bg-soft:#ffffff; }
+:root.light[data-palette="ocean"]   { --brand:#2563eb; --brand-2:#0891b2; --accent:#0284c7; --bg:#e8f3ff; --bg-soft:#ffffff; }
+:root.light[data-palette="mint"]    { --brand:#059669; --brand-2:#16a34a; --accent:#0d9488; --bg:#e9faf1; --bg-soft:#ffffff; }
+:root.light[data-palette="rose"]    { --brand:#e11d48; --brand-2:#db2777; --accent:#be185d; --bg:#fdeef2; --bg-soft:#ffffff; }
+:root.light[data-palette="amber"]   { --brand:#d97706; --brand-2:#ea580c; --accent:#b45309; --bg:#fef6e6; --bg-soft:#ffffff; }
+:root.light[data-palette="graphite"]{ --brand:#475569; --brand-2:#334155; --accent:#0f766e; --bg:#f1f3f7; --bg-soft:#ffffff; }
 
 /* ---------- ВЕРХНЯЯ ПАНЕЛЬ ---------- */
 .topbar {
@@ -91,6 +108,28 @@ body {
 }
 .ghost-btn:hover { transform: translateY(-2px); background: var(--card-2); }
 .ghost-btn.big { width: auto; height: auto; padding: 12px 18px; font-size: 15px; font-weight: 600; }
+
+/* Палитра */
+.palette-wrap { position: relative; }
+.palette-pop {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 40;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow); padding: 14px; width: 210px;
+}
+.palette-pop[hidden] { display: none; }
+.pp-title { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
+.pp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.pp-swatch {
+  cursor: pointer; border: none; background: none; padding: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+}
+.pp-dot {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 2px solid var(--line); transition: transform .15s, box-shadow .2s;
+}
+.pp-swatch:hover .pp-dot { transform: scale(1.1); }
+.pp-swatch.active .pp-dot { border-color: var(--text); box-shadow: 0 0 0 3px var(--brand); }
+.pp-name { font-size: 11px; color: var(--muted); }
 
 /* ---------- ЭКРАНЫ ---------- */
 #app { max-width: 900px; margin: 0 auto; padding: clamp(16px, 4vw, 32px); }
