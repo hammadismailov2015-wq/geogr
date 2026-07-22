@@ -406,6 +406,54 @@
     return a;
   }
 
+  /* ---------- Палитра (цвет оформления) ---------- */
+  var PALETTES = [
+    { id: "indigo",   name: "Индиго", dot: "linear-gradient(135deg,#6366f1,#8b5cf6)" },
+    { id: "ocean",    name: "Океан",  dot: "linear-gradient(135deg,#3b82f6,#06b6d4)" },
+    { id: "mint",     name: "Мята",   dot: "linear-gradient(135deg,#10b981,#22c55e)" },
+    { id: "rose",     name: "Роза",   dot: "linear-gradient(135deg,#f43f5e,#ec4899)" },
+    { id: "amber",    name: "Янтарь", dot: "linear-gradient(135deg,#f59e0b,#f97316)" },
+    { id: "graphite", name: "Графит", dot: "linear-gradient(135deg,#64748b,#475569)" },
+  ];
+
+  function currentPalette() {
+    try { return localStorage.getItem("math6_palette") || "indigo"; }
+    catch (e) { return "indigo"; }
+  }
+  function applyPalette(id) {
+    document.documentElement.setAttribute("data-palette", id);
+    try { localStorage.setItem("math6_palette", id); } catch (e) {}
+    var grid = $("ppGrid");
+    if (grid) grid.querySelectorAll(".pp-swatch").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-pal") === id);
+    });
+  }
+  function initPalette() {
+    var active = currentPalette();
+    document.documentElement.setAttribute("data-palette", active);
+    var grid = $("ppGrid");
+    if (grid) {
+      grid.innerHTML = "";
+      PALETTES.forEach(function (p) {
+        var b = document.createElement("button");
+        b.className = "pp-swatch" + (p.id === active ? " active" : "");
+        b.setAttribute("data-pal", p.id);
+        b.innerHTML = '<span class="pp-dot" style="background:' + p.dot + '"></span>' +
+          '<span class="pp-name">' + p.name + "</span>";
+        b.addEventListener("click", function () { applyPalette(p.id); closePalette(); });
+        grid.appendChild(b);
+      });
+    }
+  }
+  function togglePalette() {
+    var pop = $("palettePop");
+    if (pop) pop.hidden = !pop.hidden;
+  }
+  function closePalette() {
+    var pop = $("palettePop");
+    if (pop) pop.hidden = true;
+  }
+
   /* ---------- Тема оформления ---------- */
   function initTheme() {
     var saved;
@@ -427,6 +475,14 @@
   /* ---------- Обработчики ---------- */
   $("topicSearch").addEventListener("input", function (e) { renderTopics(e.target.value); });
   $("themeBtn").addEventListener("click", toggleTheme);
+
+  var paletteBtn = $("paletteBtn");
+  if (paletteBtn) paletteBtn.addEventListener("click", function (e) { e.stopPropagation(); togglePalette(); });
+  // Закрывать палитру по клику вне её
+  document.addEventListener("click", function (e) {
+    var wrap = document.querySelector(".palette-wrap");
+    if (wrap && !wrap.contains(e.target)) closePalette();
+  });
 
   $("goTheory").addEventListener("click", openTheory);
   $("goTrainer").addEventListener("click", startQuiz);
@@ -453,5 +509,6 @@
 
   /* ---------- Старт ---------- */
   initTheme();
+  initPalette();
   renderTopics("");
 })();
