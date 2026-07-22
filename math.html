@@ -140,7 +140,7 @@
     (function () {
       var online = location.protocol === "http:" || location.protocol === "https:";
       var q = online ? "?v=" + Date.now() : "";
-      ["math-data.js", "math-app.js"].forEach(function (src) {
+      ["math-data.js", "math-pics.js", "math-app.js"].forEach(function (src) {
         document.write('<script src="' + src + q + '"><\/script>');
       });
     })();
