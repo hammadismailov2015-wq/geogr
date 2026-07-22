@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Математика · 6 класс</title>
+  <meta name="description" content="Программа по математике для 6 класса: объяснение тем и тренажёры." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>" />
+  <script>
+    // Подключаем стили со свежей версией, чтобы после обновлений не оставался
+    // старый кэшированный math.css. На file:// query не добавляем.
+    (function () {
+      var online = location.protocol === "http:" || location.protocol === "https:";
+      var href = "math.css" + (online ? "?v=" + Date.now() : "");
+      document.write('<link rel="stylesheet" href="' + href + '">');
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-ico">🧮</span>
+      <div>
+        <h1>Математика</h1>
+        <p class="brand-sub">6 класс · объяснения и тренажёры</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="score-box" id="scoreBox" title="Всего верных ответов">
+        <span>⭐</span><span id="totalScore">0</span>
+      </div>
+      <button class="ghost-btn" id="themeBtn" title="Сменить тему">🌙</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- ЭКРАН: ГЛАВНАЯ (список тем) -->
+    <section class="screen active" id="screen-home">
+      <div class="hero">
+        <h2>Выберите тему</h2>
+        <p class="hero-sub">По каждой теме можно прочитать объяснение или пройти тренажёр с проверкой ответов.</p>
+      </div>
+
+      <div class="topic-search">
+        <span class="ts-ico">🔍</span>
+        <input type="search" id="topicSearch" placeholder="Поиск темы…" autocomplete="off" aria-label="Поиск темы" />
+      </div>
+
+      <div class="topic-grid" id="topicGrid"><!-- заполняется из JS --></div>
+      <p class="topic-empty" id="topicEmpty" hidden>Ничего не найдено 🙁 Попробуйте другое слово.</p>
+    </section>
+
+    <!-- ЭКРАН: ВЫБОР РЕЖИМА (объяснение / тренажёр) -->
+    <section class="screen" id="screen-mode">
+      <div class="mode-head">
+        <button class="back-btn" data-nav="home">← Все темы</button>
+      </div>
+      <div class="mode-card">
+        <div class="mode-ico" id="modeIco">🔢</div>
+        <h2 id="modeTitle">Тема</h2>
+        <p class="mode-desc" id="modeDesc"></p>
+        <div class="mode-actions">
+          <button class="mode-btn learn" id="goTheory">
+            <span class="mb-ico">📖</span>
+            <strong>Объяснение темы</strong>
+            <small>Разбор правил с примерами</small>
+          </button>
+          <button class="mode-btn train" id="goTrainer">
+            <span class="mb-ico">🎯</span>
+            <strong>Тренажёр</strong>
+            <small>Задачи с проверкой ответа</small>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: ОБЪЯСНЕНИЕ ТЕМЫ -->
+    <section class="screen" id="screen-theory">
+      <div class="theory-head">
+        <button class="back-btn" id="theoryBack">← Назад</button>
+        <h2 id="theoryTitle">Объяснение</h2>
+      </div>
+      <div class="theory-body" id="theoryBody"></div>
+      <div class="theory-foot">
+        <button class="primary-btn" id="theoryToTrainer">Перейти к тренажёру 🎯</button>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: ТРЕНАЖЁР -->
+    <section class="screen" id="screen-quiz">
+      <div class="quiz-head">
+        <button class="back-btn" id="quizQuit">← Выйти</button>
+        <div class="quiz-progress">
+          <div class="qbar"><div class="qbar-fill" id="qbarFill"></div></div>
+          <span class="qcount" id="qCount">1 / 6</span>
+        </div>
+        <div class="quiz-score">⭐ <span id="quizScore">0</span></div>
+      </div>
+
+      <div class="quiz-card" id="quizCard">
+        <div class="q-topic" id="qTopic">Тема</div>
+        <h2 class="q-text" id="qText">Вопрос…</h2>
+        <div class="q-options" id="qOptions"></div>
+        <div class="q-explain" id="qExplain" hidden></div>
+      </div>
+
+      <div class="quiz-foot">
+        <button class="primary-btn" id="nextBtn" disabled>Дальше →</button>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: РЕЗУЛЬТАТ -->
+    <section class="screen" id="screen-result">
+      <div class="result-card">
+        <div class="result-badge" id="resultBadge">🏆</div>
+        <h2 id="resultTitle">Отлично!</h2>
+        <p class="result-score"><span id="resultScore">0</span> / <span id="resultTotal">0</span></p>
+        <div class="result-ring">
+          <svg viewBox="0 0 120 120" width="140" height="140">
+            <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+            <circle class="ring-fg" id="ring" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <span class="ring-pct" id="ringPct">0%</span>
+        </div>
+        <p class="result-msg" id="resultMsg"></p>
+        <div class="result-actions">
+          <button class="primary-btn" id="retryBtn">Пройти ещё раз</button>
+          <button class="ghost-btn big" id="resultToTheory">Читать объяснение 📖</button>
+          <button class="ghost-btn big" data-nav="home">К темам</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Математика · 6 класс · объяснения и тренажёры</span>
+  </footer>
+
+  <script>
+    (function () {
+      var online = location.protocol === "http:" || location.protocol === "https:";
+      var q = online ? "?v=" + Date.now() : "";
+      ["math-data.js", "math-app.js"].forEach(function (src) {
+        document.write('<script src="' + src + q + '"><\/script>');
+      });
+    })();
+  </script>
+</body>
+</html>

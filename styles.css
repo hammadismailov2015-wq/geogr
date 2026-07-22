@@ -380,6 +380,7 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
   background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px 10px;
   transition: transform .18s, border-color .2s, box-shadow .2s, filter .2s;
 }
+a.act-btn { text-decoration: none; }
 .act-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .act-btn.exam:hover { border-color: #b98bff; }
 .act-btn.learn:hover { border-color: var(--good); }
