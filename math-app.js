@@ -19,11 +19,14 @@
   };
 
   // --- Состояние ---
-  var current = null;   // текущая тема
-  var order = [];       // порядок примеров
-  var idx = 0;          // индекс текущего примера
-  var correct = 0;      // верных в текущем тренажёре
-  var answered = false; // проверен ли текущий пример
+  var current = null;      // текущая тема
+  var quizList = [];       // вопросы текущего теста (каждый с полем .topic)
+  var order = [];          // порядок примеров
+  var idx = 0;             // индекс текущего примера
+  var correct = 0;         // верных в текущем тесте
+  var answered = false;    // проверен ли текущий пример
+  var examMode = false;    // идёт экзамен по всем темам?
+  var sessionTitle = "";   // подпись теста (тема или «Экзамен»)
   var totalScore = loadScore();
 
   $("totalScore").textContent = totalScore;
@@ -106,22 +109,49 @@
     show("theory");
   }
 
-  /* ---------- Тренажёр ---------- */
+  /* ---------- Тренажёр по теме ---------- */
   function startQuiz() {
     if (!current) return;
-    order = current.questions.map(function (_, i) { return i; });
+    examMode = false;
+    sessionTitle = current.title;
+    quizList = current.questions.map(function (q) {
+      return { q: q.q, a: q.a, accept: q.accept, hint: q.hint, explain: q.explain, topic: current.title };
+    });
+    beginQuiz();
+  }
+
+  /* ---------- Экзамен по всем темам ---------- */
+  function startExam() {
+    examMode = true;
+    sessionTitle = "Экзамен";
+    // Собираем по одному-двум вопросам из каждой темы, затем перемешиваем
+    var pool = [];
+    TOPICS.forEach(function (topic) {
+      var qs = topic.questions.slice();
+      shuffle(qs);
+      qs.slice(0, 1).forEach(function (q) {
+        pool.push({ q: q.q, a: q.a, accept: q.accept, hint: q.hint, explain: q.explain, topic: topic.title });
+      });
+    });
+    shuffle(pool);
+    quizList = pool.slice(0, 20); // 20 вопросов на экзамене
+    beginQuiz();
+  }
+
+  function beginQuiz() {
+    order = quizList.map(function (_, i) { return i; });
     shuffle(order);
     idx = 0;
     correct = 0;
     $("quizScore").textContent = "0";
-    $("qTopic").textContent = current.title;
     show("quiz");
     renderQuestion();
   }
 
   function renderQuestion() {
     answered = false;
-    var q = current.questions[order[idx]];
+    var q = quizList[order[idx]];
+    $("qTopic").textContent = q.topic || sessionTitle;
     $("qText").textContent = q.q;
     $("qCount").textContent = (idx + 1) + " / " + order.length;
     $("qbarFill").style.width = (idx / order.length) * 100 + "%";
@@ -187,7 +217,7 @@
   function revealAnswer() {
     if (answered) return;
     answered = true;
-    var q = current.questions[order[idx]];
+    var q = quizList[order[idx]];
 
     var input = $("answerInput");
     input.value = q.a;
@@ -213,7 +243,7 @@
     if (!val.trim()) { input.focus(); return; }
 
     answered = true;
-    var q = current.questions[order[idx]];
+    var q = quizList[order[idx]];
     var right = checkAnswer(val, q);
 
     input.readOnly = true;
@@ -348,14 +378,23 @@
     ring.style.strokeDashoffset = circ - (circ * pct) / 100;
     ring.style.stroke = pct >= 80 ? "var(--ok)" : pct >= 50 ? "var(--train)" : "var(--bad)";
 
+    var where = examMode ? "по всем темам" : "тему «" + sessionTitle + "»";
     var badge, title, msg;
-    if (pct === 100) { badge = "🏆"; title = "Идеально!"; msg = "Все ответы верные — ты отлично знаешь тему «" + current.title + "»."; }
+    if (pct === 100) { badge = "🏆"; title = "Идеально!"; msg = "Все ответы верные — ты отлично знаешь " + where + "!"; }
     else if (pct >= 80) { badge = "🎉"; title = "Отлично!"; msg = "Почти всё верно. Ещё немного — и будет идеально."; }
-    else if (pct >= 50) { badge = "👍"; title = "Неплохо!"; msg = "Хороший результат. Загляни в объяснение и попробуй снова."; }
-    else { badge = "📚"; title = "Стоит повторить"; msg = "Прочитай объяснение темы и пройди тренажёр ещё раз."; }
+    else if (pct >= 50) { badge = "👍"; title = "Неплохо!"; msg = "Хороший результат. Повтори темы, где ошибся, и попробуй снова."; }
+    else { badge = "📚"; title = "Стоит повторить"; msg = "Загляни в объяснения тем и пройди ещё раз."; }
     $("resultBadge").textContent = badge;
     $("resultTitle").textContent = title;
     $("resultMsg").textContent = msg;
+
+    // Кнопку «Читать объяснение» показываем только для тренажёра по теме
+    var toTheory = $("resultToTheory");
+    if (toTheory) toTheory.hidden = examMode;
+
+    // Заголовок «Пройти ещё раз» для экзамена
+    var retry = $("retryBtn");
+    if (retry) retry.textContent = examMode ? "Сдать ещё раз" : "Пройти ещё раз";
   }
 
   /* ---------- Утилиты ---------- */
@@ -394,9 +433,12 @@
   $("theoryToTrainer").addEventListener("click", startQuiz);
   $("theoryBack").addEventListener("click", function () { show("mode"); });
 
-  $("quizQuit").addEventListener("click", function () { show("mode"); });
+  var examBtn = $("examBtn");
+  if (examBtn) examBtn.addEventListener("click", startExam);
+
+  $("quizQuit").addEventListener("click", function () { show(examMode ? "home" : "mode"); });
   $("nextBtn").addEventListener("click", nextQuestion);
-  $("retryBtn").addEventListener("click", startQuiz);
+  $("retryBtn").addEventListener("click", function () { examMode ? startExam() : startQuiz(); });
   $("resultToTheory").addEventListener("click", openTheory);
 
   document.querySelectorAll('[data-nav="home"]').forEach(function (b) {
