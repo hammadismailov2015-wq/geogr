@@ -93,6 +93,13 @@
       if (block.t === "h") { el = document.createElement("h3"); el.textContent = block.x; }
       else if (block.t === "f") { el = document.createElement("div"); el.className = "th-formula"; el.textContent = block.x; }
       else if (block.t === "ex") { el = document.createElement("div"); el.className = "th-example"; el.textContent = block.x; }
+      else if (block.t === "img") {
+        el = document.createElement("figure");
+        el.className = "th-figure";
+        var svgMarkup = (typeof window.mathPic === "function") ? window.mathPic(block.k) : "";
+        el.innerHTML = svgMarkup + (block.cap ? '<figcaption class="th-cap"></figcaption>' : "");
+        if (block.cap) el.querySelector(".th-cap").textContent = block.cap;
+      }
       else { el = document.createElement("p"); el.textContent = block.x; }
       body.appendChild(el);
     });
