@@ -165,7 +165,38 @@
       box.appendChild(hint);
     }
 
+    // Кнопка «Правильный ответ» — показать ответ и решение
+    var reveal = document.createElement("button");
+    reveal.className = "reveal-btn";
+    reveal.id = "revealBtn";
+    reveal.type = "button";
+    reveal.innerHTML = "🔑 Правильный ответ";
+    reveal.addEventListener("click", revealAnswer);
+    box.appendChild(reveal);
+
     input.focus();
+  }
+
+  function revealAnswer() {
+    if (answered) return;
+    answered = true;
+    var q = current.questions[order[idx]];
+
+    var input = $("answerInput");
+    input.value = q.a;
+    input.readOnly = true;
+    input.classList.add("reveal");
+    $("checkBtn").disabled = true;
+    var rb = $("revealBtn");
+    if (rb) rb.disabled = true;
+
+    var exp = $("qExplain");
+    exp.className = "q-explain reveal";
+    exp.innerHTML = "<b>Правильный ответ:</b> <b>" + q.a + "</b>. " + (q.explain || "");
+    exp.hidden = false;
+
+    $("nextBtn").disabled = false;
+    $("nextBtn").focus();
   }
 
   function onCheck() {
@@ -181,6 +212,8 @@
     input.readOnly = true;
     input.classList.add(right ? "ok" : "no");
     $("checkBtn").disabled = true;
+    var rb = $("revealBtn");
+    if (rb) rb.disabled = true;
 
     if (right) {
       correct++;

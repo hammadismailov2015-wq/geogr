@@ -276,9 +276,23 @@ body {
 .check-btn:hover:not(:disabled) { transform: translateY(-2px); }
 .check-btn:disabled { opacity: .5; cursor: not-allowed; }
 .answer-hint { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.answer-input.reveal { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--card-2)); }
+
+/* Кнопка «Правильный ответ» */
+.reveal-btn {
+  display: block; margin-top: 14px;
+  background: transparent; color: var(--muted);
+  border: 1px dashed var(--line); border-radius: 12px;
+  padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.reveal-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); background: var(--card-2); }
+.reveal-btn:disabled { opacity: .4; cursor: not-allowed; }
+
 .q-explain.ok { border-left-color: var(--ok); }
 .q-explain.no { border-left-color: var(--bad); }
-.q-explain.ok b, .q-explain.no b { color: inherit; }
+.q-explain.reveal { border-left-color: var(--accent); }
+.q-explain.ok b, .q-explain.no b, .q-explain.reveal b { color: inherit; }
 
 .q-explain {
   margin-top: 16px; padding: 14px 16px; border-radius: 14px;
