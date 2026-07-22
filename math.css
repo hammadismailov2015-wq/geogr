@@ -253,24 +253,32 @@ body {
 }
 .q-text { font-size: clamp(18px, 4vw, 24px); margin: 0 0 18px; letter-spacing: -.01em; }
 
-.q-options { display: grid; gap: 10px; }
-.opt {
-  text-align: left; padding: 14px 16px; border-radius: 14px;
-  border: 1px solid var(--line); background: var(--card-2); color: var(--text);
-  cursor: pointer; font-size: 16px; transition: transform .12s, border-color .2s, background .2s;
-  display: flex; align-items: center; gap: 12px;
+/* Поле ввода ответа + кнопка «Проверить» */
+.answer-row { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; }
+.answer-input {
+  flex: 1; min-width: 140px;
+  padding: 14px 16px; border-radius: 14px;
+  border: 2px solid var(--line); background: var(--card-2); color: var(--text);
+  font-size: 18px; font-weight: 600; outline: none;
+  transition: border-color .2s, background .2s;
 }
-.opt .opt-key {
-  width: 28px; height: 28px; flex: 0 0 auto; display: grid; place-items: center;
-  border-radius: 8px; background: var(--card); font-weight: 700; font-size: 13px; color: var(--muted);
+.answer-input::placeholder { color: var(--muted); font-weight: 400; font-size: 15px; }
+.answer-input:focus { border-color: var(--brand); }
+.answer-input.ok { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 16%, var(--card-2)); }
+.answer-input.no { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, var(--card-2)); }
+.check-btn {
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, var(--train), #fbbf24);
+  color: #3a2600; border: none; padding: 0 22px; border-radius: 14px;
+  font-size: 16px; font-weight: 800; cursor: pointer;
+  transition: transform .15s, opacity .2s;
 }
-.opt:hover:not(.locked) { transform: translateX(3px); border-color: var(--brand); }
-.opt.correct { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 20%, var(--card-2)); }
-.opt.correct .opt-key { background: var(--ok); color: #fff; }
-.opt.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 20%, var(--card-2)); }
-.opt.wrong .opt-key { background: var(--bad); color: #fff; }
-.opt.locked { cursor: default; }
-.opt.dim { opacity: .55; }
+.check-btn:hover:not(:disabled) { transform: translateY(-2px); }
+.check-btn:disabled { opacity: .5; cursor: not-allowed; }
+.answer-hint { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.q-explain.ok { border-left-color: var(--ok); }
+.q-explain.no { border-left-color: var(--bad); }
+.q-explain.ok b, .q-explain.no b { color: inherit; }
 
 .q-explain {
   margin-top: 16px; padding: 14px 16px; border-radius: 14px;
