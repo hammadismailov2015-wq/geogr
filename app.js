@@ -7,7 +7,7 @@ const STORE_KEY = "geo-trainer-v1";
 
 /* ---------- Хранилище прогресса ---------- */
 const Store = {
-  data: { bestStreak: 0, topics: {}, theme: "dark" },
+  data: { bestStreak: 0, points: 0, topics: {}, theme: "dark", palette: "ocean", timed: false, qtime: 20 },
   load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
@@ -46,6 +46,7 @@ function prepareQuestion(item, topicTitle) {
     q: item.q,
     explain: item.explain,
     topic: topicTitle,
+    img: item.img || null,
     options: mixed.map((o) => o.text),
     answer: mixed.findIndex((o) => o.correct),
   };
@@ -90,8 +91,48 @@ const Quiz = {
     this.mode = mode || "topic";
     this.label = label || "";
     this.wrongTopics = {};
+    this.timed = !!Store.data.timed;
+    this.qtime = Store.data.qtime || 20;
     showScreen("quiz");
     this.render();
+  },
+
+  /* ----- Таймер (режим на время) ----- */
+  stopTimer() { if (this.timerId) { clearInterval(this.timerId); this.timerId = null; } },
+  startTimer() {
+    this.stopTimer();
+    const box = $("#quizTimer");
+    if (!this.timed) { box.hidden = true; return; }
+    box.hidden = false;
+    this.timeLeft = this.qtime;
+    this.paintTimer();
+    this.timerId = setInterval(() => {
+      this.timeLeft--;
+      this.paintTimer();
+      if (this.timeLeft <= 0) { this.stopTimer(); this.onTimeout(); }
+    }, 1000);
+  },
+  paintTimer() {
+    $("#timerNum").textContent = this.timeLeft;
+    const lowAt = Math.min(5, Math.ceil(this.qtime / 2));
+    $("#quizTimer").classList.toggle("low", this.timeLeft <= lowAt);
+  },
+  onTimeout() {
+    if (this.answered) return;
+    this.answered = true;
+    const item = this.list[this.index];
+    $$("#qOptions .opt").forEach((b, idx) => {
+      b.disabled = true;
+      if (idx === item.answer) b.classList.add("wrong");   // не успели — подсвечиваем красным
+    });
+    this.wrongTopics[item.topic] = (this.wrongTopics[item.topic] || 0) + 1;
+    const explain = $("#qExplain");
+    explain.innerHTML = `<strong>⏱ Время вышло!</strong> Правильный ответ выделен. ${item.explain}`;
+    explain.hidden = false;
+    explain.classList.remove("ok");
+    explain.classList.add("no");
+    $("#nextBtn").disabled = false;
+    Store.save();
   },
 
   render() {
@@ -99,6 +140,9 @@ const Quiz = {
     this.answered = false;
     $("#qTopic").textContent = item.topic;
     $("#qText").textContent = item.q;
+    const pic = $("#qPic");
+    if (item.img && window.PICS) { pic.innerHTML = PICS.render(item.img); pic.hidden = false; }
+    else { pic.hidden = true; pic.innerHTML = ""; }
     $("#qCount").textContent = `${this.index + 1} / ${this.list.length}`;
     $("#quizScore").textContent = this.score;
     $("#qbarFill").style.width = `${(this.index / this.list.length) * 100}%`;
@@ -106,10 +150,6 @@ const Quiz = {
     const explain = $("#qExplain");
     explain.hidden = true;
     explain.textContent = "";
-
-    const combo = $("#comboBox");
-    combo.hidden = this.combo < 2;
-    $("#comboNum").textContent = this.combo;
 
     const next = $("#nextBtn");
     next.disabled = true;
@@ -129,10 +169,13 @@ const Quiz = {
     $("#quizCard").classList.remove("card-in");
     void $("#quizCard").offsetWidth; // перезапуск анимации
     $("#quizCard").classList.add("card-in");
+
+    this.startTimer();
   },
 
   choose(i, btn) {
     if (this.answered) return;
+    this.stopTimer();
     this.answered = true;
     const item = this.list[this.index];
     const correct = i === item.answer;
@@ -146,22 +189,15 @@ const Quiz = {
     if (correct) {
       btn.classList.add("correct");
       this.score++;
-      this.combo++;
-      if (this.combo > Store.data.bestStreak) {
-        Store.data.bestStreak = this.combo;
-        $("#bestStreak").textContent = this.combo;
-      }
+      Store.data.points = (Store.data.points || 0) + 1;   // очко за правильный ответ
+      $("#totalPoints").textContent = Store.data.points;
     } else {
       btn.classList.add("wrong");
-      this.combo = 0;
       const key = item.topic;
       this.wrongTopics[key] = (this.wrongTopics[key] || 0) + 1;
     }
 
     $("#quizScore").textContent = this.score;
-    const combo = $("#comboBox");
-    combo.hidden = this.combo < 2;
-    $("#comboNum").textContent = this.combo;
 
     const explain = $("#qExplain");
     explain.innerHTML = `<strong>${correct ? "Верно! ✅" : "Не совсем 🤔"}</strong> ${item.explain}`;
@@ -175,6 +211,7 @@ const Quiz = {
 
   next() {
     if (!this.answered) return;
+    this.stopTimer();
     if (this.index < this.list.length - 1) {
       this.index++;
       this.render();
@@ -184,6 +221,7 @@ const Quiz = {
   },
 
   finish() {
+    this.stopTimer();
     $("#qbarFill").style.width = "100%";
     const total = this.list.length;
     const score = this.score;
@@ -208,11 +246,11 @@ const Quiz = {
     setTimeout(() => { ring.style.strokeDashoffset = circ * (1 - pct / 100); }, 100);
 
     let badge, title, msg;
-    if (pct === 100) { badge = "🏆"; title = "Идеально!"; msg = "Ты настоящий знаток планеты! Все ответы верны."; }
+    if (pct === 100) { badge = "🏆"; title = "Идеально!"; msg = "Вы настоящий знаток планеты! Все ответы верны."; }
     else if (pct >= 80) { badge = "🌟"; title = "Отлично!"; msg = "Очень крепкие знания. Ещё чуть-чуть до совершенства."; }
-    else if (pct >= 60) { badge = "👍"; title = "Хорошо!"; msg = "Неплохо! Повтори сложные темы и стань лучше."; }
-    else if (pct >= 40) { badge = "📘"; title = "Есть над чем поработать"; msg = "Загляни в «Карточки-факты» и попробуй снова."; }
-    else { badge = "🌱"; title = "Начало положено"; msg = "Не переживай! Изучи факты и возвращайся — получится!"; }
+    else if (pct >= 60) { badge = "👍"; title = "Хорошо!"; msg = "Неплохо! Повторите сложные темы и станьте лучше."; }
+    else if (pct >= 40) { badge = "📘"; title = "Есть над чем поработать"; msg = "Загляните в «Карточки-факты» и попробуйте снова."; }
+    else { badge = "🌱"; title = "Начало положено"; msg = "Не переживайте! Изучите факты и возвращайтесь — получится!"; }
 
     $("#resultBadge").textContent = badge;
     $("#resultTitle").textContent = title;
@@ -248,6 +286,7 @@ function renderHome() {
     const card = document.createElement("button");
     card.className = "topic-card";
     card.style.setProperty("--accent", t.color);
+    card.dataset.search = (t.title + " " + t.desc).toLowerCase().replace(/ё/g, "е");
     card.innerHTML = `
       <div class="tc-icon">${t.icon}</div>
       <div class="tc-body">
@@ -263,6 +302,22 @@ function renderHome() {
     grid.appendChild(card);
   });
   renderStats();
+  if ($("#topicSearch") && $("#topicSearch").value) filterTopics();
+}
+
+/* Поиск (фильтр) тем по названию и описанию */
+function filterTopics() {
+  const q = ($("#topicSearch").value || "").trim().toLowerCase().replace(/ё/g, "е");
+  // Ищем по основе слова, чтобы «море» находило «Моря», «гора» — «Горы» и т.п.
+  const stem = q.length >= 4 ? q.slice(0, -1) : q;
+  let shown = 0;
+  $$("#topicGrid .topic-card").forEach((card) => {
+    const match = !q || card.dataset.search.includes(stem);
+    card.style.display = match ? "" : "none";
+    if (match) shown++;
+  });
+  const empty = $("#topicEmpty");
+  if (empty) empty.hidden = shown !== 0;
 }
 
 function renderStats() {
@@ -272,13 +327,17 @@ function renderStats() {
   strip.innerHTML = `
     <div class="stat"><b>${totalQ}</b><span>всего вопросов</span></div>
     <div class="stat"><b>${plays}</b><span>пройдено тренировок</span></div>
-    <div class="stat"><b>${Store.data.bestStreak}</b><span>лучшая серия 🔥</span></div>`;
+    <div class="stat"><b>${Store.data.points || 0}</b><span>очки ⭐</span></div>`;
 }
 
 function startTopic(id) {
   const list = buildQuiz([id]);
+  // Вопросы с картинками ставим в начало, чтобы их всегда было видно
+  const withPic = list.filter((q) => q.img);
+  const rest = list.filter((q) => !q.img);
+  const ordered = withPic.concat(rest);
   Quiz.topicId = id;
-  Quiz.start(list, TOPICS[id].title, "topic");
+  Quiz.start(ordered, TOPICS[id].title, "topic");
 }
 
 function startExam() {
@@ -329,12 +388,54 @@ function applyTheme(theme) {
   Store.save();
 }
 
+/* ---------- Цвет фона (палитры) ---------- */
+const PALETTES = [
+  { id: "ocean",    name: "Небо",    light: "#dfeaff", dark: "#0b1220" },
+  { id: "mint",     name: "Мята",    light: "#d5f2e2", dark: "#0a1a14" },
+  { id: "lavender", name: "Сирень",  light: "#e7dcfb", dark: "#140e22" },
+  { id: "peach",    name: "Персик",  light: "#fbe0d6", dark: "#1f1012" },
+  { id: "honey",    name: "Мёд",     light: "#fbeecb", dark: "#1b1608" },
+  { id: "graphite", name: "Графит",  light: "#e3e7ef", dark: "#0e1013" },
+];
+
+function applyPalette(id) {
+  if (!PALETTES.some((p) => p.id === id)) id = "ocean";
+  document.documentElement.setAttribute("data-palette", id);
+  Store.data.palette = id;
+  Store.save();
+  $$("#ppGrid .pp-swatch").forEach((el) => el.classList.toggle("active", el.dataset.id === id));
+}
+
+function buildPalette() {
+  const grid = $("#ppGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  PALETTES.forEach((p) => {
+    const b = document.createElement("button");
+    b.className = "pp-swatch" + (p.id === Store.data.palette ? " active" : "");
+    b.type = "button";
+    b.dataset.id = p.id;
+    b.title = p.name;
+    b.innerHTML = `<span class="pp-dot" style="background:linear-gradient(135deg, ${p.light} 0 50%, ${p.dark} 50% 100%)"></span><span class="pp-name">${p.name}</span>`;
+    b.addEventListener("click", () => {
+      applyPalette(p.id);
+      $("#palettePop").hidden = true;
+    });
+    grid.appendChild(b);
+  });
+}
+
 /* ---------- Инициализация ---------- */
 function init() {
   Store.load();
   applyTheme(Store.data.theme || "dark");
-  $("#bestStreak").textContent = Store.data.bestStreak || 0;
+  buildPalette();
+  applyPalette(Store.data.palette || "ocean");
+  $("#totalPoints").textContent = Store.data.points || 0;
   renderHome();
+
+  const search = $("#topicSearch");
+  if (search) search.addEventListener("input", filterTopics);
 
   $("#examBtn").addEventListener("click", startExam);
   $("#factsBtn").addEventListener("click", () => { renderFacts(); showScreen("facts"); });
@@ -346,13 +447,50 @@ function init() {
   });
   $("#quitBtn").addEventListener("click", () => {
     if (confirm("Выйти из тренировки? Прогресс этого квиза не сохранится.")) {
+      Quiz.stopTimer();
       renderHome();
       showScreen("home");
     }
   });
+
+  const timeToggle = $("#timeToggle");
+  if (timeToggle) {
+    const chips = $$("#toChips .to-chip");
+    const paintChips = () => {
+      const sec = Store.data.qtime || 20;
+      chips.forEach((c) => c.classList.toggle("on", Number(c.dataset.sec) === sec));
+    };
+    const paintToggle = () => {
+      const on = !!Store.data.timed;
+      timeToggle.classList.toggle("on", on);
+      timeToggle.setAttribute("aria-pressed", on ? "true" : "false");
+      $("#timeState").textContent = on ? "Вкл" : "Выкл";
+      $("#timeOpts").hidden = !on;            // выбор секунд — только когда режим включён
+    };
+    paintChips();
+    paintToggle();
+    timeToggle.addEventListener("click", () => {
+      Store.data.timed = !Store.data.timed;
+      Store.save();
+      paintToggle();
+    });
+    chips.forEach((c) => c.addEventListener("click", () => {
+      Store.data.qtime = Number(c.dataset.sec);
+      Store.save();
+      paintChips();
+    }));
+  }
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
   });
+
+  const palBtn = $("#paletteBtn"), palPop = $("#palettePop");
+  if (palBtn && palPop) {
+    palBtn.addEventListener("click", (e) => { e.stopPropagation(); palPop.hidden = !palPop.hidden; });
+    document.addEventListener("click", (e) => {
+      if (!palPop.hidden && !palPop.contains(e.target) && e.target !== palBtn) palPop.hidden = true;
+    });
+  }
 
   $$("[data-nav]").forEach((b) =>
     b.addEventListener("click", () => { renderHome(); showScreen(b.dataset.nav); })

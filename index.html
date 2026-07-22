@@ -6,7 +6,15 @@
   <title>Гео-Тренажёр · 6 класс</title>
   <meta name="description" content="Интерактивный тренажёр по географии: океаны, моря, реки и атмосфера." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Подключаем стили со свежей версией, чтобы после обновлений не оставался
+    // старый кэшированный styles.css. На file:// query не добавляем.
+    (function () {
+      var online = location.protocol === "http:" || location.protocol === "https:";
+      var href = "styles.css" + (online ? "?v=" + Date.now() : "");
+      document.write('<link rel="stylesheet" href="' + href + '">');
+    })();
+  </script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
 </head>
 <body>
@@ -21,8 +29,15 @@
       </div>
     </div>
     <div class="topbar-right">
-      <div class="streak" id="streakBox" title="Лучшая серия правильных ответов">
-        <span>🔥</span><span id="bestStreak">0</span>
+      <div class="streak" id="pointsBox" title="Очки за правильные ответы">
+        <span>⭐</span><span id="totalPoints">0</span>
+      </div>
+      <div class="palette-wrap">
+        <button class="ghost-btn" id="paletteBtn" title="Цвет фона" aria-label="Цвет фона">🎨</button>
+        <div class="palette-pop" id="palettePop" hidden>
+          <div class="pp-title">Цвет фона</div>
+          <div class="pp-grid" id="ppGrid"><!-- образцы из JS --></div>
+        </div>
       </div>
       <button class="ghost-btn" id="themeBtn" title="Сменить тему">🌙</button>
     </div>
@@ -32,28 +47,63 @@
     <!-- ЭКРАН: ГЛАВНАЯ -->
     <section class="screen active" id="screen-home">
       <div class="hero">
-        <h2>Выбери тему и проверь знания</h2>
-        <p class="hero-sub">Тренажёр по географии для 6 класса — с уровнем посложнее. Отвечай на вопросы, набирай очки и повышай уровень знатока планеты.</p>
+        <h2>Выберите тему и проверьте знания</h2>
+        <p class="hero-sub">Тренажёр по географии для 6 класса — с уровнем посложнее. Отвечайте на вопросы, набирайте очки и повышайте уровень знатока планеты.</p>
+      </div>
+
+      <button class="time-toggle" id="timeToggle" aria-pressed="false" title="Отвечать на время">
+        <span class="tt-ico">⏱</span>
+        <span class="tt-label">Режим на время</span>
+        <span class="tt-switch"><span class="tt-knob"></span></span>
+        <span class="tt-state" id="timeState">Выкл</span>
+      </button>
+      <div class="time-opts" id="timeOpts" hidden>
+        <span class="to-label">Секунд на вопрос:</span>
+        <div class="to-chips" id="toChips">
+          <button class="to-chip" data-sec="3">3 с</button>
+          <button class="to-chip" data-sec="5">5 с</button>
+          <button class="to-chip" data-sec="10">10 с</button>
+          <button class="to-chip" data-sec="15">15 с</button>
+          <button class="to-chip" data-sec="20">20 с</button>
+          <button class="to-chip" data-sec="30">30 с</button>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="act-btn exam" id="examBtn">
+          <span class="act-ico">🎓</span>
+          <strong>Экзамен</strong>
+          <small>20 вопросов вперемешку</small>
+        </button>
+        <button class="act-btn learn" id="factsBtn">
+          <span class="act-ico">💡</span>
+          <strong>Карточки-факты</strong>
+          <small>Сначала изучите тему</small>
+        </button>
+        <button class="act-btn map" id="mapBtn">
+          <span class="act-ico">🗺️</span>
+          <strong>Найдите на карте</strong>
+          <small>Игра по карте мира</small>
+        </button>
+        <button class="act-btn route" id="routeBtn">
+          <span class="act-ico">🧭</span>
+          <strong>По маршруту</strong>
+          <small>Путешествия первооткрывателей</small>
+        </button>
+        <a class="act-btn learn" href="math.html">
+          <span class="act-ico">🧮</span>
+          <strong>Математика · 6 класс</strong>
+          <small>Объяснения и тренажёры</small>
+        </a>
+      </div>
+
+      <div class="topic-search">
+        <span class="ts-ico">🔍</span>
+        <input type="search" id="topicSearch" placeholder="Поиск темы…" autocomplete="off" aria-label="Поиск темы" />
       </div>
 
       <div class="topic-grid" id="topicGrid"><!-- заполняется из JS --></div>
-
-      <div class="mode-row">
-        <button class="mode-btn exam" id="examBtn">
-          <span class="mode-ico">🎓</span>
-          <span class="mode-txt">
-            <strong>Экзамен</strong>
-            <small>20 вопросов по всем темам вперемешку</small>
-          </span>
-        </button>
-        <button class="mode-btn learn" id="factsBtn">
-          <span class="mode-ico">💡</span>
-          <span class="mode-txt">
-            <strong>Карточки-факты</strong>
-            <small>Сначала изучи, потом тренируйся</small>
-          </span>
-        </button>
-      </div>
+      <p class="topic-empty" id="topicEmpty" hidden>Ничего не найдено 🙁 Попробуйте другое слово.</p>
 
       <div class="stats-strip" id="statsStrip"></div>
     </section>
@@ -68,6 +118,50 @@
       <div class="facts-list" id="factsList"></div>
     </section>
 
+    <!-- ЭКРАН: ИГРА «НАЙДИ НА КАРТЕ» -->
+    <section class="screen" id="screen-map">
+      <div class="quiz-head">
+        <button class="back-btn" id="mapQuit">← Выйти</button>
+        <div class="quiz-progress">
+          <div class="qbar"><div class="qbar-fill" id="mapBar"></div></div>
+          <span class="qcount" id="mapCount">1 / 12</span>
+        </div>
+        <div class="quiz-score">⭐ <span id="mapScore">0</span></div>
+        <div class="quiz-timer" id="mapTimer" hidden>⏱ <span id="mapTimerNum">20</span></div>
+      </div>
+
+      <div class="map-prompt" id="mapPrompt">Найдите: …</div>
+      <div class="map-wrap"><div id="mapHost"></div></div>
+      <div class="map-feedback" id="mapFeedback" hidden></div>
+
+      <div class="quiz-foot">
+        <div class="map-hint">Нажмите на нужное место на карте</div>
+        <button class="primary-btn" id="mapNext" disabled>Дальше →</button>
+      </div>
+    </section>
+
+    <!-- ЭКРАН: ИГРА «ПО МАРШРУТУ ПУТЕШЕСТВЕННИКОВ» -->
+    <section class="screen" id="screen-route">
+      <div class="quiz-head">
+        <button class="back-btn" id="routeQuit">← Выйти</button>
+        <div class="quiz-progress">
+          <div class="qbar"><div class="qbar-fill" id="routeBar"></div></div>
+          <span class="qcount" id="routeCount">1 / 5</span>
+        </div>
+        <div class="quiz-score">🧭 <span id="routePct">0%</span></div>
+      </div>
+
+      <div class="route-prompt" id="routePrompt"></div>
+      <div class="map-wrap"><div id="routeHost"></div></div>
+      <div class="route-log" id="routeLog"></div>
+      <div class="map-feedback" id="routeFeedback" hidden></div>
+
+      <div class="quiz-foot">
+        <div class="map-hint" id="routeHint">Проведите пальцем (или мышкой с зажатой кнопкой) по серой линии маршрута — от старта к финишу</div>
+        <button class="primary-btn" id="routeNext" disabled>Следующий путешественник →</button>
+      </div>
+    </section>
+
     <!-- ЭКРАН: КВИЗ -->
     <section class="screen" id="screen-quiz">
       <div class="quiz-head">
@@ -77,17 +171,18 @@
           <span class="qcount" id="qCount">1 / 10</span>
         </div>
         <div class="quiz-score">⭐ <span id="quizScore">0</span></div>
+        <div class="quiz-timer" id="quizTimer" hidden>⏱ <span id="timerNum">20</span></div>
       </div>
 
       <div class="quiz-card" id="quizCard">
         <div class="q-topic" id="qTopic">Океаны</div>
         <h2 class="q-text" id="qText">Вопрос…</h2>
+        <div class="q-pic" id="qPic" hidden></div>
         <div class="q-options" id="qOptions"></div>
         <div class="q-explain" id="qExplain" hidden></div>
       </div>
 
       <div class="quiz-foot">
-        <div class="combo" id="comboBox" hidden>🔥 Серия: <span id="comboNum">0</span></div>
         <button class="primary-btn" id="nextBtn" disabled>Дальше →</button>
       </div>
     </section>
@@ -119,7 +214,16 @@
     <span>Сделано для урока географии · 6 класс</span>
   </footer>
 
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script>
+    // Подключаем данные и логику со свежей версией, чтобы новые темы
+    // всегда были видны сразу, без кэша. На file:// query не добавляем.
+    (function () {
+      var online = location.protocol === "http:" || location.protocol === "https:";
+      var q = online ? "?v=" + Date.now() : "";
+      ["data.js", "pics.js", "app.js", "map.js", "route.js"].forEach(function (src) {
+        document.write('<script src="' + src + q + '"><\/script>');
+      });
+    })();
+  </script>
 </body>
 </html>
