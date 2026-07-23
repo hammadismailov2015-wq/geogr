@@ -361,8 +361,6 @@ function renderHome() {
     });
     grid.appendChild(card);
   });
-  const rob = $("#resetOrderBtn");
-  if (rob) rob.hidden = !(Array.isArray(Store.data.order) && Store.data.order.length);
   renderStats();
   if ($("#topicSearch") && $("#topicSearch").value) filterTopics();
 }
@@ -379,8 +377,6 @@ function topicOrder() {
 function saveTopicOrder() {
   Store.data.order = $$("#topicGrid .topic-card").map((c) => c.dataset.id);
   Store.save();
-  const rob = $("#resetOrderBtn");
-  if (rob) rob.hidden = false;
 }
 
 function resetTopicOrder() {
