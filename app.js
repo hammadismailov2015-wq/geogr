@@ -355,7 +355,7 @@ function renderHome() {
 }
 
 /* ---------- Свой порядок тем: перетаскивание + сохранение ---------- */
-const DRAG = { suppress: false, el: null, on: false, clr: null, timer: null, sx: 0, sy: 0, ptype: "", startNext: null, ph: null, ox: 0, oy: 0 };
+const DRAG = { suppress: false, el: null, on: false, clr: null, timer: null, sx: 0, sy: 0, ptype: "", startNext: null, ph: null, ox: 0, oy: 0, px: 0, py: 0, rafId: 0 };
 
 function topicOrder() {
   const saved = Array.isArray(Store.data.order) ? Store.data.order.filter((id) => TOPICS[id]) : [];
@@ -401,7 +401,23 @@ function setupDragReorder() {
     el.style.position = "fixed";
     el.style.left = "0"; el.style.top = "0"; el.style.margin = "0";
     document.body.classList.add("drag-lock");
+    DRAG.px = DRAG.sx; DRAG.py = DRAG.sy;
     moveTo(DRAG.sx, DRAG.sy);
+    DRAG.rafId = requestAnimationFrame(autoScroll);   // прокрутка списка у краёв
+  }
+
+  // Когда карточка у верхнего/нижнего края экрана — список сам прокручивается
+  function autoScroll() {
+    if (!DRAG.on) return;
+    const h = window.innerHeight, EDGE = 90, MAX = 15;
+    let dy = 0;
+    if (DRAG.py < EDGE) dy = -MAX * (1 - DRAG.py / EDGE);
+    else if (DRAG.py > h - EDGE) dy = MAX * (1 - (h - DRAG.py) / EDGE);
+    if (dy) {
+      window.scrollBy(0, dy);
+      reorderAt(DRAG.px, DRAG.py);   // список сдвинулся — обновляем слот
+    }
+    DRAG.rafId = requestAnimationFrame(autoScroll);
   }
 
   function reorderAt(x, y) {
@@ -425,6 +441,7 @@ function setupDragReorder() {
     document.removeEventListener("pointercancel", onUp);
     document.removeEventListener("touchmove", onTouchMove);
     clearTimeout(DRAG.timer);
+    cancelAnimationFrame(DRAG.rafId);
   }
 
   const onMove = (e) => {
@@ -440,6 +457,7 @@ function setupDragReorder() {
       if (!DRAG.on) return;
     }
     if (e.cancelable) e.preventDefault();
+    DRAG.px = e.clientX; DRAG.py = e.clientY;
     moveTo(e.clientX, e.clientY);               // карточка следует за пальцем
     reorderAt(e.clientX, e.clientY);            // слот встаёт на нужное место
   };
