@@ -323,14 +323,16 @@ function plural(n) {
 function renderHome() {
   const grid = $("#topicGrid");
   grid.innerHTML = "";
-  TOPIC_ORDER.forEach((id) => {
+  topicOrder().forEach((id) => {
     const t = TOPICS[id];
     const st = Store.topicStat(id);
     const card = document.createElement("button");
     card.className = "topic-card";
+    card.dataset.id = id;
     card.style.setProperty("--accent", t.color);
     card.dataset.search = (t.title + " " + t.desc).toLowerCase().replace(/ё/g, "е");
     card.innerHTML = `
+      <span class="tc-drag" title="Перетащите, чтобы поменять порядок" aria-label="Перетащить">⠿</span>
       <div class="tc-icon">${t.icon}</div>
       <div class="tc-body">
         <h3>${t.title}</h3>
@@ -341,11 +343,76 @@ function renderHome() {
         </div>
       </div>
       <span class="tc-go">▶</span>`;
-    card.addEventListener("click", () => startTopic(id));
+    card.addEventListener("click", (e) => {
+      if (DRAG.suppress || e.target.closest(".tc-drag")) return;   // не запускаем при перетаскивании
+      startTopic(id);
+    });
     grid.appendChild(card);
   });
   renderStats();
   if ($("#topicSearch") && $("#topicSearch").value) filterTopics();
+}
+
+/* ---------- Свой порядок тем: перетаскивание + сохранение ---------- */
+const DRAG = { suppress: false, el: null, on: false, clr: null };
+
+function topicOrder() {
+  const saved = Array.isArray(Store.data.order) ? Store.data.order.filter((id) => TOPICS[id]) : [];
+  const rest = TOPIC_ORDER.filter((id) => !saved.includes(id));   // новые темы — в конец
+  return saved.concat(rest);
+}
+
+function saveTopicOrder() {
+  Store.data.order = $$("#topicGrid .topic-card").map((c) => c.dataset.id);
+  Store.save();
+}
+
+function setupDragReorder() {
+  const grid = $("#topicGrid");
+  if (!grid) return;
+
+  const onMove = (e) => {
+    if (!DRAG.on || !DRAG.el) return;
+    if (e.cancelable) e.preventDefault();
+    // Карточку под пальцем ищем по координатам (исключая перетаскиваемую)
+    let over = null;
+    const cards = $$("#topicGrid .topic-card");
+    for (const c of cards) {
+      if (c === DRAG.el || c.style.display === "none") continue;
+      const box = c.getBoundingClientRect();
+      if (e.clientX >= box.left && e.clientX <= box.right && e.clientY >= box.top && e.clientY <= box.bottom) { over = c; break; }
+    }
+    if (over) {
+      const box = over.getBoundingClientRect();
+      const before = e.clientY < box.top + box.height / 2;
+      grid.insertBefore(DRAG.el, before ? over : over.nextSibling);
+    }
+  };
+  const onUp = () => {
+    if (!DRAG.on) return;
+    DRAG.on = false;
+    document.removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerup", onUp);
+    document.removeEventListener("pointercancel", onUp);
+    if (DRAG.el) DRAG.el.classList.remove("dragging");
+    DRAG.el = null;
+    saveTopicOrder();
+    clearTimeout(DRAG.clr);
+    DRAG.clr = setTimeout(() => { DRAG.suppress = false; }, 300);   // проглотить хвостовой клик
+  };
+
+  grid.addEventListener("pointerdown", (e) => {
+    const handle = e.target.closest(".tc-drag");
+    if (!handle) return;
+    const card = handle.closest(".topic-card");
+    if (!card) return;
+    e.preventDefault();
+    DRAG.on = true; DRAG.suppress = true; DRAG.el = card;
+    card.classList.add("dragging");
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
+  });
 }
 
 /* Поиск (фильтр) тем по названию и описанию */
@@ -476,6 +543,7 @@ function init() {
   applyPalette(Store.data.palette || "ocean");
   $("#totalPoints").textContent = Store.data.points || 0;
   renderHome();
+  setupDragReorder();
 
   const search = $("#topicSearch");
   if (search) search.addEventListener("input", filterTopics);
