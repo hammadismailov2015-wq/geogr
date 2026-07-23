@@ -389,6 +389,15 @@ function resetTopicOrder() {
   renderHome();
 }
 
+function sortTopicsByProgress() {
+  // темы с самым высоким % прогресса — наверх, с самым низким — вниз
+  const ids = topicOrder();
+  ids.sort((a, b) => (Store.topicStat(b).best || 0) - (Store.topicStat(a).best || 0));
+  Store.data.order = ids;
+  Store.save();
+  renderHome();
+}
+
 function setupDragReorder() {
   const grid = $("#topicGrid");
   if (!grid) return;
@@ -641,6 +650,8 @@ function init() {
   setupDragReorder();
   const resetBtn = $("#resetOrderBtn");
   if (resetBtn) resetBtn.addEventListener("click", resetTopicOrder);
+  const sortBtn = $("#sortProgressBtn");
+  if (sortBtn) sortBtn.addEventListener("click", sortTopicsByProgress);
 
   const search = $("#topicSearch");
   if (search) search.addEventListener("input", filterTopics);

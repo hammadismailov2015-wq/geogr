@@ -189,7 +189,7 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
 body.drag-lock { touch-action: none; user-select: none; -webkit-user-select: none; }
 
 /* Кнопка «Сбросить порядок» */
-.topics-bar { display: flex; justify-content: flex-end; margin: 0 0 12px; }
+.topics-bar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin: 0 0 12px; }
 .topics-bar[hidden] { display: none; }
 .reset-order {
   background: var(--card); border: 1px solid var(--border); color: var(--muted);
