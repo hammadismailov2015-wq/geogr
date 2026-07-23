@@ -520,8 +520,8 @@
     if (audioCtx && audioCtx.state === "suspended") { try { audioCtx.resume(); } catch (e) {} }
     return audioCtx;
   }
-  // Один «пик» заданной частоты
-  function beep(freq, startAt, dur, type) {
+  // Один «пик» заданной частоты (gainVal — громкость, по умолчанию 0.25)
+  function beep(freq, startAt, dur, type, gainVal) {
     var ctx = ensureCtx();
     if (!ctx) return;
     var o = ctx.createOscillator(), g = ctx.createGain();
@@ -529,21 +529,24 @@
     o.frequency.value = freq;
     o.connect(g); g.connect(ctx.destination);
     var t = ctx.currentTime + startAt;
+    var peak = gainVal || 0.25;
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.25, t + 0.015);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.start(t);
-    o.stop(t + dur + 0.03);
+    o.stop(t + dur + 0.05);
   }
   function playCorrect() {
     if (!soundOn) return;
-    beep(660, 0, 0.13, "sine");     // ми
-    beep(880, 0.10, 0.18, "sine");  // ля (выше — «получилось!»)
+    // мягкое «дзинь» — мажорное трезвучие до-ми-соль, негромко и тепло
+    beep(523.25, 0.00, 0.18, "triangle", 0.16); // до
+    beep(659.25, 0.08, 0.18, "triangle", 0.16); // ми
+    beep(783.99, 0.16, 0.30, "triangle", 0.16); // соль
   }
   function playWrong() {
     if (!soundOn) return;
-    beep(196, 0, 0.30, "sawtooth");  // низкий
-    beep(146, 0.12, 0.30, "sawtooth"); // ещё ниже — «неа»
+    beep(196, 0, 0.30, "sawtooth", 0.22);   // низкий
+    beep(146, 0.12, 0.30, "sawtooth", 0.22); // ещё ниже — «неа»
   }
 
   /* ---------- Режим на время ---------- */
