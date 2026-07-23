@@ -83,7 +83,10 @@
 
       <div class="drag-row">
         <p class="drag-hint">Зажмите тему и потяните, чтобы переставить. Порядок сохранится.</p>
-        <button class="reset-order-btn" id="resetOrderBtn" hidden>↩ Сбросить порядок</button>
+        <div class="order-btns">
+          <button class="reset-order-btn" id="sortProgressBtn">📊 Распределить по прогрессу</button>
+          <button class="reset-order-btn" id="resetOrderBtn" hidden>↩ Сбросить порядок</button>
+        </div>
       </div>
       <div class="topic-grid" id="topicGrid"><!-- заполняется из JS --></div>
       <p class="topic-empty" id="topicEmpty" hidden>Ничего не найдено 🙁 Попробуйте другое слово.</p>

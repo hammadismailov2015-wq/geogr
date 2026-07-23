@@ -169,6 +169,15 @@
     var s = $("topicSearch");
     renderTopics(s ? s.value : "");
   }
+  // Расставить темы по прогрессу: больший % — выше, меньший — ниже
+  function sortByProgress() {
+    topicOrder = topicOrder.slice().sort(function (a, b) {
+      return (progress[b] || 0) - (progress[a] || 0); // по убыванию (равные сохраняют порядок)
+    });
+    saveOrder();
+    var s = $("topicSearch");
+    renderTopics(s ? s.value : "");
+  }
 
   // Нажатие на карточку: короткое касание — открыть тему,
   // зажать и потянуть — перетащить. Тащить можно за любое место карточки.
@@ -922,6 +931,8 @@
   if (soundBtn) soundBtn.addEventListener("click", toggleSound);
   var resetBtn = $("resetOrderBtn");
   if (resetBtn) resetBtn.addEventListener("click", resetOrder);
+  var sortBtn = $("sortProgressBtn");
+  if (sortBtn) sortBtn.addEventListener("click", sortByProgress);
   // На время перетаскивания глушим прокрутку страницы касанием
   document.addEventListener("touchmove", function (e) {
     if (press && press.dragging) e.preventDefault();
