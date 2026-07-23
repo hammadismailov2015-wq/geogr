@@ -95,6 +95,18 @@
     try { localStorage.setItem("math6_order", JSON.stringify(topicOrder)); } catch (e) {}
   }
 
+  /* ---------- Прогресс по темам (лучший результат тренажёра, %) ---------- */
+  var progress = loadProgress();
+  function loadProgress() {
+    try {
+      var p = JSON.parse(localStorage.getItem("math6_progress") || "{}");
+      return (p && typeof p === "object") ? p : {};
+    } catch (e) { return {}; }
+  }
+  function saveProgress() {
+    try { localStorage.setItem("math6_progress", JSON.stringify(progress)); } catch (e) {}
+  }
+
   function renderTopics(filter) {
     var grid = $("topicGrid");
     var empty = $("topicEmpty");
@@ -115,13 +127,18 @@
       card.className = "topic-card";
       card.type = "button";
       card.setAttribute("data-id", topic.id);
+      var pct = Math.round(progress[topic.id] || 0);
       card.innerHTML =
         '<div class="tc-top">' +
           '<span class="tc-ico">' + topic.icon + "</span>" +
           '<span class="tc-num">№' + (origIndex + 1) + "</span>" +
         "</div>" +
         '<div class="tc-title">' + topic.title + "</div>" +
-        '<div class="tc-desc">' + topic.desc + "</div>";
+        '<div class="tc-desc">' + topic.desc + "</div>" +
+        '<div class="tc-progress">' +
+          '<div class="tc-prog-top">Прогресс <b>' + pct + '%</b></div>' +
+          '<div class="tc-prog-bar"><div class="tc-prog-fill" style="width:' + pct + '%"></div></div>' +
+        "</div>";
       (function (t, c) {
         c.addEventListener("pointerdown", function (e) { onCardPointerDown(e, c, t); });
       })(topic, card);
@@ -664,6 +681,10 @@
     show("result");
     var total = order.length;
     var pct = Math.round((correct / total) * 100);
+    // Сохраняем лучший результат по теме (для полоски прогресса)
+    if (!examMode && current) {
+      if (pct > (progress[current.id] || 0)) { progress[current.id] = pct; saveProgress(); }
+    }
     $("resultScore").textContent = correct;
     $("resultTotal").textContent = total;
     $("ringPct").textContent = pct + "%";
@@ -921,13 +942,18 @@
   var examBtn = $("examBtn");
   if (examBtn) examBtn.addEventListener("click", startExam);
 
-  $("quizQuit").addEventListener("click", function () { stopTimer(); show(examMode ? "home" : "mode"); });
+  $("quizQuit").addEventListener("click", function () { stopTimer(); if (examMode) { goHome(); } else { show("mode"); } });
   $("nextBtn").addEventListener("click", nextQuestion);
   $("retryBtn").addEventListener("click", function () { examMode ? startExam() : startQuiz(); });
   $("resultToTheory").addEventListener("click", openTheory);
 
+  function goHome() {
+    var s = $("topicSearch");
+    renderTopics(s ? s.value : ""); // обновляем полоски прогресса
+    show("home");
+  }
   document.querySelectorAll('[data-nav="home"]').forEach(function (b) {
-    b.addEventListener("click", function () { show("home"); });
+    b.addEventListener("click", goHome);
   });
 
   // Enter на экране тренажёра — «Дальше», когда пример уже проверен
