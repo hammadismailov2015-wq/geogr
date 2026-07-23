@@ -75,31 +75,111 @@
     $("totalScore").textContent = totalScore;
   }
 
-  /* ---------- Главная: сетка тем ---------- */
+  /* ---------- Главная: сетка тем (с перетаскиванием) ---------- */
+  var topicOrder = loadOrder();
+  var searchActiveFlag = false;
+  var drag = { el: null, moved: false };
+  var justDragged = false;
+
+  function loadOrder() {
+    var ids = TOPICS.map(function (t) { return t.id; });
+    try {
+      var saved = JSON.parse(localStorage.getItem("math6_order") || "null");
+      if (Array.isArray(saved)) {
+        var known = saved.filter(function (id) { return ids.indexOf(id) >= 0; });
+        ids.forEach(function (id) { if (known.indexOf(id) < 0) known.push(id); });
+        return known;
+      }
+    } catch (e) {}
+    return ids;
+  }
+  function saveOrder() {
+    try { localStorage.setItem("math6_order", JSON.stringify(topicOrder)); } catch (e) {}
+  }
+
   function renderTopics(filter) {
     var grid = $("topicGrid");
     var empty = $("topicEmpty");
     grid.innerHTML = "";
     var q = (filter || "").trim().toLowerCase();
+    searchActiveFlag = q.length > 0;
     var shown = 0;
 
-    TOPICS.forEach(function (topic, i) {
+    topicOrder.forEach(function (id) {
+      var topic = null, origIndex = -1;
+      for (var k = 0; k < TOPICS.length; k++) {
+        if (TOPICS[k].id === id) { topic = TOPICS[k]; origIndex = k; break; }
+      }
+      if (!topic) return;
       if (q && (topic.title + " " + topic.desc).toLowerCase().indexOf(q) === -1) return;
       shown++;
       var card = document.createElement("button");
       card.className = "topic-card";
+      card.setAttribute("data-id", topic.id);
       card.innerHTML =
         '<div class="tc-top">' +
           '<span class="tc-ico">' + topic.icon + "</span>" +
-          '<span class="tc-num">№' + (i + 1) + "</span>" +
+          '<span class="tc-num">№' + (origIndex + 1) + "</span>" +
+          '<span class="tc-handle" aria-label="Перетащить" title="Перетащить, чтобы переставить">⠿</span>' +
         "</div>" +
         '<div class="tc-title">' + topic.title + "</div>" +
         '<div class="tc-desc">' + topic.desc + "</div>";
-      card.addEventListener("click", function () { openMode(topic); });
+      card.addEventListener("click", function () { if (justDragged) return; openMode(topic); });
+      var handle = card.querySelector(".tc-handle");
+      if (searchActiveFlag) {
+        handle.style.display = "none"; // при поиске перетаскивание выключено
+      } else {
+        handle.addEventListener("click", function (e) { e.stopPropagation(); e.preventDefault(); });
+        handle.addEventListener("pointerdown", function (e) { startDrag(e, card); });
+      }
       grid.appendChild(card);
     });
 
     empty.hidden = shown !== 0;
+  }
+
+  /* ---------- Перетаскивание тем ---------- */
+  function startDrag(e, card) {
+    if (searchActiveFlag) return;
+    e.preventDefault();
+    e.stopPropagation();
+    drag.el = card;
+    drag.moved = false;
+    card.classList.add("dragging");
+    document.addEventListener("pointermove", onDragMove, { passive: false });
+    document.addEventListener("pointerup", endDrag);
+    document.addEventListener("pointercancel", endDrag);
+  }
+  function onDragMove(e) {
+    if (!drag.el) return;
+    e.preventDefault();
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var target = el && el.closest ? el.closest(".topic-card") : null;
+    var grid = $("topicGrid");
+    if (target && target !== drag.el && target.parentNode === grid) {
+      drag.moved = true;
+      var rect = target.getBoundingClientRect();
+      var before = e.clientY < rect.top + rect.height / 2;
+      grid.insertBefore(drag.el, before ? target : target.nextSibling);
+    }
+  }
+  function endDrag() {
+    if (!drag.el) return;
+    drag.el.classList.remove("dragging");
+    document.removeEventListener("pointermove", onDragMove);
+    document.removeEventListener("pointerup", endDrag);
+    document.removeEventListener("pointercancel", endDrag);
+    if (drag.moved) {
+      var grid = $("topicGrid");
+      topicOrder = Array.prototype.slice.call(grid.children)
+        .map(function (c) { return c.getAttribute("data-id"); })
+        .filter(Boolean);
+      saveOrder();
+      justDragged = true;
+      setTimeout(function () { justDragged = false; }, 300);
+    }
+    drag.el = null;
+    drag.moved = false;
   }
 
   /* ---------- Экран выбора режима ---------- */
