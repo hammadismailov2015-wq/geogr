@@ -189,7 +189,8 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
 body.drag-lock { touch-action: none; user-select: none; -webkit-user-select: none; }
 
 /* Кнопка «Сбросить порядок» */
-.topics-bar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin: 0 0 12px; }
+.topics-bar { display: flex; flex-wrap: nowrap; align-items: stretch; gap: 8px; margin: 0 0 12px; }
+.topics-bar .reset-order { flex: 1 1 0; min-width: 0; text-align: center; line-height: 1.2; padding: 9px 8px; }
 .topics-bar[hidden] { display: none; }
 .reset-order {
   background: var(--card); border: 1px solid var(--border); color: var(--muted);
