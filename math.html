@@ -81,7 +81,10 @@
         <input type="search" id="topicSearch" placeholder="Поиск темы…" autocomplete="off" aria-label="Поиск темы" />
       </div>
 
-      <p class="drag-hint">Потяните значок <b>⠿</b> на карточке, чтобы переставить тему повыше. Порядок сохранится.</p>
+      <div class="drag-row">
+        <p class="drag-hint">Зажмите тему и потяните, чтобы переставить. Порядок сохранится.</p>
+        <button class="reset-order-btn" id="resetOrderBtn" hidden>↩ Сбросить порядок</button>
+      </div>
       <div class="topic-grid" id="topicGrid"><!-- заполняется из JS --></div>
       <p class="topic-empty" id="topicEmpty" hidden>Ничего не найдено 🙁 Попробуйте другое слово.</p>
     </section>

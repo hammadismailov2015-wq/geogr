@@ -251,16 +251,22 @@ body {
   background: var(--card-2); color: var(--accent);
 }
 .tc-num { margin-left: auto; font-size: 12px; color: var(--muted); font-weight: 700; }
-.tc-handle {
-  margin-left: 8px; cursor: grab; font-size: 20px; line-height: 1;
-  color: var(--muted); padding: 2px 6px; border-radius: 6px;
-  touch-action: none; user-select: none; -webkit-user-select: none;
-  position: relative; z-index: 2;
+.topic-card {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
-.tc-handle:hover { color: var(--text); background: var(--card-2); }
-.tc-handle:active { cursor: grabbing; }
-.topic-card.dragging { opacity: .55; outline: 2px dashed var(--brand); outline-offset: -2px; }
-.drag-hint { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; text-align: center; }
+.topic-card:focus, .topic-card:focus-visible { outline: none; }
+
+.drag-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; }
+.drag-hint { font-size: 12.5px; color: var(--muted); margin: 0; }
+.reset-order-btn {
+  flex: 0 0 auto; background: var(--card); color: var(--muted);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.reset-order-btn:hover { color: var(--text); border-color: var(--brand); }
+.reset-order-btn[hidden] { display: none; }
 .tc-title { font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
 .tc-desc { font-size: 12.5px; color: var(--muted); }
 
