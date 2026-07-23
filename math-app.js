@@ -285,6 +285,9 @@
       totalScore++;
       saveScore();
       $("quizScore").textContent = correct;
+      playCorrect();
+    } else {
+      playWrong();
     }
 
     var exp = $("qExplain");
@@ -426,6 +429,57 @@
     if (retry) retry.textContent = examMode ? "Сдать ещё раз" : "Пройти ещё раз";
   }
 
+  /* ---------- Звуки ---------- */
+  var audioCtx = null;
+  var soundOn = true;
+
+  function initSound() {
+    try { soundOn = localStorage.getItem("math6_sound") !== "0"; } catch (e) {}
+    updateSoundIcon();
+  }
+  function updateSoundIcon() {
+    var btn = $("soundBtn");
+    if (btn) btn.textContent = soundOn ? "🔊" : "🔇";
+  }
+  function toggleSound() {
+    soundOn = !soundOn;
+    try { localStorage.setItem("math6_sound", soundOn ? "1" : "0"); } catch (e) {}
+    updateSoundIcon();
+    if (soundOn) playCorrect(); // короткий сигнал-подтверждение
+  }
+  function ensureCtx() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+    }
+    if (audioCtx && audioCtx.state === "suspended") { try { audioCtx.resume(); } catch (e) {} }
+    return audioCtx;
+  }
+  // Один «пик» заданной частоты
+  function beep(freq, startAt, dur, type) {
+    var ctx = ensureCtx();
+    if (!ctx) return;
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    o.connect(g); g.connect(ctx.destination);
+    var t = ctx.currentTime + startAt;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.25, t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.start(t);
+    o.stop(t + dur + 0.03);
+  }
+  function playCorrect() {
+    if (!soundOn) return;
+    beep(660, 0, 0.13, "sine");     // ми
+    beep(880, 0.10, 0.18, "sine");  // ля (выше — «получилось!»)
+  }
+  function playWrong() {
+    if (!soundOn) return;
+    beep(196, 0, 0.30, "sawtooth");  // низкий
+    beep(146, 0.12, 0.30, "sawtooth"); // ещё ниже — «неа»
+  }
+
   /* ---------- Режим на время ---------- */
   function initTimeControls() {
     try { timedMode = localStorage.getItem("math6_timed") === "1"; } catch (e) {}
@@ -491,6 +545,7 @@
     exp.className = "q-explain no";
     exp.innerHTML = "<b>⏰ Время вышло!</b> Правильный ответ: <b>" + formatMath(q.a) + "</b>. " + formatMath(q.explain || "");
     exp.hidden = false;
+    playWrong();
     $("nextBtn").disabled = false;
     $("nextBtn").focus();
   }
@@ -573,6 +628,8 @@
   /* ---------- Обработчики ---------- */
   $("topicSearch").addEventListener("input", function (e) { renderTopics(e.target.value); });
   $("themeBtn").addEventListener("click", toggleTheme);
+  var soundBtn = $("soundBtn");
+  if (soundBtn) soundBtn.addEventListener("click", toggleSound);
 
   var paletteBtn = $("paletteBtn");
   if (paletteBtn) paletteBtn.addEventListener("click", function (e) { e.stopPropagation(); togglePalette(); });
@@ -609,5 +666,6 @@
   initTheme();
   initPalette();
   initTimeControls();
+  initSound();
   renderTopics("");
 })();
