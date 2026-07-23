@@ -134,6 +134,7 @@
 
   /* ---------- Перетаскивание тем (за любое место карточки) ---------- */
   var press = null;
+  var scrollRAF = null;
 
   function isDefaultOrder() {
     if (topicOrder.length !== TOPICS.length) return false;
@@ -189,7 +190,39 @@
     card.style.pointerEvents = "none";
     moveFloat(press.x, press.y);
     press.dragging = true;
+    startAutoScroll();
     if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+  }
+  // Автопрокрутка списка, когда карточку ведут к верхнему или нижнему краю
+  function startAutoScroll() {
+    if (scrollRAF) return;
+    var step = function () {
+      if (!press || !press.dragging) { scrollRAF = null; return; }
+      var y = press.lastY, h = window.innerHeight, EDGE = 90, MAX = 16, dy = 0;
+      if (y < EDGE) dy = -Math.ceil((EDGE - y) / EDGE * MAX);          // у верха — вверх
+      else if (y > h - EDGE) dy = Math.ceil((y - (h - EDGE)) / EDGE * MAX); // у низа — вниз
+      if (dy) {
+        var before = window.scrollY;
+        window.scrollBy(0, dy);
+        if (window.scrollY !== before) updatePlaceholderAt(press.lastX, press.lastY);
+      }
+      scrollRAF = requestAnimationFrame(step);
+    };
+    scrollRAF = requestAnimationFrame(step);
+  }
+  function stopAutoScroll() {
+    if (scrollRAF) { cancelAnimationFrame(scrollRAF); scrollRAF = null; }
+  }
+  function updatePlaceholderAt(x, y) {
+    if (!press || !press.placeholder) return;
+    var el = document.elementFromPoint(x, y);
+    var target = el && el.closest ? el.closest(".topic-card") : null;
+    var grid = $("topicGrid");
+    if (target && target !== press.card && target.parentNode === grid) {
+      var rect = target.getBoundingClientRect();
+      var before = y < rect.top + rect.height / 2;
+      grid.insertBefore(press.placeholder, before ? target : target.nextSibling);
+    }
   }
   function moveFloat(x, y) {
     if (!press || !press.card) return;
@@ -214,21 +247,14 @@
     }
     e.preventDefault();
     press.moved = true;
-    moveFloat(e.clientX, e.clientY); // карточка едет за пальцем
-    // куда встанет — двигаем пустое место
-    var el = document.elementFromPoint(e.clientX, e.clientY);
-    var target = el && el.closest ? el.closest(".topic-card") : null;
-    var grid = $("topicGrid");
-    if (target && target !== press.card && target.parentNode === grid) {
-      var rect = target.getBoundingClientRect();
-      var before = e.clientY < rect.top + rect.height / 2;
-      grid.insertBefore(press.placeholder, before ? target : target.nextSibling);
-    }
+    moveFloat(e.clientX, e.clientY);        // карточка едет за пальцем
+    updatePlaceholderAt(e.clientX, e.clientY); // куда встанет — двигаем пустое место
   }
   function onPressUp() {
     if (!press) return;
     var p = press;
     clearTimeout(p.timer);
+    stopAutoScroll();
     cleanupPress();
     if (p.dragging) {
       clearFloat(p.card);
@@ -258,6 +284,7 @@
     if (!press) return;
     var p = press;
     clearTimeout(p.timer);
+    stopAutoScroll();
     if (p.dragging) {
       clearFloat(p.card);
       if (p.placeholder && p.placeholder.parentNode) p.placeholder.remove();
