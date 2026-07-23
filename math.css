@@ -293,6 +293,10 @@ body {
   background: linear-gradient(90deg, #16a34a, #4ade80);
   border-radius: 99px; transition: width .5s ease;
 }
+/* Цвет по уровню знаний */
+.tc-prog-fill.lvl-low  { background: linear-gradient(90deg, #eab308, #facc15); } /* ≤30% — жёлтый */
+.tc-prog-fill.lvl-mid  { background: linear-gradient(90deg, #f97316, #fb923c); } /* 31–79% — оранжевый */
+.tc-prog-fill.lvl-high { background: linear-gradient(90deg, #16a34a, #4ade80); } /* ≥80% — зелёный */
 
 .topic-empty { text-align: center; color: var(--muted); padding: 30px; }
 

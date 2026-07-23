@@ -128,6 +128,7 @@
       card.type = "button";
       card.setAttribute("data-id", topic.id);
       var pct = Math.round(progress[topic.id] || 0);
+      var lvl = pct <= 30 ? "low" : (pct < 80 ? "mid" : "high"); // жёлтый / оранжевый / зелёный
       card.innerHTML =
         '<div class="tc-top">' +
           '<span class="tc-ico">' + topic.icon + "</span>" +
@@ -137,7 +138,7 @@
         '<div class="tc-desc">' + topic.desc + "</div>" +
         '<div class="tc-progress">' +
           '<div class="tc-prog-top">Прогресс <b>' + pct + '%</b></div>' +
-          '<div class="tc-prog-bar"><div class="tc-prog-fill" style="width:' + pct + '%"></div></div>' +
+          '<div class="tc-prog-bar"><div class="tc-prog-fill lvl-' + lvl + '" style="width:' + pct + '%"></div></div>' +
         "</div>";
       (function (t, c) {
         c.addEventListener("pointerdown", function (e) { onCardPointerDown(e, c, t); });
