@@ -27,6 +27,10 @@
   var answered = false;    // проверен ли текущий пример
   var examMode = false;    // идёт экзамен по всем темам?
   var sessionTitle = "";   // подпись теста (тема или «Экзамен»)
+  var timedMode = false;   // отвечать на время?
+  var timeLimit = 10;      // секунд на пример
+  var timerId = null;      // id таймера
+  var timeLeft = 0;        // осталось секунд
   var totalScore = loadScore();
 
   $("totalScore").textContent = totalScore;
@@ -233,11 +237,13 @@
     box.appendChild(reveal);
 
     input.focus();
+    startTimer();
   }
 
   function revealAnswer() {
     if (answered) return;
     answered = true;
+    stopTimer();
     var q = quizList[order[idx]];
 
     var input = $("answerInput");
@@ -264,6 +270,7 @@
     if (!val.trim()) { input.focus(); return; }
 
     answered = true;
+    stopTimer();
     var q = quizList[order[idx]];
     var right = checkAnswer(val, q);
 
@@ -387,6 +394,7 @@
 
   /* ---------- Результат ---------- */
   function showResult() {
+    stopTimer();
     show("result");
     var total = order.length;
     var pct = Math.round((correct / total) * 100);
@@ -416,6 +424,75 @@
     // Заголовок «Пройти ещё раз» для экзамена
     var retry = $("retryBtn");
     if (retry) retry.textContent = examMode ? "Сдать ещё раз" : "Пройти ещё раз";
+  }
+
+  /* ---------- Режим на время ---------- */
+  function initTimeControls() {
+    try { timedMode = localStorage.getItem("math6_timed") === "1"; } catch (e) {}
+    try { timeLimit = parseInt(localStorage.getItem("math6_timelimit") || "10", 10) || 10; } catch (e) {}
+    updateTimeUI();
+    var chips = $("toChips");
+    if (chips) chips.querySelectorAll(".to-chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        timeLimit = parseInt(chip.getAttribute("data-sec"), 10);
+        try { localStorage.setItem("math6_timelimit", String(timeLimit)); } catch (e) {}
+        updateChips();
+      });
+    });
+    var tog = $("timeToggle");
+    if (tog) tog.addEventListener("click", function () {
+      timedMode = !timedMode;
+      try { localStorage.setItem("math6_timed", timedMode ? "1" : "0"); } catch (e) {}
+      updateTimeUI();
+    });
+  }
+  function updateChips() {
+    var chips = $("toChips");
+    if (chips) chips.querySelectorAll(".to-chip").forEach(function (chip) {
+      chip.classList.toggle("on", parseInt(chip.getAttribute("data-sec"), 10) === timeLimit);
+    });
+  }
+  function updateTimeUI() {
+    var tog = $("timeToggle");
+    if (!tog) return;
+    tog.classList.toggle("on", timedMode);
+    tog.setAttribute("aria-pressed", timedMode ? "true" : "false");
+    $("timeState").textContent = timedMode ? "Вкл" : "Выкл";
+    $("timeOpts").hidden = !timedMode;
+    updateChips();
+  }
+
+  function stopTimer() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+  }
+  function startTimer() {
+    stopTimer();
+    var box = $("quizTimer"), num = $("timerNum");
+    if (!timedMode) { if (box) box.hidden = true; return; }
+    timeLeft = timeLimit;
+    if (box) { box.hidden = false; box.classList.remove("low"); }
+    if (num) num.textContent = timeLeft;
+    timerId = setInterval(function () {
+      timeLeft--;
+      if (num) num.textContent = Math.max(0, timeLeft);
+      if (box) box.classList.toggle("low", timeLeft <= 3);
+      if (timeLeft <= 0) { stopTimer(); onTimeUp(); }
+    }, 1000);
+  }
+  function onTimeUp() {
+    if (answered) return;
+    answered = true;
+    var q = quizList[order[idx]];
+    var input = $("answerInput");
+    if (input) { input.readOnly = true; input.classList.add("no"); }
+    var cb = $("checkBtn"); if (cb) cb.disabled = true;
+    var rb = $("revealBtn"); if (rb) rb.disabled = true;
+    var exp = $("qExplain");
+    exp.className = "q-explain no";
+    exp.innerHTML = "<b>⏰ Время вышло!</b> Правильный ответ: <b>" + formatMath(q.a) + "</b>. " + formatMath(q.explain || "");
+    exp.hidden = false;
+    $("nextBtn").disabled = false;
+    $("nextBtn").focus();
   }
 
   /* ---------- Утилиты ---------- */
@@ -513,7 +590,7 @@
   var examBtn = $("examBtn");
   if (examBtn) examBtn.addEventListener("click", startExam);
 
-  $("quizQuit").addEventListener("click", function () { show(examMode ? "home" : "mode"); });
+  $("quizQuit").addEventListener("click", function () { stopTimer(); show(examMode ? "home" : "mode"); });
   $("nextBtn").addEventListener("click", nextQuestion);
   $("retryBtn").addEventListener("click", function () { examMode ? startExam() : startQuiz(); });
   $("resultToTheory").addEventListener("click", openTheory);
@@ -531,5 +608,6 @@
   /* ---------- Старт ---------- */
   initTheme();
   initPalette();
+  initTimeControls();
   renderTopics("");
 })();

@@ -57,6 +57,24 @@
         <span class="exam-go">→</span>
       </button>
 
+      <button class="time-toggle" id="timeToggle" aria-pressed="false" title="Отвечать на время">
+        <span class="tt-ico">⏱</span>
+        <span class="tt-label">Режим на время</span>
+        <span class="tt-switch"><span class="tt-knob"></span></span>
+        <span class="tt-state" id="timeState">Выкл</span>
+      </button>
+      <div class="time-opts" id="timeOpts" hidden>
+        <span class="to-label">Секунд на пример:</span>
+        <div class="to-chips" id="toChips">
+          <button class="to-chip" data-sec="3">3 с</button>
+          <button class="to-chip" data-sec="5">5 с</button>
+          <button class="to-chip" data-sec="10">10 с</button>
+          <button class="to-chip" data-sec="15">15 с</button>
+          <button class="to-chip" data-sec="20">20 с</button>
+          <button class="to-chip" data-sec="30">30 с</button>
+        </div>
+      </div>
+
       <div class="topic-search">
         <span class="ts-ico">🔍</span>
         <input type="search" id="topicSearch" placeholder="Поиск темы…" autocomplete="off" aria-label="Поиск темы" />
@@ -110,6 +128,7 @@
           <div class="qbar"><div class="qbar-fill" id="qbarFill"></div></div>
           <span class="qcount" id="qCount">1 / 6</span>
         </div>
+        <div class="quiz-timer" id="quizTimer" hidden>⏱ <span id="timerNum">20</span></div>
         <div class="quiz-score">⭐ <span id="quizScore">0</span></div>
       </div>
 
