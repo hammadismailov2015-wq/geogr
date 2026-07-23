@@ -7,7 +7,7 @@ const STORE_KEY = "geo-trainer-v1";
 
 /* ---------- Хранилище прогресса ---------- */
 const Store = {
-  data: { bestStreak: 0, points: 0, topics: {}, theme: "dark", palette: "ocean", timed: false, qtime: 20 },
+  data: { bestStreak: 0, points: 0, topics: {}, theme: "dark", palette: "ocean", timed: false, qtime: 20, sound: true },
   load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
@@ -22,6 +22,44 @@ const Store = {
   topicStat(id) {
     if (!this.data.topics[id]) this.data.topics[id] = { plays: 0, best: 0 };
     return this.data.topics[id];
+  },
+};
+
+/* ---------- Звуки (генерируются через Web Audio, без файлов) ---------- */
+const Sound = {
+  ctx: null,
+  ensure() {
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) this.ctx = new AC();
+    }
+    if (this.ctx && this.ctx.state === "suspended") this.ctx.resume();
+    return this.ctx;
+  },
+  enabled() { return Store.data.sound !== false; },
+  tone(freq, start, dur, type, gain) {
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.linearRampToValueAtTime(gain, start + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(start); o.stop(start + dur + 0.02);
+  },
+  correct() {
+    if (!this.enabled()) return;
+    const ctx = this.ensure(); if (!ctx) return;
+    const t = ctx.currentTime;
+    this.tone(660, t, 0.13, "sine", 0.22);          // радостный подъём
+    this.tone(990, t + 0.11, 0.22, "sine", 0.22);
+  },
+  wrong() {
+    if (!this.enabled()) return;
+    const ctx = this.ensure(); if (!ctx) return;
+    const t = ctx.currentTime;
+    this.tone(196, t, 0.18, "square", 0.14);        // низкий «бз-з» вниз
+    this.tone(146, t + 0.15, 0.26, "square", 0.14);
   },
 };
 
@@ -126,6 +164,7 @@ const Quiz = {
       if (idx === item.answer) b.classList.add("wrong");   // не успели — подсвечиваем красным
     });
     this.wrongTopics[item.topic] = (this.wrongTopics[item.topic] || 0) + 1;
+    Sound.wrong();
     const explain = $("#qExplain");
     explain.innerHTML = `<strong>⏱ Время вышло!</strong> Правильный ответ выделен. ${item.explain}`;
     explain.hidden = false;
@@ -191,10 +230,12 @@ const Quiz = {
       this.score++;
       Store.data.points = (Store.data.points || 0) + 1;   // очко за правильный ответ
       $("#totalPoints").textContent = Store.data.points;
+      Sound.correct();
     } else {
       btn.classList.add("wrong");
       const key = item.topic;
       this.wrongTopics[key] = (this.wrongTopics[key] || 0) + 1;
+      Sound.wrong();
     }
 
     $("#quizScore").textContent = this.score;
@@ -483,6 +524,18 @@ function init() {
   $("#themeBtn").addEventListener("click", () => {
     applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
   });
+
+  const soundBtn = $("#soundBtn");
+  if (soundBtn) {
+    const paintSound = () => { soundBtn.textContent = Store.data.sound === false ? "🔇" : "🔊"; };
+    paintSound();
+    soundBtn.addEventListener("click", () => {
+      Store.data.sound = Store.data.sound === false ? true : false;
+      Store.save();
+      paintSound();
+      if (Store.data.sound) Sound.correct();     // короткий пример при включении
+    });
+  }
 
   const palBtn = $("#paletteBtn"), palPop = $("#palettePop");
   if (palBtn && palPop) {

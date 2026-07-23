@@ -210,6 +210,7 @@
         if (tp) tp.textContent = Store.data.points;
       }
     }
+    if (typeof Sound !== "undefined") (correct ? Sound.correct() : Sound.wrong());
     $("#mapScore").textContent = G.score;
     const fb = $("#mapFeedback");
     fb.hidden = false;
@@ -287,6 +288,7 @@
       $("#" + pref + t.id).classList.add("correct-shape");
       $("#" + tpref + t.id).classList.add("show");
     }
+    if (typeof Sound !== "undefined") Sound.wrong();
     const fb = $("#mapFeedback");
     fb.hidden = false;
     fb.className = "map-feedback no";
