@@ -355,7 +355,7 @@ function renderHome() {
 }
 
 /* ---------- Свой порядок тем: перетаскивание + сохранение ---------- */
-const DRAG = { suppress: false, el: null, on: false, clr: null, timer: null, sx: 0, sy: 0, ptype: "", startNext: null };
+const DRAG = { suppress: false, el: null, on: false, clr: null, timer: null, sx: 0, sy: 0, ptype: "", startNext: null, ph: null, ox: 0, oy: 0 };
 
 function topicOrder() {
   const saved = Array.isArray(Store.data.order) ? Store.data.order.filter((id) => TOPICS[id]) : [];
@@ -380,23 +380,38 @@ function setupDragReorder() {
   const grid = $("#topicGrid");
   if (!grid) return;
 
+  function moveTo(x, y) {
+    DRAG.el.style.transform = `translate(${(x - DRAG.ox).toFixed(1)}px, ${(y - DRAG.oy).toFixed(1)}px)`;
+  }
+
   function activate() {
     if (DRAG.on || !DRAG.el) return;
     DRAG.on = true; DRAG.suppress = true;
-    DRAG.el.classList.add("dragging");
-    document.body.classList.add("drag-lock");   // на время перетаскивания страница не листается
+    const el = DRAG.el, r = el.getBoundingClientRect();
+    DRAG.ox = DRAG.sx - r.left; DRAG.oy = DRAG.sy - r.top;   // где схватили карточку
+    // пустое место (пунктирный слот) там, где карточка стояла
+    const ph = document.createElement("div");
+    ph.className = "tc-placeholder";
+    ph.style.height = r.height + "px";
+    el.parentNode.insertBefore(ph, el);
+    DRAG.ph = ph;
+    // «отрываем» карточку — теперь она плывёт за пальцем
+    el.classList.add("dragging");
+    el.style.width = r.width + "px";
+    el.style.position = "fixed";
+    el.style.left = "0"; el.style.top = "0"; el.style.margin = "0";
+    document.body.classList.add("drag-lock");
+    moveTo(DRAG.sx, DRAG.sy);
   }
 
   function reorderAt(x, y) {
-    let over = null;
     for (const c of $$("#topicGrid .topic-card")) {
       if (c === DRAG.el || c.style.display === "none") continue;
       const b = c.getBoundingClientRect();
-      if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom) { over = c; break; }
-    }
-    if (over) {
-      const b = over.getBoundingClientRect();
-      grid.insertBefore(DRAG.el, (y < b.top + b.height / 2) ? over : over.nextSibling);
+      if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom) {
+        grid.insertBefore(DRAG.ph, (y < b.top + b.height / 2) ? c : c.nextSibling);
+        return;
+      }
     }
   }
 
@@ -420,22 +435,27 @@ function setupDragReorder() {
       if (!DRAG.on) return;
     }
     if (e.cancelable) e.preventDefault();
-    reorderAt(e.clientX, e.clientY);
+    moveTo(e.clientX, e.clientY);               // карточка следует за пальцем
+    reorderAt(e.clientX, e.clientY);            // слот встаёт на нужное место
   };
 
   const onUp = (e) => {
     stop();
     if (DRAG.on && DRAG.el) {
+      const el = DRAG.el, ph = DRAG.ph;
       const gb = grid.getBoundingClientRect();
       const inside = e.clientX >= gb.left && e.clientX <= gb.right && e.clientY >= gb.top && e.clientY <= gb.bottom;
-      if (!inside) grid.insertBefore(DRAG.el, DRAG.startNext);   // за пределами — вернуть на место
-      DRAG.el.classList.remove("dragging");
+      el.classList.remove("dragging");
+      el.style.position = ""; el.style.left = ""; el.style.top = ""; el.style.width = ""; el.style.margin = ""; el.style.transform = "";
+      if (inside && ph && ph.parentNode) ph.parentNode.insertBefore(el, ph);   // встаёт в слот
+      else grid.insertBefore(el, DRAG.startNext);                              // за пределами — на прежнее место
+      if (ph) ph.remove();
       document.body.classList.remove("drag-lock");
       if (inside) saveTopicOrder();
       clearTimeout(DRAG.clr);
       DRAG.clr = setTimeout(() => { DRAG.suppress = false; }, 300);
     }
-    DRAG.on = false; DRAG.el = null;
+    DRAG.on = false; DRAG.el = null; DRAG.ph = null;
   };
 
   grid.addEventListener("pointerdown", (e) => {
