@@ -31,6 +31,27 @@
 
   $("totalScore").textContent = totalScore;
 
+  /* ---------- Красивый вывод дробей ----------
+     Превращает "1/2" в настоящую дробь (числитель над знаменателем),
+     а "1 1/2" — в смешанное число. Остальной текст не трогает. */
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function fracHtml(n, d) {
+    return '<span class="frac"><span class="fr-n">' + n + '</span>' +
+      '<span class="fr-bar"></span><span class="fr-d">' + d + "</span></span>";
+  }
+  function formatMath(str) {
+    var s = escapeHtml(str);
+    // смешанное число: "1 1/2" → 1 и дробь рядом
+    s = s.replace(/(\d+)\s+(\d+)\/(\d+)/g, function (m, w, n, d) {
+      return '<span class="mixed">' + w + fracHtml(n, d) + "</span>";
+    });
+    // обыкновенная дробь: "3/4"
+    s = s.replace(/(\d+)\/(\d+)/g, function (m, n, d) { return fracHtml(n, d); });
+    return s;
+  }
+
   /* ---------- Навигация ---------- */
   function show(name) {
     Object.keys(screens).forEach(function (k) {
@@ -94,8 +115,8 @@
     (current.theory || []).forEach(function (block) {
       var el;
       if (block.t === "h") { el = document.createElement("h3"); el.textContent = block.x; }
-      else if (block.t === "f") { el = document.createElement("div"); el.className = "th-formula"; el.textContent = block.x; }
-      else if (block.t === "ex") { el = document.createElement("div"); el.className = "th-example"; el.textContent = block.x; }
+      else if (block.t === "f") { el = document.createElement("div"); el.className = "th-formula"; el.innerHTML = formatMath(block.x); }
+      else if (block.t === "ex") { el = document.createElement("div"); el.className = "th-example"; el.innerHTML = formatMath(block.x); }
       else if (block.t === "img") {
         el = document.createElement("figure");
         el.className = "th-figure";
@@ -103,7 +124,7 @@
         el.innerHTML = svgMarkup + (block.cap ? '<figcaption class="th-cap"></figcaption>' : "");
         if (block.cap) el.querySelector(".th-cap").textContent = block.cap;
       }
-      else { el = document.createElement("p"); el.textContent = block.x; }
+      else { el = document.createElement("p"); el.innerHTML = formatMath(block.x); }
       body.appendChild(el);
     });
     show("theory");
@@ -152,7 +173,7 @@
     answered = false;
     var q = quizList[order[idx]];
     $("qTopic").textContent = q.topic || sessionTitle;
-    $("qText").textContent = q.q;
+    $("qText").innerHTML = formatMath(q.q);
     $("qCount").textContent = (idx + 1) + " / " + order.length;
     $("qbarFill").style.width = (idx / order.length) * 100 + "%";
     $("nextBtn").disabled = true;
@@ -198,7 +219,7 @@
     if (q.hint) {
       var hint = document.createElement("div");
       hint.className = "answer-hint";
-      hint.textContent = "Формат: " + q.hint;
+      hint.innerHTML = "Формат: " + formatMath(q.hint);
       box.appendChild(hint);
     }
 
@@ -229,7 +250,7 @@
 
     var exp = $("qExplain");
     exp.className = "q-explain reveal";
-    exp.innerHTML = "<b>Правильный ответ:</b> <b>" + q.a + "</b>. " + (q.explain || "");
+    exp.innerHTML = "<b>Правильный ответ:</b> <b>" + formatMath(q.a) + "</b>. " + formatMath(q.explain || "");
     exp.hidden = false;
 
     $("nextBtn").disabled = false;
@@ -261,8 +282,8 @@
 
     var exp = $("qExplain");
     exp.className = "q-explain " + (right ? "ok" : "no");
-    var head = right ? "<b>Верно!</b> " : ("<b>Не верно.</b> Правильный ответ: <b>" + q.a + "</b>. ");
-    exp.innerHTML = head + (q.explain || "");
+    var head = right ? "<b>Верно!</b> " : ("<b>Не верно.</b> Правильный ответ: <b>" + formatMath(q.a) + "</b>. ");
+    exp.innerHTML = head + formatMath(q.explain || "");
     exp.hidden = false;
 
     $("nextBtn").disabled = false;
