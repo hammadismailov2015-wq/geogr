@@ -78,8 +78,6 @@
   /* ---------- Главная: сетка тем (с перетаскиванием) ---------- */
   var topicOrder = loadOrder();
   var searchActiveFlag = false;
-  var drag = { el: null, moved: false };
-  var justDragged = false;
 
   function loadOrder() {
     var ids = TOPICS.map(function (t) { return t.id; });
@@ -115,71 +113,127 @@
       shown++;
       var card = document.createElement("button");
       card.className = "topic-card";
+      card.type = "button";
       card.setAttribute("data-id", topic.id);
       card.innerHTML =
         '<div class="tc-top">' +
           '<span class="tc-ico">' + topic.icon + "</span>" +
           '<span class="tc-num">№' + (origIndex + 1) + "</span>" +
-          '<span class="tc-handle" aria-label="Перетащить" title="Перетащить, чтобы переставить">⠿</span>' +
         "</div>" +
         '<div class="tc-title">' + topic.title + "</div>" +
         '<div class="tc-desc">' + topic.desc + "</div>";
-      card.addEventListener("click", function () { if (justDragged) return; openMode(topic); });
-      var handle = card.querySelector(".tc-handle");
-      if (searchActiveFlag) {
-        handle.style.display = "none"; // при поиске перетаскивание выключено
-      } else {
-        handle.addEventListener("click", function (e) { e.stopPropagation(); e.preventDefault(); });
-        handle.addEventListener("pointerdown", function (e) { startDrag(e, card); });
-      }
+      (function (t, c) {
+        c.addEventListener("pointerdown", function (e) { onCardPointerDown(e, c, t); });
+      })(topic, card);
       grid.appendChild(card);
     });
 
     empty.hidden = shown !== 0;
+    updateResetBtn();
   }
 
-  /* ---------- Перетаскивание тем ---------- */
-  function startDrag(e, card) {
-    if (searchActiveFlag) return;
-    e.preventDefault();
-    e.stopPropagation();
-    drag.el = card;
-    drag.moved = false;
-    card.classList.add("dragging");
-    document.addEventListener("pointermove", onDragMove, { passive: false });
-    document.addEventListener("pointerup", endDrag);
-    document.addEventListener("pointercancel", endDrag);
+  /* ---------- Перетаскивание тем (за любое место карточки) ---------- */
+  var press = null;
+
+  function isDefaultOrder() {
+    if (topicOrder.length !== TOPICS.length) return false;
+    for (var i = 0; i < TOPICS.length; i++) { if (topicOrder[i] !== TOPICS[i].id) return false; }
+    return true;
   }
-  function onDragMove(e) {
-    if (!drag.el) return;
+  function updateResetBtn() {
+    var b = $("resetOrderBtn");
+    if (b) b.hidden = isDefaultOrder();
+  }
+  function resetOrder() {
+    topicOrder = TOPICS.map(function (t) { return t.id; });
+    try { localStorage.removeItem("math6_order"); } catch (e) {}
+    var s = $("topicSearch");
+    renderTopics(s ? s.value : "");
+  }
+
+  // Нажатие на карточку: короткое касание — открыть тему,
+  // зажать и потянуть — перетащить. Тащить можно за любое место карточки.
+  function onCardPointerDown(e, card, topic) {
+    if (e.button !== undefined && e.button !== 0) return; // только левая кнопка / касание
+    press = {
+      card: card, topic: topic, id: e.pointerId,
+      x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY,
+      dragging: false, moved: false, timer: null, origNext: card.nextSibling
+    };
+    if (!searchActiveFlag) {
+      press.timer = setTimeout(beginDrag, 180); // зажать ~0,2 c — начинается перетаскивание
+    }
+    document.addEventListener("pointermove", onPressMove, { passive: false });
+    document.addEventListener("pointerup", onPressUp);
+    document.addEventListener("pointercancel", onPressCancel);
+  }
+  function beginDrag() {
+    if (!press) return;
+    press.dragging = true;
+    try { press.card.setPointerCapture(press.id); } catch (e) {}
+    if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} } // лёгкая вибрация вместо подсветки
+  }
+  function onPressMove(e) {
+    if (!press || e.pointerId !== press.id) return;
+    press.lastX = e.clientX; press.lastY = e.clientY;
+    var dx = e.clientX - press.x, dy = e.clientY - press.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (!press.dragging) {
+      // до захвата: заметное движение — это прокрутка, отменяем долгое нажатие
+      if (dist > 10) { clearTimeout(press.timer); cleanupPress(); }
+      return;
+    }
     e.preventDefault();
+    if (dist > 6) press.moved = true;
     var el = document.elementFromPoint(e.clientX, e.clientY);
     var target = el && el.closest ? el.closest(".topic-card") : null;
     var grid = $("topicGrid");
-    if (target && target !== drag.el && target.parentNode === grid) {
-      drag.moved = true;
+    if (target && target !== press.card && target.parentNode === grid) {
       var rect = target.getBoundingClientRect();
       var before = e.clientY < rect.top + rect.height / 2;
-      grid.insertBefore(drag.el, before ? target : target.nextSibling);
+      grid.insertBefore(press.card, before ? target : target.nextSibling);
     }
   }
-  function endDrag() {
-    if (!drag.el) return;
-    drag.el.classList.remove("dragging");
-    document.removeEventListener("pointermove", onDragMove);
-    document.removeEventListener("pointerup", endDrag);
-    document.removeEventListener("pointercancel", endDrag);
-    if (drag.moved) {
+  function onPressUp() {
+    if (!press) return;
+    var p = press;
+    clearTimeout(p.timer);
+    try { p.card.releasePointerCapture(p.id); } catch (e) {}
+    cleanupPress();
+    if (p.dragging && p.moved) {
+      // отпущено над списком — сохранить порядок; за пределами — вернуть на место
+      var el = document.elementFromPoint(p.lastX, p.lastY);
+      var overGrid = el && el.closest && el.closest(".topic-grid");
       var grid = $("topicGrid");
-      topicOrder = Array.prototype.slice.call(grid.children)
-        .map(function (c) { return c.getAttribute("data-id"); })
-        .filter(Boolean);
-      saveOrder();
-      justDragged = true;
-      setTimeout(function () { justDragged = false; }, 300);
+      if (overGrid) {
+        topicOrder = Array.prototype.slice.call(grid.children)
+          .map(function (c) { return c.getAttribute("data-id"); })
+          .filter(Boolean);
+        saveOrder();
+        updateResetBtn();
+      } else {
+        grid.insertBefore(p.card, p.origNext); // вернулась к прежнему месту
+      }
+    } else if (!p.dragging && !p.moved) {
+      // короткое касание — открыть тему
+      openMode(p.topic);
     }
-    drag.el = null;
-    drag.moved = false;
+  }
+  function onPressCancel() {
+    if (!press) return;
+    var p = press;
+    clearTimeout(p.timer);
+    if (p.dragging) {
+      try { p.card.releasePointerCapture(p.id); } catch (e) {}
+      $("topicGrid").insertBefore(p.card, p.origNext); // вернуть на место
+    }
+    cleanupPress();
+  }
+  function cleanupPress() {
+    document.removeEventListener("pointermove", onPressMove);
+    document.removeEventListener("pointerup", onPressUp);
+    document.removeEventListener("pointercancel", onPressCancel);
+    press = null;
   }
 
   /* ---------- Экран выбора режима ---------- */
@@ -781,6 +835,12 @@
   $("themeBtn").addEventListener("click", toggleTheme);
   var soundBtn = $("soundBtn");
   if (soundBtn) soundBtn.addEventListener("click", toggleSound);
+  var resetBtn = $("resetOrderBtn");
+  if (resetBtn) resetBtn.addEventListener("click", resetOrder);
+  // На время перетаскивания глушим прокрутку страницы касанием
+  document.addEventListener("touchmove", function (e) {
+    if (press && press.dragging) e.preventDefault();
+  }, { passive: false });
 
   var paletteBtn = $("paletteBtn");
   if (paletteBtn) paletteBtn.addEventListener("click", function (e) { e.stopPropagation(); togglePalette(); });
