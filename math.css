@@ -319,6 +319,17 @@ body {
 }
 .q-text { font-size: clamp(18px, 4vw, 24px); margin: 0 0 18px; letter-spacing: -.01em; }
 
+/* Красивые дроби: числитель над знаменателем с чертой */
+.frac {
+  display: inline-flex; flex-direction: column; align-items: stretch;
+  vertical-align: middle; text-align: center; line-height: 1.05;
+  font-size: .82em; margin: 0 .14em; position: relative; top: -.06em;
+}
+.fr-n, .fr-d { padding: 0 .32em; }
+.fr-bar { height: 1.6px; background: currentColor; margin: 1.5px 0; }
+.mixed { white-space: nowrap; }
+.mixed .frac { font-size: .74em; margin-left: .1em; }
+
 /* Поле ввода ответа + кнопка «Проверить» */
 .answer-row { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; }
 .answer-input {
