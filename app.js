@@ -319,6 +319,14 @@ function plural(n) {
   return "ошибок";
 }
 
+/* Цвет полосы прогресса по уровню знания темы */
+function progColor(p) {
+  if (p >= 80) return "#35c46b";   // зелёный — отлично
+  if (p >= 50) return "#f4b400";   // жёлтый — неплохо
+  if (p > 0) return "#ff7043";     // оранжевый — стоит подтянуть
+  return "var(--border)";          // ещё не начинали
+}
+
 /* ---------- Отрисовка главной ---------- */
 function renderHome() {
   const grid = $("#topicGrid");
@@ -326,6 +334,7 @@ function renderHome() {
   topicOrder().forEach((id) => {
     const t = TOPICS[id];
     const st = Store.topicStat(id);
+    const pct = st.best || 0;
     const card = document.createElement("button");
     card.className = "topic-card";
     card.dataset.id = id;
@@ -338,7 +347,11 @@ function renderHome() {
         <p>${t.desc}</p>
         <div class="tc-meta">
           <span>${t.questions.length} вопросов</span>
-          ${st.best ? `<span class="tc-best">Рекорд: ${st.best}%</span>` : `<span class="tc-new">Новая</span>`}
+          ${st.plays ? "" : `<span class="tc-new">Новая</span>`}
+        </div>
+        <div class="tc-progress">
+          <div class="tcp-top">Прогресс <b>${pct}%</b></div>
+          <div class="tcp-track"><div class="tcp-fill" style="width:${pct}%;background:${progColor(pct)}"></div></div>
         </div>
       </div>
       <span class="tc-go">▶</span>`;
