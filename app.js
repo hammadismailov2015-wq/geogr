@@ -51,8 +51,10 @@ const Sound = {
     if (!this.enabled()) return;
     const ctx = this.ensure(); if (!ctx) return;
     const t = ctx.currentTime;
-    this.tone(660, t, 0.13, "sine", 0.22);          // радостный подъём
-    this.tone(990, t + 0.11, 0.22, "sine", 0.22);
+    // мягкий тёплый аккорд «до-ми-соль» с плавным затуханием (колокольчик)
+    this.tone(523.25, t, 0.55, "sine", 0.13);         // C5
+    this.tone(659.25, t + 0.10, 0.6, "sine", 0.11);   // E5
+    this.tone(783.99, t + 0.20, 0.7, "sine", 0.08);   // G5 (тихо)
   },
   wrong() {
     if (!this.enabled()) return;
