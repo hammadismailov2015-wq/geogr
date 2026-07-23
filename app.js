@@ -415,10 +415,15 @@ function setupDragReorder() {
     }
   }
 
+  // Пока идёт перетаскивание — запрещаем прокрутку страницы касанием
+  // (для тач-экранов помогает только preventDefault на touchmove).
+  const onTouchMove = (e) => { if (DRAG.on && e.cancelable) e.preventDefault(); };
+
   function stop() {
     document.removeEventListener("pointermove", onMove);
     document.removeEventListener("pointerup", onUp);
     document.removeEventListener("pointercancel", onUp);
+    document.removeEventListener("touchmove", onTouchMove);
     clearTimeout(DRAG.timer);
   }
 
@@ -469,6 +474,7 @@ function setupDragReorder() {
     document.addEventListener("pointermove", onMove);
     document.addEventListener("pointerup", onUp);
     document.addEventListener("pointercancel", onUp);
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
     if (DRAG.ptype !== "mouse") DRAG.timer = setTimeout(activate, 240);   // телефон: долгое нажатие
   });
 }
