@@ -169,9 +169,38 @@
   }
   function beginDrag() {
     if (!press) return;
+    var card = press.card;
+    var rect = card.getBoundingClientRect();
+    press.offsetX = press.x - rect.left;
+    press.offsetY = press.y - rect.top;
+    // пустое место (placeholder) там, где была карточка
+    var ph = document.createElement("div");
+    ph.className = "topic-placeholder";
+    ph.style.height = rect.height + "px";
+    press.placeholder = ph;
+    card.parentNode.insertBefore(ph, card);
+    // карточка «поднимается» и будет ехать за пальцем
+    card.classList.add("dragging");
+    card.style.position = "fixed";
+    card.style.width = rect.width + "px";
+    card.style.height = rect.height + "px";
+    card.style.margin = "0";
+    card.style.zIndex = "999";
+    card.style.pointerEvents = "none";
+    moveFloat(press.x, press.y);
     press.dragging = true;
-    try { press.card.setPointerCapture(press.id); } catch (e) {}
-    if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} } // лёгкая вибрация вместо подсветки
+    if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+  }
+  function moveFloat(x, y) {
+    if (!press || !press.card) return;
+    press.card.style.left = (x - press.offsetX) + "px";
+    press.card.style.top = (y - press.offsetY) + "px";
+  }
+  function clearFloat(card) {
+    card.classList.remove("dragging");
+    card.style.position = ""; card.style.left = ""; card.style.top = "";
+    card.style.width = ""; card.style.height = ""; card.style.margin = "";
+    card.style.zIndex = ""; card.style.pointerEvents = "";
   }
   function onPressMove(e) {
     if (!press || e.pointerId !== press.id) return;
@@ -184,37 +213,43 @@
       return;
     }
     e.preventDefault();
-    if (dist > 6) press.moved = true;
+    press.moved = true;
+    moveFloat(e.clientX, e.clientY); // карточка едет за пальцем
+    // куда встанет — двигаем пустое место
     var el = document.elementFromPoint(e.clientX, e.clientY);
     var target = el && el.closest ? el.closest(".topic-card") : null;
     var grid = $("topicGrid");
     if (target && target !== press.card && target.parentNode === grid) {
       var rect = target.getBoundingClientRect();
       var before = e.clientY < rect.top + rect.height / 2;
-      grid.insertBefore(press.card, before ? target : target.nextSibling);
+      grid.insertBefore(press.placeholder, before ? target : target.nextSibling);
     }
   }
   function onPressUp() {
     if (!press) return;
     var p = press;
     clearTimeout(p.timer);
-    try { p.card.releasePointerCapture(p.id); } catch (e) {}
     cleanupPress();
-    if (p.dragging && p.moved) {
-      // отпущено над списком — сохранить порядок; за пределами — вернуть на место
+    if (p.dragging) {
+      clearFloat(p.card);
+      var grid = $("topicGrid");
       var el = document.elementFromPoint(p.lastX, p.lastY);
       var overGrid = el && el.closest && el.closest(".topic-grid");
-      var grid = $("topicGrid");
-      if (overGrid) {
+      if (p.moved && overGrid && p.placeholder && p.placeholder.parentNode === grid) {
+        // отпущено над списком — ставим на место пустого слота
+        grid.insertBefore(p.card, p.placeholder);
+        p.placeholder.remove();
         topicOrder = Array.prototype.slice.call(grid.children)
-          .map(function (c) { return c.getAttribute("data-id"); })
-          .filter(Boolean);
+          .filter(function (c) { return c.classList.contains("topic-card"); })
+          .map(function (c) { return c.getAttribute("data-id"); });
         saveOrder();
         updateResetBtn();
       } else {
-        grid.insertBefore(p.card, p.origNext); // вернулась к прежнему месту
+        // за пределами списка — вернуть на прежнее место
+        if (p.placeholder && p.placeholder.parentNode) p.placeholder.remove();
+        grid.insertBefore(p.card, p.origNext);
       }
-    } else if (!p.dragging && !p.moved) {
+    } else if (!p.moved) {
       // короткое касание — открыть тему
       openMode(p.topic);
     }
@@ -224,8 +259,9 @@
     var p = press;
     clearTimeout(p.timer);
     if (p.dragging) {
-      try { p.card.releasePointerCapture(p.id); } catch (e) {}
-      $("topicGrid").insertBefore(p.card, p.origNext); // вернуть на место
+      clearFloat(p.card);
+      if (p.placeholder && p.placeholder.parentNode) p.placeholder.remove();
+      $("topicGrid").insertBefore(p.card, p.origNext);
     }
     cleanupPress();
   }
