@@ -332,7 +332,6 @@ function renderHome() {
     card.style.setProperty("--accent", t.color);
     card.dataset.search = (t.title + " " + t.desc).toLowerCase().replace(/ё/g, "е");
     card.innerHTML = `
-      <span class="tc-drag" title="Перетащите, чтобы поменять порядок" aria-label="Перетащить">⠿</span>
       <div class="tc-icon">${t.icon}</div>
       <div class="tc-body">
         <h3>${t.title}</h3>
@@ -343,18 +342,20 @@ function renderHome() {
         </div>
       </div>
       <span class="tc-go">▶</span>`;
-    card.addEventListener("click", (e) => {
-      if (DRAG.suppress || e.target.closest(".tc-drag")) return;   // не запускаем при перетаскивании
+    card.addEventListener("click", () => {
+      if (DRAG.suppress) return;   // не запускаем сразу после перетаскивания
       startTopic(id);
     });
     grid.appendChild(card);
   });
+  const rob = $("#resetOrderBtn");
+  if (rob) rob.hidden = !(Array.isArray(Store.data.order) && Store.data.order.length);
   renderStats();
   if ($("#topicSearch") && $("#topicSearch").value) filterTopics();
 }
 
 /* ---------- Свой порядок тем: перетаскивание + сохранение ---------- */
-const DRAG = { suppress: false, el: null, on: false, clr: null };
+const DRAG = { suppress: false, el: null, on: false, clr: null, timer: null, sx: 0, sy: 0, ptype: "", startNext: null };
 
 function topicOrder() {
   const saved = Array.isArray(Store.data.order) ? Store.data.order.filter((id) => TOPICS[id]) : [];
@@ -365,53 +366,90 @@ function topicOrder() {
 function saveTopicOrder() {
   Store.data.order = $$("#topicGrid .topic-card").map((c) => c.dataset.id);
   Store.save();
+  const rob = $("#resetOrderBtn");
+  if (rob) rob.hidden = false;
+}
+
+function resetTopicOrder() {
+  delete Store.data.order;
+  Store.save();
+  renderHome();
 }
 
 function setupDragReorder() {
   const grid = $("#topicGrid");
   if (!grid) return;
 
-  const onMove = (e) => {
-    if (!DRAG.on || !DRAG.el) return;
-    if (e.cancelable) e.preventDefault();
-    // Карточку под пальцем ищем по координатам (исключая перетаскиваемую)
+  function activate() {
+    if (DRAG.on || !DRAG.el) return;
+    DRAG.on = true; DRAG.suppress = true;
+    DRAG.el.classList.add("dragging");
+    document.body.classList.add("drag-lock");   // на время перетаскивания страница не листается
+  }
+
+  function reorderAt(x, y) {
     let over = null;
-    const cards = $$("#topicGrid .topic-card");
-    for (const c of cards) {
+    for (const c of $$("#topicGrid .topic-card")) {
       if (c === DRAG.el || c.style.display === "none") continue;
-      const box = c.getBoundingClientRect();
-      if (e.clientX >= box.left && e.clientX <= box.right && e.clientY >= box.top && e.clientY <= box.bottom) { over = c; break; }
+      const b = c.getBoundingClientRect();
+      if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom) { over = c; break; }
     }
     if (over) {
-      const box = over.getBoundingClientRect();
-      const before = e.clientY < box.top + box.height / 2;
-      grid.insertBefore(DRAG.el, before ? over : over.nextSibling);
+      const b = over.getBoundingClientRect();
+      grid.insertBefore(DRAG.el, (y < b.top + b.height / 2) ? over : over.nextSibling);
     }
-  };
-  const onUp = () => {
-    if (!DRAG.on) return;
-    DRAG.on = false;
+  }
+
+  function stop() {
     document.removeEventListener("pointermove", onMove);
     document.removeEventListener("pointerup", onUp);
     document.removeEventListener("pointercancel", onUp);
-    if (DRAG.el) DRAG.el.classList.remove("dragging");
-    DRAG.el = null;
-    saveTopicOrder();
-    clearTimeout(DRAG.clr);
-    DRAG.clr = setTimeout(() => { DRAG.suppress = false; }, 300);   // проглотить хвостовой клик
+    clearTimeout(DRAG.timer);
+  }
+
+  const onMove = (e) => {
+    if (!DRAG.el) return;
+    if (!DRAG.on) {
+      const dist = Math.hypot(e.clientX - DRAG.sx, e.clientY - DRAG.sy);
+      if (DRAG.ptype === "mouse") {
+        if (dist > 7) activate();               // мышь: тянем сразу по сдвигу
+      } else if (dist > 12) {                   // палец сдвинули до «долгого нажатия» → это прокрутка
+        DRAG.el = null; stop();                 // отменяем — пусть страница листается
+        return;
+      }
+      if (!DRAG.on) return;
+    }
+    if (e.cancelable) e.preventDefault();
+    reorderAt(e.clientX, e.clientY);
+  };
+
+  const onUp = (e) => {
+    stop();
+    if (DRAG.on && DRAG.el) {
+      const gb = grid.getBoundingClientRect();
+      const inside = e.clientX >= gb.left && e.clientX <= gb.right && e.clientY >= gb.top && e.clientY <= gb.bottom;
+      if (!inside) grid.insertBefore(DRAG.el, DRAG.startNext);   // за пределами — вернуть на место
+      DRAG.el.classList.remove("dragging");
+      document.body.classList.remove("drag-lock");
+      if (inside) saveTopicOrder();
+      clearTimeout(DRAG.clr);
+      DRAG.clr = setTimeout(() => { DRAG.suppress = false; }, 300);
+    }
+    DRAG.on = false; DRAG.el = null;
   };
 
   grid.addEventListener("pointerdown", (e) => {
-    const handle = e.target.closest(".tc-drag");
-    if (!handle) return;
-    const card = handle.closest(".topic-card");
+    if (e.button != null && e.button > 0) return;   // только левая кнопка
+    const card = e.target.closest(".topic-card");
     if (!card) return;
-    e.preventDefault();
-    DRAG.on = true; DRAG.suppress = true; DRAG.el = card;
-    card.classList.add("dragging");
+    DRAG.el = card; DRAG.on = false;
+    DRAG.sx = e.clientX; DRAG.sy = e.clientY;
+    DRAG.ptype = e.pointerType || "mouse";
+    DRAG.startNext = card.nextSibling;
     document.addEventListener("pointermove", onMove);
     document.addEventListener("pointerup", onUp);
     document.addEventListener("pointercancel", onUp);
+    if (DRAG.ptype !== "mouse") DRAG.timer = setTimeout(activate, 240);   // телефон: долгое нажатие
   });
 }
 
@@ -544,6 +582,8 @@ function init() {
   $("#totalPoints").textContent = Store.data.points || 0;
   renderHome();
   setupDragReorder();
+  const resetBtn = $("#resetOrderBtn");
+  if (resetBtn) resetBtn.addEventListener("click", resetTopicOrder);
 
   const search = $("#topicSearch");
   if (search) search.addEventListener("input", filterTopics);

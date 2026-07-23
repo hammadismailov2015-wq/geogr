@@ -170,18 +170,21 @@ main { position: relative; z-index: 2; max-width: 1000px; margin: 0 auto; paddin
 .tc-best { color: var(--good); font-weight: 700; }
 .tc-new { color: var(--accent); font-weight: 700; }
 .tc-go { position: absolute; right: 16px; bottom: 14px; color: var(--accent); opacity: .5; font-size: 13px; }
-.tc-drag {
-  position: absolute; top: 8px; right: 10px; z-index: 3;
-  color: var(--muted); font-size: 20px; line-height: 1; letter-spacing: -2px;
-  padding: 4px 7px; border-radius: 8px; cursor: grab;
-  touch-action: none; user-select: none; -webkit-user-select: none;
-}
-.tc-drag:hover { background: var(--card-2); color: var(--text); }
-.tc-drag:active { cursor: grabbing; }
 .topic-card.dragging {
-  opacity: .55; border-color: var(--accent); box-shadow: var(--shadow);
-  transform: scale(1.03); transition: none;
+  box-shadow: var(--shadow); cursor: grabbing; transition: none;
 }
+body.drag-lock { overflow: hidden; touch-action: none; }
+
+/* Кнопка «Сбросить порядок» */
+.topics-bar { display: flex; justify-content: flex-end; margin: 0 0 12px; }
+.topics-bar[hidden] { display: none; }
+.reset-order {
+  background: var(--card); border: 1px solid var(--border); color: var(--muted);
+  border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.reset-order:hover { color: var(--text); border-color: var(--brand); }
+.reset-order[hidden] { display: none; }
 
 /* Режимы */
 .mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 22px 0; }
