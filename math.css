@@ -414,11 +414,28 @@ body {
 }
 .reveal-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); background: var(--card-2); }
 .reveal-btn:disabled { opacity: .4; cursor: not-allowed; }
+.reveal-btn[hidden] { display: none; }
 
 .q-explain.ok { border-left-color: var(--ok); }
 .q-explain.no { border-left-color: var(--bad); }
 .q-explain.reveal { border-left-color: var(--accent); }
 .q-explain.ok b, .q-explain.no b, .q-explain.reveal b { color: inherit; }
+
+/* Кнопки выбора при неверном ответе */
+.retry-choice { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.retry-choice[hidden] { display: none; }
+.rc-btn {
+  padding: 13px 16px; border-radius: 12px; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: transform .15s, filter .2s, background .2s;
+}
+.rc-btn:hover { transform: translateY(-2px); }
+.rc-again { background: var(--card-2); color: var(--text); border: 2px solid var(--brand); }
+.rc-again:hover { background: var(--card); }
+.rc-show {
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #fff; border: none;
+}
+.rc-show:hover { filter: brightness(1.06); }
 
 .q-explain {
   margin-top: 16px; padding: 14px 16px; border-radius: 14px;

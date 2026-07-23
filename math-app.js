@@ -24,7 +24,8 @@
   var order = [];          // порядок примеров
   var idx = 0;             // индекс текущего примера
   var correct = 0;         // верных в текущем тесте
-  var answered = false;    // проверен ли текущий пример
+  var answered = false;    // окончательно завершён ли текущий пример
+  var retryPending = false;// ответ неверный, ждём выбора: заново / показать ответ
   var examMode = false;    // идёт экзамен по всем темам?
   var sessionTitle = "";   // подпись теста (тема или «Экзамен»)
   var timedMode = false;   // отвечать на время?
@@ -175,6 +176,7 @@
 
   function renderQuestion() {
     answered = false;
+    retryPending = false;
     var q = quizList[order[idx]];
     $("qTopic").textContent = q.topic || sessionTitle;
     $("qText").innerHTML = formatMath(q.q);
@@ -236,8 +238,64 @@
     reveal.addEventListener("click", revealAnswer);
     box.appendChild(reveal);
 
+    // Блок выбора при неверном ответе (скрыт по умолчанию)
+    var choice = document.createElement("div");
+    choice.className = "retry-choice";
+    choice.id = "retryChoice";
+    choice.hidden = true;
+    var againB = document.createElement("button");
+    againB.type = "button";
+    againB.className = "rc-btn rc-again";
+    againB.textContent = "🔄 Решить заново";
+    againB.addEventListener("click", retryQuestion);
+    var showB = document.createElement("button");
+    showB.type = "button";
+    showB.className = "rc-btn rc-show";
+    showB.textContent = "👁 Показать ответ и идти дальше";
+    showB.addEventListener("click", showAnswerAndProceed);
+    choice.appendChild(againB);
+    choice.appendChild(showB);
+    box.appendChild(choice);
+
     input.focus();
     startTimer();
+  }
+
+  // Кнопка «Решить заново» — очистить и дать ответить снова
+  function retryQuestion() {
+    retryPending = false;
+    var input = $("answerInput");
+    input.value = "";
+    input.readOnly = false;
+    input.classList.remove("no");
+    var cb = $("checkBtn"); if (cb) cb.disabled = false;
+    var rb = $("revealBtn"); if (rb) { rb.disabled = false; rb.hidden = false; }
+    var exp = $("qExplain"); exp.hidden = true; exp.innerHTML = "";
+    var choice = $("retryChoice"); if (choice) choice.hidden = true;
+    input.focus();
+    startTimer();
+  }
+
+  // Кнопка «Показать ответ и идти дальше» — показать решение и открыть «Дальше»
+  function showAnswerAndProceed() {
+    retryPending = false;
+    answered = true;
+    stopTimer();
+    var q = quizList[order[idx]];
+    var input = $("answerInput");
+    input.value = q.a;
+    input.readOnly = true;
+    input.classList.remove("no");
+    input.classList.add("reveal");
+    var cb = $("checkBtn"); if (cb) cb.disabled = true;
+    var rb = $("revealBtn"); if (rb) rb.disabled = true;
+    var choice = $("retryChoice"); if (choice) choice.hidden = true;
+    var exp = $("qExplain");
+    exp.className = "q-explain reveal";
+    exp.innerHTML = "<b>Правильный ответ:</b> <b>" + formatMath(q.a) + "</b>. " + formatMath(q.explain || "");
+    exp.hidden = false;
+    $("nextBtn").disabled = false;
+    $("nextBtn").focus();
   }
 
   function revealAnswer() {
@@ -264,40 +322,48 @@
   }
 
   function onCheck() {
-    if (answered) return;
+    if (answered || retryPending) return;
     var input = $("answerInput");
     var val = input.value;
     if (!val.trim()) { input.focus(); return; }
 
-    answered = true;
-    stopTimer();
     var q = quizList[order[idx]];
     var right = checkAnswer(val, q);
-
-    input.readOnly = true;
-    input.classList.add(right ? "ok" : "no");
-    $("checkBtn").disabled = true;
-    var rb = $("revealBtn");
-    if (rb) rb.disabled = true;
+    stopTimer();
 
     if (right) {
+      // Верно — завершаем пример
+      answered = true;
+      input.readOnly = true;
+      input.classList.add("ok");
+      var cb = $("checkBtn"); if (cb) cb.disabled = true;
+      var rb = $("revealBtn"); if (rb) rb.disabled = true;
       correct++;
       totalScore++;
       saveScore();
       $("quizScore").textContent = correct;
       playCorrect();
-    } else {
-      playWrong();
+      var exp = $("qExplain");
+      exp.className = "q-explain ok";
+      exp.innerHTML = "<b>Верно!</b> " + formatMath(q.explain || "");
+      exp.hidden = false;
+      $("nextBtn").disabled = false;
+      $("nextBtn").focus();
+      return;
     }
 
-    var exp = $("qExplain");
-    exp.className = "q-explain " + (right ? "ok" : "no");
-    var head = right ? "<b>Верно!</b> " : ("<b>Не верно.</b> Правильный ответ: <b>" + formatMath(q.a) + "</b>. ");
-    exp.innerHTML = head + formatMath(q.explain || "");
-    exp.hidden = false;
-
-    $("nextBtn").disabled = false;
-    $("nextBtn").focus();
+    // Неверно — предлагаем выбор: решить заново или показать ответ
+    retryPending = true;
+    playWrong();
+    input.readOnly = true;
+    input.classList.add("no");
+    var cb2 = $("checkBtn"); if (cb2) cb2.disabled = true;
+    var rb2 = $("revealBtn"); if (rb2) rb2.hidden = true;
+    var exp2 = $("qExplain");
+    exp2.className = "q-explain no";
+    exp2.innerHTML = "<b>Не верно.</b> Попробуй решить заново или посмотри ответ.";
+    exp2.hidden = false;
+    var choice = $("retryChoice"); if (choice) choice.hidden = false;
   }
 
   function nextQuestion() {
@@ -536,6 +602,8 @@
   function onTimeUp() {
     if (answered) return;
     answered = true;
+    retryPending = false;
+    var choice = $("retryChoice"); if (choice) choice.hidden = true;
     var q = quizList[order[idx]];
     var input = $("answerInput");
     if (input) { input.readOnly = true; input.classList.add("no"); }
