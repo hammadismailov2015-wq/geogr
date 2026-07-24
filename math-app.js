@@ -567,6 +567,7 @@
       saveScore();
       $("quizScore").textContent = correct;
       playCorrect();
+      cheerGood();
       var exp = $("qExplain");
       exp.className = "q-explain ok";
       exp.innerHTML = "<b>Верно!</b> " + formatMath(q.explain || "");
@@ -579,6 +580,7 @@
     // Неверно — предлагаем выбор: решить заново или показать ответ
     retryPending = true;
     playWrong();
+    cheerTry();
     input.readOnly = true;
     input.classList.add("no");
     var cb2 = $("checkBtn"); if (cb2) cb2.disabled = true;
@@ -714,6 +716,11 @@
     $("resultTitle").textContent = title;
     $("resultMsg").textContent = msg;
 
+    // Хомячок хвалит за результат
+    if (pct >= 80) mascotSay("Ух ты! Ты супер-звезда! 🏆", 3600);
+    else if (pct >= 50) mascotSay("Молодец! Уже здорово! 👍", 3600);
+    else mascotSay("Ты старалась — это главное! Ещё разок? 🤗", 3600);
+
     // Кнопку «Читать объяснение» показываем только для тренажёра по теме
     var toTheory = $("resultToTheory");
     if (toTheory) toTheory.hidden = examMode;
@@ -775,6 +782,53 @@
     if (!soundOn) return;
     beep(196, 0, 0.30, "sawtooth", 0.22);   // низкий
     beep(146, 0.12, 0.30, "sawtooth", 0.22); // ещё ниже — «неа»
+  }
+
+  /* ---------- Помощник-хомячок ---------- */
+  var MASCOT_SVG =
+    '<svg viewBox="0 0 100 105" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="30" cy="26" rx="12" ry="13" fill="#8b8e92"/>' +
+      '<ellipse cx="70" cy="26" rx="12" ry="13" fill="#8b8e92"/>' +
+      '<ellipse cx="29" cy="25" rx="6" ry="7" fill="#e7e8ea"/>' +
+      '<ellipse cx="71" cy="25" rx="6" ry="7" fill="#e7e8ea"/>' +
+      '<ellipse cx="50" cy="60" rx="35" ry="40" fill="#8b8e92"/>' +
+      '<ellipse cx="50" cy="68" rx="21" ry="30" fill="#a9adb1"/>' +
+      '<ellipse cx="30" cy="55" rx="10" ry="9" fill="#f1f2f3"/>' +
+      '<ellipse cx="70" cy="55" rx="10" ry="9" fill="#f1f2f3"/>' +
+      '<ellipse cx="39" cy="47" rx="4.5" ry="6" fill="#4a3a30"/>' +
+      '<ellipse cx="61" cy="47" rx="4.5" ry="6" fill="#4a3a30"/>' +
+      '<circle cx="40.6" cy="45" r="1.4" fill="#fff"/>' +
+      '<circle cx="62.6" cy="45" r="1.4" fill="#fff"/>' +
+      '<path d="M47 53 Q50 50.5 53 53 Q50 55.6 47 53 Z" fill="#cf9174"/>' +
+      '<path d="M50 55 Q46 60 42 57 M50 55 Q54 60 58 57" fill="none" stroke="#cf9174" stroke-width="1.6" stroke-linecap="round"/>' +
+      '<ellipse cx="43" cy="66" rx="6" ry="5" fill="#f1f2f3"/>' +
+      '<ellipse cx="57" cy="66" rx="6" ry="5" fill="#f1f2f3"/>' +
+      '<ellipse cx="38" cy="96" rx="7" ry="5" fill="#f1f2f3"/>' +
+      '<ellipse cx="62" cy="96" rx="7" ry="5" fill="#f1f2f3"/>' +
+    "</svg>";
+
+  var CHEERS_GOOD = ["Молодец! 🎉", "Супер! ⭐", "Ты умница! 💛", "Вот это да!", "Правильно! 🥳", "Здорово получается!", "Так держать! 💪", "Ух ты, круто! 🌟"];
+  var CHEERS_TRY = ["Ничего страшного, попробуй ещё! 💪", "Почти получилось! Ты сможешь 🌟", "Не сдавайся, у тебя выйдет! 🤗", "Бывает! Давай ещё разок 😊"];
+  var mascotTimer = null;
+
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function mascotSay(text, ms) {
+    var bubble = $("mascotBubble");
+    if (!bubble) return;
+    bubble.textContent = text;
+    bubble.hidden = false;
+    bubble.style.animation = "none"; void bubble.offsetWidth; bubble.style.animation = "";
+    clearTimeout(mascotTimer);
+    mascotTimer = setTimeout(function () { bubble.hidden = true; }, ms || 2800);
+  }
+  function cheerGood() { mascotSay(pick(CHEERS_GOOD)); }
+  function cheerTry() { mascotSay(pick(CHEERS_TRY)); }
+  function initMascot() {
+    var pet = $("mascotPet");
+    if (pet) pet.innerHTML = MASCOT_SVG;
+    var m = $("mascot");
+    if (m) m.addEventListener("click", function () { mascotSay(pick(CHEERS_GOOD)); });
+    mascotSay("Привет! Я хомячок 🐹 Давай учиться вместе!", 3600);
   }
 
   /* ---------- Режим на время ---------- */
@@ -979,5 +1033,6 @@
   initPalette();
   initTimeControls();
   initSound();
+  initMascot();
   renderTopics("");
 })();
