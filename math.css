@@ -525,22 +525,22 @@ body {
 .result-actions { display: flex; flex-direction: column; gap: 10px; }
 
 /* ---------- ПОДВАЛ ---------- */
-.footer { text-align: center; color: var(--muted); font-size: 12px; padding: 24px 24px 96px; }
+.footer { text-align: center; color: var(--muted); font-size: 12px; padding: 24px; }
 
-/* ---------- ПОМОЩНИК-ХОМЯЧОК ---------- */
+/* ---------- ПОМОЩНИК-ХОМЯЧОК (в верхнем углу) ---------- */
 .mascot {
-  position: fixed; left: 12px; bottom: 14px; z-index: 60; width: 78px;
+  position: fixed; top: 76px; right: 10px; z-index: 60; width: 70px;
   cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
 }
-.mascot-pet { width: 78px; animation: petBob 2.6s ease-in-out infinite; transform-origin: bottom center; }
+.mascot-pet { width: 70px; animation: petBob 2.6s ease-in-out infinite; transform-origin: bottom center; }
 .mascot:active .mascot-pet { animation: petJump .4s ease; }
 .mascot-pet svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 5px 7px rgba(0,0,0,.28)); }
 @keyframes petBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes petJump { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(-14px) scale(1.08); } 100% { transform: translateY(0) scale(1); } }
 
 .mascot-bubble {
-  position: absolute; left: 68px; bottom: 42px;
-  min-width: 118px; max-width: 210px; width: max-content;
+  position: absolute; right: 62px; top: 6px;
+  min-width: 118px; max-width: 200px; width: max-content;
   background: var(--card); color: var(--text);
   border: 2px solid var(--brand); border-radius: 16px;
   padding: 10px 13px; font-size: 14px; font-weight: 700; line-height: 1.25;
@@ -548,14 +548,14 @@ body {
 }
 .mascot-bubble[hidden] { display: none; }
 .mascot-bubble::after {
-  content: ""; position: absolute; left: -9px; bottom: 16px;
-  border: 9px solid transparent; border-right-color: var(--brand);
+  content: ""; position: absolute; right: -9px; top: 18px;
+  border: 9px solid transparent; border-left-color: var(--brand);
 }
-@keyframes bubblePop { from { opacity: 0; transform: scale(.7) translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes bubblePop { from { opacity: 0; transform: scale(.7) translateY(-6px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 380px) {
-  .mascot { width: 64px; } .mascot-pet { width: 64px; }
-  .mascot-bubble { left: 56px; bottom: 36px; max-width: 170px; font-size: 13px; }
+  .mascot { width: 60px; } .mascot-pet { width: 60px; }
+  .mascot-bubble { right: 52px; max-width: 165px; font-size: 13px; }
 }
 
 /* ---------- АДАПТИВ ---------- */
