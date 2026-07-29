@@ -834,7 +834,7 @@
 
   /* ---- Облачко-подколка при взятии фигуры ---- */
   // Фраза зависит от того, какую фигуру съели
-  const TAUNT_BY = { p: 'Дайте ещё!', n: 'Я голоден 🤤', b: 'Ха-ха!', r: 'Как вкусно 😋', q: 'Лашара!' };
+  const TAUNT_BY = { p: 'Хочу ещё!', n: 'Я голоден 🤤', b: 'Ха-ха!', r: 'Как вкусно 😋', q: 'Лашара!' };
   let tauntEl = null, tauntTimer = 0;
   function showTaunt(sq, type) {
     const cell = elBoard.querySelector(`.ch-sq[data-sq="${sq}"]`);
