@@ -311,6 +311,16 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 .ch-share-hint { text-align: center; color: #6ee7a8; font-size: 13px; margin-top: 10px; min-height: 16px; }
 
+/* ---------- Онлайн-панель (игра с другом) ---------- */
+.ch-online { width: min(92vw, 560px); margin: 0 auto 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.ch-online[hidden] { display: none; }
+.ch-online-status { font-size: 14px; font-weight: 600; text-align: center; color: var(--muted); }
+.ch-online-status.ok { color: #6ee7a8; }
+.ch-online-status.warn { color: #ffd166; }
+.ch-online-status.bad { color: #ff8b8b; }
+.ch-online-share { display: flex; flex-direction: column; gap: 8px; }
+.ch-online-share .ch-share-input { margin-bottom: 0; }
+
 /* ---------- Подсветка строки статуса ---------- */
 .ch-status.check {
   color: #fff; border-color: var(--warn);
