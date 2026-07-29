@@ -28,8 +28,8 @@
     botThinking: false,
     paused: false,      // пауза часов (открыта модалка превращения и т.п.)
     theme: 'classic',
-    // Контроль игры:
-    clock: { type: 'none', timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 }
+    // Контроль игры (время и/или ходы могут быть включены одновременно):
+    clock: { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 }
   };
 
   // ---------- DOM ----------
@@ -105,30 +105,23 @@
         </div>
 
         <div class="ch-group" id="limitGroup">
-          <div class="ch-label">Контроль игры</div>
-          <div class="ch-choices" id="limitType">
-            <button class="ch-choice" data-limit="none">♾️ Без ограничения</button>
-            <button class="ch-choice" data-limit="time">⏱️ По времени</button>
-            <button class="ch-choice" data-limit="moves">🔢 По ходам</button>
+          <div class="ch-label">Контроль игры <span class="ch-label-note">— можно включить время и ходы вместе</span></div>
+          <div class="ch-sublabel" id="timeLabel">⏱️ Время каждому игроку</div>
+          <div class="ch-chips" id="timeChips">
+            <button class="ch-chip" data-min="0">Нет</button>
+            <button class="ch-chip" data-min="1">1 мин</button>
+            <button class="ch-chip" data-min="5">5 мин</button>
+            <button class="ch-chip" data-min="10">10 мин</button>
+            <button class="ch-chip" data-min="15">15 мин</button>
+            <button class="ch-chip" data-min="20">20 мин</button>
+            <button class="ch-chip" data-min="30">30 мин</button>
           </div>
-          <div class="ch-subchoices" id="timeValues" hidden>
-            <div class="ch-sublabel">Каждому игроку на всю партию:</div>
-            <div class="ch-chips" id="timeChips">
-              <button class="ch-chip" data-min="1">1 мин</button>
-              <button class="ch-chip" data-min="5">5 мин</button>
-              <button class="ch-chip" data-min="10">10 мин</button>
-              <button class="ch-chip" data-min="15">15 мин</button>
-              <button class="ch-chip" data-min="20">20 мин</button>
-              <button class="ch-chip" data-min="30">30 мин</button>
-            </div>
-          </div>
-          <div class="ch-subchoices" id="moveValues" hidden>
-            <div class="ch-sublabel">Каждому игроку по количеству ходов:</div>
-            <div class="ch-chips" id="moveChips">
-              <button class="ch-chip" data-mv="30">30 ходов</button>
-              <button class="ch-chip" data-mv="50">50 ходов</button>
-              <button class="ch-chip" data-mv="100">100 ходов</button>
-            </div>
+          <div class="ch-sublabel" id="moveLabel" style="margin-top:14px">🔢 Ходов каждому игроку</div>
+          <div class="ch-chips" id="moveChips">
+            <button class="ch-chip" data-mv="0">Нет</button>
+            <button class="ch-chip" data-mv="30">30 ходов</button>
+            <button class="ch-chip" data-mv="50">50 ходов</button>
+            <button class="ch-chip" data-mv="100">100 ходов</button>
           </div>
           <div class="ch-hint-line" id="friendClockHint" hidden>В игре с другом по ссылке часы и лимит ходов недоступны.</div>
         </div>
@@ -238,7 +231,8 @@
   /* ========================================================
      НАСТРОЙКА
      ======================================================== */
-  let setup = { mode: 'bot', side: 'w', level: 2, limit: 'none', minutes: 10, moves: 50 };
+  // timeMin=0 — без часов; moveLim=0 — без лимита ходов. Можно задать оба сразу.
+  let setup = { mode: 'bot', side: 'w', level: 2, timeMin: 0, moveLim: 0 };
 
   function bindSetup() {
     $('modeCards').addEventListener('click', (e) => {
@@ -257,20 +251,14 @@
       setup.level = parseInt(b.dataset.level, 10);
       markActive('#levelChoices .ch-choice', b);
     });
-    $('limitType').addEventListener('click', (e) => {
-      const b = e.target.closest('.ch-choice'); if (!b) return;
-      setup.limit = b.dataset.limit;
-      markActive('#limitType .ch-choice', b);
-      updateSetupVisibility();
-    });
     $('timeChips').addEventListener('click', (e) => {
       const b = e.target.closest('.ch-chip'); if (!b) return;
-      setup.minutes = parseInt(b.dataset.min, 10);
+      setup.timeMin = parseInt(b.dataset.min, 10);
       markActive('#timeChips .ch-chip', b);
     });
     $('moveChips').addEventListener('click', (e) => {
       const b = e.target.closest('.ch-chip'); if (!b) return;
-      setup.moves = parseInt(b.dataset.mv, 10);
+      setup.moveLim = parseInt(b.dataset.mv, 10);
       markActive('#moveChips .ch-chip', b);
     });
     $('themeChoices').addEventListener('click', (e) => {
@@ -286,9 +274,8 @@
     selectDefault('#modeCards .ch-card', '[data-mode="bot"]');
     selectDefault('#sideChoices .ch-choice', '[data-side="w"]');
     selectDefault('#levelChoices .ch-choice', '[data-level="2"]');
-    selectDefault('#limitType .ch-choice', '[data-limit="none"]');
-    selectDefault('#timeChips .ch-chip', '[data-min="10"]');
-    selectDefault('#moveChips .ch-chip', '[data-mv="50"]');
+    selectDefault('#timeChips .ch-chip', '[data-min="0"]');
+    selectDefault('#moveChips .ch-chip', '[data-mv="0"]');
     selectDefault('#themeChoices .ch-theme', `[data-theme="${app.theme}"]`);
     updateSetupVisibility();
   }
@@ -297,10 +284,10 @@
     $('levelGroup').style.display = setup.mode === 'bot' ? '' : 'none';
     // в режиме друга часы/лимит недоступны (партия асинхронная, по ссылкам)
     const friend = setup.mode === 'friend';
-    $('limitType').style.display = friend ? 'none' : '';
+    for (const id of ['timeLabel', 'timeChips', 'moveLabel', 'moveChips']) {
+      $(id).style.display = friend ? 'none' : '';
+    }
     $('friendClockHint').hidden = !friend;
-    $('timeValues').hidden = friend || setup.limit !== 'time';
-    $('moveValues').hidden = friend || setup.limit !== 'moves';
   }
 
   function selectDefault(groupSel, sel) {
@@ -353,15 +340,24 @@
     maybeBotMove();
   }
 
+  function emptyClock() {
+    return { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: Date.now() };
+  }
+
   function initClock() {
-    if (app.mode === 'friend' || setup.limit === 'none') {
-      app.clock = { type: 'none', timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 };
-    } else if (setup.limit === 'time') {
-      const ms = setup.minutes * 60000;
-      app.clock = { type: 'time', timeMs: { w: ms, b: ms }, movesLeft: { w: 0, b: 0 }, lastTick: Date.now() };
-    } else { // moves
-      app.clock = { type: 'moves', timeMs: { w: 0, b: 0 }, movesLeft: { w: setup.moves, b: setup.moves }, lastTick: 0 };
+    const cl = emptyClock();
+    if (app.mode !== 'friend') {
+      if (setup.timeMin > 0) {
+        cl.timeOn = true;
+        const ms = setup.timeMin * 60000;
+        cl.timeMs = { w: ms, b: ms };
+      }
+      if (setup.moveLim > 0) {
+        cl.movesOn = true;
+        cl.movesLeft = { w: setup.moveLim, b: setup.moveLim };
+      }
     }
+    app.clock = cl;
   }
 
   function enterGameScreen() {
@@ -387,7 +383,7 @@
     app.overText = '';
     app.pendingShare = false;
     app.paused = false;
-    app.clock = { type: 'none', timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 };
+    app.clock = emptyClock();
 
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -613,7 +609,7 @@
   function startClockLoop() {
     setInterval(() => {
       const cl = app.clock;
-      if (cl.type !== 'time') return;
+      if (!cl.timeOn) return;
       if (app.over || app.paused || app.state == null) { cl.lastTick = Date.now(); return; }
       if (app.mode === 'friend') return;
       const now = Date.now();
@@ -649,18 +645,23 @@
 
   function setClock(which, color, cl) {
     const el = $(which + 'Clock');
-    if (cl.type === 'none') { el.hidden = true; return; }
+    if (!cl.timeOn && !cl.movesOn) { el.hidden = true; return; }
     el.hidden = false;
     el.classList.remove('active', 'low');
     const active = !app.over && app.state && app.state.turn === color;
     if (active) el.classList.add('active');
-    if (cl.type === 'time') {
-      el.textContent = '⏱️ ' + fmtTime(cl.timeMs[color]);
-      if (cl.timeMs[color] <= 20000) el.classList.add('low');
-    } else { // moves
-      el.textContent = '🔢 ' + cl.movesLeft[color] + ' ход.';
-      if (cl.movesLeft[color] <= 3) el.classList.add('low');
+    const parts = [];
+    let low = false;
+    if (cl.timeOn) {
+      parts.push('⏱️ ' + fmtTime(cl.timeMs[color]));
+      if (cl.timeMs[color] <= 20000) low = true;
     }
+    if (cl.movesOn) {
+      parts.push('🔢 ' + cl.movesLeft[color]);
+      if (cl.movesLeft[color] <= 3) low = true;
+    }
+    el.textContent = parts.join('  ·  ');
+    if (low) el.classList.add('low');
   }
 
   /* ========================================================
@@ -715,7 +716,7 @@
     C.makeMove(app.state, m);
     app.history.push(encodeMove(m));
     app.lastMove = { from: m.from, to: m.to };
-    if (app.clock.type === 'moves') app.clock.movesLeft[mover]--;
+    if (app.clock.movesOn) app.clock.movesLeft[mover]--;
     app.clock.lastTick = Date.now();
   }
 
@@ -762,7 +763,7 @@
     if (st === 'draw') { finishGame({ type: 'draw', reason: 'material50' }); return true; }
 
     // лимит ходов: у того, чей сейчас ход, кончились ходы
-    if (app.clock.type === 'moves' && app.clock.movesLeft[app.state.turn] <= 0) {
+    if (app.clock.movesOn && app.clock.movesLeft[app.state.turn] <= 0) {
       finishGame({ type: 'moves' });
       return true;
     }
@@ -913,11 +914,11 @@
     app.selected = -1; app.legalFrom = [];
     app.over = false; app.pendingShare = false;
     // пересчёт лимита ходов из истории (по времени — оставляем как есть)
-    if (app.clock.type === 'moves') {
+    if (app.clock.movesOn) {
       let w = 0, b = 0;
       for (let i = 0; i < app.history.length; i++) (i % 2 === 0 ? w++ : b++);
-      app.clock.movesLeft.w = setup.moves - w;
-      app.clock.movesLeft.b = setup.moves - b;
+      app.clock.movesLeft.w = setup.moveLim - w;
+      app.clock.movesLeft.b = setup.moveLim - b;
     }
     app.clock.lastTick = Date.now();
     if (app.mode === 'local') app.orientation = app.state.turn;
