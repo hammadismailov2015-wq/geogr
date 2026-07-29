@@ -548,11 +548,11 @@
     const from = C.nameToSq(code.substr(0, 2)), to = C.nameToSq(code.substr(2, 2)), promo = code[4] || '';
     const lm = C.legalMoves(app.state).find(m => m.from === from && m.to === to && (!promo || m.promo === promo));
     if (!lm) return; // уже применён или не подходит
-    const cap = !!app.state.board[lm.to] || lm.flag === 'ep';
+    const capType = capturedType(lm);
     C.makeMove(app.state, lm); app.history.push(encodeMove(lm)); app.lastMove = { from, to };
     adoptClock(o);
     render();
-    if (cap) showTaunt(lm.to);
+    if (capType) showTaunt(lm.to, capType);
     checkOver();
   }
 
@@ -833,14 +833,15 @@
   }
 
   /* ---- Облачко-подколка при взятии фигуры ---- */
-  const TAUNTS = ['Лашара!', 'Попался!', 'Я голоден 🤤', 'Как вкусно 😋', 'Скилл 💪', 'Ха-ха!', 'Минус фигурка', 'Не повезло 😏', 'Ам! 🍿', 'Так-то!', 'Изи катка', 'Нуб 😜', 'Съедено 😋', 'Бывай! 👋', 'Спасибо за фигуру'];
+  // Фраза зависит от того, какую фигуру съели
+  const TAUNT_BY = { p: 'Дайте ещё!', n: 'Я голоден 🤤', b: 'Ха-ха!', r: 'Как вкусно 😋', q: 'Лашара!' };
   let tauntEl = null, tauntTimer = 0;
-  function showTaunt(sq) {
+  function showTaunt(sq, type) {
     const cell = elBoard.querySelector(`.ch-sq[data-sq="${sq}"]`);
     if (!cell) return;
     if (!tauntEl) { tauntEl = document.createElement('div'); tauntEl.className = 'ch-taunt'; document.body.appendChild(tauntEl); }
     const r = cell.getBoundingClientRect();
-    tauntEl.textContent = TAUNTS[(Math.random() * TAUNTS.length) | 0];
+    tauntEl.textContent = TAUNT_BY[type] || 'Ам! 🍿';
     const below = r.top < 76;
     tauntEl.classList.toggle('below', below);
     tauntEl.style.left = (r.left + r.width / 2) + 'px';
@@ -859,13 +860,17 @@
     app.clock.lastTick = Date.now();
   }
 
+  function capturedType(m) {
+    return m.flag === 'ep' ? 'p' : (app.state.board[m.to] ? C.typeOf(app.state.board[m.to]) : null);
+  }
+
   function doMove(m) {
-    const cap = !!app.state.board[m.to] || m.flag === 'ep';
+    const capType = capturedType(m);
     applyMove(m);
     app.selected = -1; app.legalFrom = [];
     if (app.mode === 'friend' && app.online.on) publishMove();
     render();
-    if (cap) showTaunt(m.to);
+    if (capType) showTaunt(m.to, capType);
     if (checkOver()) return;
     if (app.mode === 'friend' && !app.online.on) openShare();
     else if (app.mode === 'bot') maybeBotMove();
@@ -880,8 +885,8 @@
       if (app.over) { app.botThinking = false; return; }
       const m = C.botMove(app.state, app.level); app.botThinking = false;
       if (!m) { checkOver(); return; }
-      const cap = !!app.state.board[m.to] || m.flag === 'ep';
-      applyMove(m); render(); if (cap) showTaunt(m.to); checkOver();
+      const capType = capturedType(m);
+      applyMove(m); render(); if (capType) showTaunt(m.to, capType); checkOver();
     }, delay);
   }
 
