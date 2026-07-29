@@ -69,16 +69,87 @@ body {
 .ch-back { color: var(--muted); text-decoration: none; font-size: 14px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); }
 .ch-back:hover { color: var(--text); background: var(--panel); }
 
-main { max-width: 760px; margin: 0 auto; padding: 22px 16px 60px; }
+main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 18px 16px 60px; }
 
 .ch-screen { animation: fade .3s ease; }
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
+/* ---------- Анимированный фон (мозаика плиток, меняется с темой) ---------- */
+#chBgCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+#chBgVeil {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(1100px 700px at 50% -8%, rgba(12, 15, 28, .38), transparent 62%),
+    linear-gradient(180deg, rgba(9, 11, 22, .60) 0%, rgba(9, 11, 22, .70) 100%);
+}
+
+/* ---------- Переключатель темы (мини-доски) ---------- */
+.ch-themebar { position: sticky; top: 8px; z-index: 6; display: flex; justify-content: flex-end; gap: 10px; margin: 0 2px 6px; }
+.ch-sw {
+  width: 40px; height: 40px; padding: 3px; border-radius: 11px; cursor: pointer;
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0;
+  background: rgba(20, 24, 40, .7); border: 2px solid rgba(255, 255, 255, .18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); transition: .16s; overflow: hidden;
+}
+.ch-sw i { display: block; }
+.ch-sw i:first-child { border-radius: 4px 0 0 0; }
+.ch-sw:hover { transform: translateY(-2px); }
+.ch-sw.active { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108, 140, 255, .35), 0 4px 12px rgba(0, 0, 0, .35); }
+.ch-sw[data-theme="classic"] i.l { background: #eaeaea; } .ch-sw[data-theme="classic"] i.d { background: #5a5f6d; }
+.ch-sw[data-theme="brown"]   i.l { background: #f0d9b5; } .ch-sw[data-theme="brown"]   i.d { background: #b58863; }
+.ch-sw[data-theme="green"]   i.l { background: #eeeed2; } .ch-sw[data-theme="green"]   i.d { background: #6f9d55; }
+
 /* ---------- ЭКРАН НАСТРОЙКИ ---------- */
-.ch-hero { text-align: center; margin: 6px 0 22px; }
-.ch-hero-ico { font-size: 54px; line-height: 1; }
-.ch-hero h2 { margin: 8px 0 4px; font-size: 28px; }
-.ch-hero p { margin: 0; color: var(--muted); }
+.ch-hero { text-align: center; margin: 2px 0 20px; }
+.ch-hero-ico { font-size: 52px; line-height: 1; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); }
+.ch-hero h2 { margin: 6px 0 4px; font-size: 30px; text-shadow: 0 3px 14px rgba(0, 0, 0, .6); }
+.ch-hero p { margin: 0; color: #cfd6ee; text-shadow: 0 2px 8px rgba(0, 0, 0, .55); }
+
+/* Сетка настройки: слева режимы, справа настройки */
+.ch-setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.ch-col { display: flex; flex-direction: column; gap: 12px; }
+.ch-collabel { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #c3cbe6; text-shadow: 0 2px 6px rgba(0, 0, 0, .5); }
+
+/* Крупные «объёмные» кнопки режимов */
+.ch-big {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 18px 18px; border-radius: 16px; cursor: pointer; font-size: 18px; font-weight: 800;
+  color: #1a2030; letter-spacing: .2px;
+  background: linear-gradient(180deg, #ffffff 0%, #dfe4ee 100%);
+  border: 1px solid rgba(255, 255, 255, .6);
+  box-shadow: 0 6px 0 #a8afc2, 0 10px 22px rgba(0, 0, 0, .4);
+  transition: transform .12s, box-shadow .12s, filter .12s;
+}
+.ch-big-ico { font-size: 26px; filter: none; -webkit-text-fill-color: initial; }
+.ch-big:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #a8afc2, 0 14px 26px rgba(0, 0, 0, .45); }
+.ch-big:active { transform: translateY(4px); box-shadow: 0 2px 0 #a8afc2, 0 6px 14px rgba(0, 0, 0, .4); }
+.ch-big.active {
+  background: linear-gradient(180deg, #eaf0ff 0%, #c9d6ff 100%);
+  box-shadow: 0 6px 0 #5f74c9, 0 0 0 3px rgba(108, 140, 255, .5), 0 10px 22px rgba(0, 0, 0, .4);
+}
+
+/* Аккордеоны настроек */
+.ch-acc {
+  border-radius: 14px; overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #e4e8f1 100%);
+  border: 1px solid rgba(255, 255, 255, .6);
+  box-shadow: 0 5px 0 #aab0c2, 0 8px 18px rgba(0, 0, 0, .35);
+}
+.ch-acc.disabled { opacity: .5; }
+.ch-acc-head {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 14px 16px; cursor: pointer; background: transparent; border: none;
+  color: #1a2030; font-size: 16px; font-weight: 800; text-align: left;
+}
+.ch-acc-ico { font-size: 20px; }
+.ch-acc-title { flex: none; }
+.ch-acc-val { flex: 1; text-align: right; color: #4d566e; font-weight: 700; font-size: 14px; }
+.ch-acc-arrow { flex: none; color: #6a748f; transition: transform .18s; font-size: 13px; }
+.ch-acc.open .ch-acc-arrow { transform: rotate(180deg); }
+.ch-acc-body { max-height: 0; overflow: hidden; transition: max-height .25s ease; padding: 0 16px; }
+.ch-acc.open .ch-acc-body { max-height: 360px; padding: 4px 16px 16px; }
+.ch-acc-body .ch-sublabel { color: #4d566e; font-weight: 600; }
+.ch-acc-body .ch-hint-line { color: #6a748f; }
 
 .ch-group { margin: 20px 0; }
 .ch-label { font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 10px; }
@@ -271,11 +342,13 @@ main { max-width: 760px; margin: 0 auto; padding: 22px 16px 60px; }
 .ch-hint-line { margin-top: 10px; font-size: 13px; color: var(--muted); }
 .ch-hint-line[hidden] { display: none; }
 
-@media (max-width: 560px) {
+@media (max-width: 620px) {
+  .ch-setup-grid { grid-template-columns: 1fr; }
   .ch-cards { grid-template-columns: 1fr; }
   .ch-themes { grid-template-columns: 1fr; }
   .ch-card { flex-direction: row; justify-content: flex-start; gap: 12px; text-align: left; }
-  .ch-hero h2 { font-size: 24px; }
+  .ch-hero h2 { font-size: 26px; }
+  .ch-big { font-size: 16px; padding: 16px; }
   .ch-playerbar { padding: 6px 10px; gap: 8px; }
   .pb-info { min-width: 76px; }
   .pb-piece { font-size: 17px; }
