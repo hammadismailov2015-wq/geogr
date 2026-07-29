@@ -156,6 +156,7 @@
         </div>
 
         <button id="startBtn" class="ch-start">Начать партию ▶</button>
+        <button id="viewBtn" class="ch-view">📊 Посмотреть результаты</button>
       </section>
 
       <section id="gameScreen" class="ch-screen" hidden>
@@ -218,7 +219,22 @@
           <div class="ch-over-ico" id="overIco">♚</div>
           <div class="ch-modal-title" id="overTitle">—</div>
           <p class="ch-modal-text" id="overText"></p>
-          <div class="ch-modal-actions"><button class="ch-btn ch-btn-primary" id="btnNewGame">Новая партия</button></div>
+          <div class="ch-modal-actions">
+            <button class="ch-btn ch-btn-primary" id="btnNewGame">Новая партия</button>
+            <button class="ch-btn" id="btnViewOver">📊 Результаты</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="histModal" class="ch-modal" hidden>
+        <div class="ch-modal-box ch-hist-box">
+          <div class="ch-modal-title">📊 Мои партии</div>
+          <div class="ch-hist-summary" id="histSummary"></div>
+          <div class="ch-hist-list" id="histList"></div>
+          <div class="ch-modal-actions">
+            <button class="ch-btn" id="histClear">🗑 Очистить</button>
+            <button class="ch-btn ch-btn-primary" id="histClose">Закрыть</button>
+          </div>
         </div>
       </div>
     `;
@@ -229,6 +245,7 @@
 
     bindSetup();
     bindGame();
+    bindHistory();
   }
 
   /* ========================================================
@@ -788,13 +805,14 @@
   function finishGame(res) {
     if (app.over) return;
     app.over = true; app.selected = -1; app.legalFrom = []; app.pendingShare = false;
-    let ico = '🤝', title = 'Ничья', text = '';
-    if (res.type === 'checkmate') { ico = '♚'; title = 'Мат!'; text = `${colorName(res.winner)} выиграли! 🎉`; }
+    let ico = '🤝', title = 'Ничья', text = '', winnerColor = null;
+    if (res.type === 'checkmate') { ico = '♚'; title = 'Мат!'; text = `${colorName(res.winner)} выиграли! 🎉`; winnerColor = res.winner; }
     else if (res.type === 'stalemate') { ico = '🤝'; title = 'Пат — ничья'; text = 'Ходить нечем, но шаха нет. Ничья.'; }
-    else if (res.type === 'time') { const w = res.loser === 'w' ? 'b' : 'w'; ico = '⏱️'; title = 'Время вышло'; text = `У ${colorName(res.loser).toLowerCase()} закончилось время. ${colorName(w)} выиграли! 🎉`; }
-    else if (res.type === 'moves') { const mw = materialWinner(); ico = '🔢'; if (mw.winner) { title = 'Лимит ходов'; text = `Ходы закончились. ${colorName(mw.winner)} выиграли по материалу (+${mw.adv}). 🎉`; } else { title = 'Лимит ходов — ничья'; text = 'Ходы закончились, материал равный. Ничья.'; } }
-    else if (res.type === 'resign') { const w = res.loser === 'w' ? 'b' : 'w'; ico = '🏳️'; title = 'Сдача'; text = `${colorName(res.loser)} сдались. ${colorName(w)} выиграли! 🎉`; }
+    else if (res.type === 'time') { const w = res.loser === 'w' ? 'b' : 'w'; ico = '⏱️'; title = 'Время вышло'; text = `У ${colorName(res.loser).toLowerCase()} закончилось время. ${colorName(w)} выиграли! 🎉`; winnerColor = w; }
+    else if (res.type === 'moves') { const mw = materialWinner(); ico = '🔢'; if (mw.winner) { title = 'Лимит ходов'; text = `Ходы закончились. ${colorName(mw.winner)} выиграли по материалу (+${mw.adv}). 🎉`; winnerColor = mw.winner; } else { title = 'Лимит ходов — ничья'; text = 'Ходы закончились, материал равный. Ничья.'; } }
+    else if (res.type === 'resign') { const w = res.loser === 'w' ? 'b' : 'w'; ico = '🏳️'; title = 'Сдача'; text = `${colorName(res.loser)} сдались. ${colorName(w)} выиграли! 🎉`; winnerColor = w; }
     else { ico = '🤝'; title = 'Ничья'; text = 'Недостаточно материала или правило 50 ходов.'; }
+    recordResult(winnerColor);
     app.overText = ico + ' ' + title + ' — ' + text;
     render();
     $('overIco').textContent = ico; $('overTitle').textContent = title; $('overText').textContent = text;
@@ -856,6 +874,54 @@
   function copyText(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
     try { return Promise.resolve(document.execCommand('copy')); } catch (e) { return Promise.resolve(false); }
+  }
+
+  /* ========================================================
+     ИСТОРИЯ ПАРТИЙ («Посмотреть»)
+     ======================================================== */
+  const HIST_KEY = 'chessHistory';
+  function loadHist() { try { const a = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function saveHist(a) { try { localStorage.setItem(HIST_KEY, JSON.stringify(a.slice(-300))); } catch (e) { } }
+
+  // Записать итог партии с точки зрения игрока
+  function recordResult(winnerColor) {
+    let myC = null;
+    if (app.mode === 'bot') myC = app.myColor;
+    else if (app.mode === 'friend' && app.online.on) myC = app.online.myColor;
+    const rec = { mode: app.mode, t: Date.now() };
+    if (myC) rec.r = winnerColor == null ? 'draw' : (winnerColor === myC ? 'win' : 'loss');
+    else if (winnerColor == null) rec.r = 'draw';
+    else { rec.r = 'side'; rec.w = winnerColor; }
+    const a = loadHist(); a.push(rec); saveHist(a);
+  }
+
+  function modeLabel(m) { return m === 'bot' ? 'С ботом' : m === 'friend' ? 'С другом' : 'Рядом'; }
+
+  function openHistory() {
+    const a = loadHist();
+    let win = 0, loss = 0, draw = 0;
+    for (const r of a) { if (r.r === 'win') win++; else if (r.r === 'loss') loss++; else if (r.r === 'draw') draw++; }
+    $('histSummary').innerHTML =
+      `<span class="hs-win">🏆 Побед: ${win}</span><span class="hs-loss">❌ Поражений: ${loss}</span><span class="hs-draw">🤝 Ничьих: ${draw}</span>`;
+    let html = '';
+    for (let i = a.length - 1; i >= 0; i--) {
+      const r = a[i];
+      let cls, main;
+      if (r.r === 'win') { cls = 'win'; main = 'Выиграл'; }
+      else if (r.r === 'loss') { cls = 'loss'; main = 'Проиграл'; }
+      else if (r.r === 'side') { cls = 'side'; main = (r.w === 'w' ? 'Белые' : 'Чёрные') + ' победили'; }
+      else { cls = 'draw'; main = 'Ничья'; }
+      html += `<div class="ch-hist-item ${cls}"><span class="hi-main">${main}</span><span class="hi-sub">${modeLabel(r.mode)}</span></div>`;
+    }
+    $('histList').innerHTML = html || '<div class="ch-hist-empty">Пока нет сыгранных партий</div>';
+    $('histModal').hidden = false;
+  }
+
+  function bindHistory() {
+    $('viewBtn').addEventListener('click', openHistory);
+    $('btnViewOver').addEventListener('click', openHistory);
+    $('histClose').addEventListener('click', () => { $('histModal').hidden = true; });
+    $('histClear').addEventListener('click', () => { if (confirm('Очистить историю партий?')) { saveHist([]); openHistory(); } });
   }
 
 })();

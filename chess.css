@@ -200,6 +200,28 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   box-shadow: var(--shadow); transition: .18s;
 }
 .ch-start:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.ch-view {
+  width: 100%; margin-top: 10px; padding: 13px; border-radius: 14px; cursor: pointer;
+  font-size: 15px; font-weight: 600; color: var(--text);
+  background: var(--panel); border: 1px solid var(--line); transition: .16s;
+}
+.ch-view:hover { border-color: var(--accent); background: var(--panel2); }
+
+/* Окно результатов */
+.ch-hist-box { max-width: 440px; }
+.ch-hist-summary { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; font-weight: 700; font-size: 14px; }
+.ch-hist-summary .hs-win { color: #6ee7a8; }
+.ch-hist-summary .hs-loss { color: #ff8b8b; }
+.ch-hist-summary .hs-draw { color: #ffd166; }
+.ch-hist-list { max-height: 52vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+.ch-hist-item { border-radius: 12px; padding: 10px 14px; text-align: center; color: #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, .3); }
+.ch-hist-item .hi-main { display: block; font-weight: 800; font-size: 16px; }
+.ch-hist-item .hi-sub { display: block; font-size: 12px; opacity: .92; margin-top: 2px; }
+.ch-hist-item.win { background: linear-gradient(135deg, #2fae59, #1f8a44); }
+.ch-hist-item.loss { background: linear-gradient(135deg, #d64545, #a72f2f); }
+.ch-hist-item.draw { background: linear-gradient(135deg, #c9a227, #9a7d1a); }
+.ch-hist-item.side { background: linear-gradient(135deg, #4f6ef2, #3a52c0); }
+.ch-hist-empty { color: var(--muted); text-align: center; padding: 22px; }
 
 /* ---------- ЭКРАН ИГРЫ ---------- */
 .ch-status {
