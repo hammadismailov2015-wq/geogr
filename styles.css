@@ -396,6 +396,12 @@ a.act-btn { text-decoration: none; }
 .act-btn.route:hover { filter: brightness(1.06); }
 .act-btn.route strong { color: #fff; }
 .act-btn.route small { color: rgba(255, 255, 255, .85); }
+.act-btn.chess {
+  background: linear-gradient(135deg, #334155, #0f172a); border-color: transparent;
+}
+.act-btn.chess:hover { filter: brightness(1.15); }
+.act-btn.chess strong { color: #fff; }
+.act-btn.chess small { color: rgba(255, 255, 255, .85); }
 .act-ico { font-size: 30px; }
 .act-btn strong { font-size: 15px; }
 .act-btn small { font-size: 11.5px; color: var(--muted); line-height: 1.2; }
