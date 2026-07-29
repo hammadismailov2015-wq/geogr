@@ -562,7 +562,7 @@
     if (!lm) return; // уже применён или не подходит
     const capType = capturedType(lm);
     C.makeMove(app.state, lm); app.history.push(encodeMove(lm)); app.lastMove = { from, to };
-    if (hasYou() && capType === 'q') { const S = ensureStats(); S.queensLost++; saveStats(S); }
+    if (hasYou() && capType === 'q') bumpStats(s => { s.queensLost++; });
     adoptClock(o);
     render();
     if (capType) showTaunt(lm.to, capType);
@@ -903,7 +903,7 @@
       if (!m) { checkOver(); return; }
       const capType = capturedType(m);
       applyMove(m);
-      if (hasYou() && capType === 'q') { const S = ensureStats(); S.queensLost++; saveStats(S); }
+      if (hasYou() && capType === 'q') bumpStats(s => { s.queensLost++; });
       render(); if (capType) showTaunt(m.to, capType); checkOver();
     }, delay);
   }
@@ -1071,74 +1071,102 @@
 
   // Учёт МОЕГО хода (m — ход, me — мой цвет, capType — кого съел, fromAttacked — была ли фигура под боем до хода)
   function trackMyMove(m, me, capType, fromAttacked) {
-    const S = ensureStats();
     const enemy = me === 'w' ? 'b' : 'w';
-    if (capType) {
-      S.captures++;
-      if (capType === 'p') S.pawnsCaptured++;
-      if (capType === 'q') S.queensCaptured++;
-      if (app.gs) { if (app.gs.lastCapType === 'n' && capType === 'p') S.knightThenPawn++; app.gs.lastCapType = capType; }
-    }
-    if (m.promo) S.promotions++;
-    // поставленный шах (сейчас ход соперника — проверяем его короля)
-    if (C.inCheck(app.state, app.state.turn) && app.gs) { app.gs.checks++; if (app.gs.checks > S.maxChecksInGame) S.maxChecksInGame = app.gs.checks; }
     // вилка: сходившая фигура атакует ≥2 фигур соперника
     let fc = 0;
     for (const t of C.attacksFrom(app.state.board, m.to)) { const q = app.state.board[t]; if (q && C.colorOf(q) === enemy) fc++; }
-    if (fc >= 2) S.forks++;
-    // ушёл от преследования
-    if (fromAttacked && !C.isAttacked(app.state.board, m.to, enemy)) S.escapes++;
-    // туда-сюда (вернул фигуру назад)
-    if (app.gs) { if (app.gs.lastFrom === m.to && app.gs.lastTo === m.from) S.repeats++; app.gs.lastFrom = m.from; app.gs.lastTo = m.to; }
-    saveStats(S);
+    const gaveCheck = C.inCheck(app.state, app.state.turn);
+    const escaped = fromAttacked && !C.isAttacked(app.state.board, m.to, enemy);
+    const backForth = app.gs && app.gs.lastFrom === m.to && app.gs.lastTo === m.from;
+    const knightThenPawn = capType === 'p' && app.gs && app.gs.lastCapType === 'n';
+    bumpStats(s => {
+      if (capType) {
+        s.captures++;
+        if (capType === 'p') s.pawnsCaptured++;
+        if (capType === 'q') s.queensCaptured++;
+        if (knightThenPawn) s.knightThenPawn++;
+      }
+      if (m.promo) s.promotions++;
+      if (gaveCheck && app.gs) { app.gs.checks++; if (app.gs.checks > s.maxChecksInGame) s.maxChecksInGame = app.gs.checks; }
+      if (fc >= 2) s.forks++;
+      if (escaped) s.escapes++;
+      if (backForth) s.repeats++;
+    });
+    if (app.gs) { app.gs.lastFrom = m.from; app.gs.lastTo = m.to; if (capType) app.gs.lastCapType = capType; }
   }
 
   function trackGameEnd(res, winnerColor) {
     if (!hasYou()) return;
-    const S = ensureStats();
     const myC = myStatColor();
-    S.games++;
-    if (myC === 'b') S.blackGames++;
-    if (winnerColor == null) S.draws++;
-    else if (winnerColor === myC) S.wins++; else S.losses++;
-    if (res.type === 'checkmate' && winnerColor === myC) { S.checkmatesBy++; if (app.history.length <= 20) S.fastMate = true; }
-    if (res.type === 'resign' && res.loser === myC) S.resigns++;
-    if (app.mode === 'bot' && app.level === 3 && winnerColor === myC) S.wonHardBot = true;
-    if (app.gs && app.gs.start && (Date.now() - app.gs.start) >= 3600000) S.hourGame = true;
-    saveStats(S);
+    const fast = res.type === 'checkmate' && winnerColor === myC && app.history.length <= 20;
+    const hour = app.gs && app.gs.start && (Date.now() - app.gs.start) >= 3600000;
+    bumpStats(s => {
+      s.games++;
+      if (myC === 'b') s.blackGames++;
+      if (winnerColor == null) s.draws++;
+      else if (winnerColor === myC) s.wins++; else s.losses++;
+      if (res.type === 'checkmate' && winnerColor === myC) { s.checkmatesBy++; if (fast) s.fastMate = true; }
+      if (res.type === 'resign' && res.loser === myC) s.resigns++;
+      if (app.mode === 'bot' && app.level === 3 && winnerColor === myC) s.wonHardBot = true;
+      if (hour) s.hourGame = true;
+    });
   }
 
+  // Каждое достижение: goal — цель, cur(s) — текущий прогресс
   const ACHIEVEMENTS = [
-    { t: 'Шахматист', d: 'Поставил 15 раз шах в одной партии', f: s => s.maxChecksInGame >= 15 },
-    { t: 'Вилка', d: 'Сделал вилку 3 раза', f: s => s.forks >= 3 },
-    { t: 'Выиграл ИИ', d: 'Выиграл со сложным ботом', f: s => s.wonHardBot },
-    { t: 'Любитель шахмат', d: 'Сыграл 100 и более партий', f: s => s.games >= 100 },
-    { t: 'Можно без матов?', d: 'Поставил 100 и более матов', f: s => s.checkmatesBy >= 100 },
-    { t: 'Превращение', d: 'Превратил пешку в другую фигуру 5 раз', f: s => s.promotions >= 5 },
-    { t: 'Убит ферзь', d: 'Съел у соперника 5 ферзей', f: s => s.queensCaptured >= 5 },
-    { t: 'Убит всадник', d: 'Съел коня и пешку подряд', f: s => s.knightThenPawn >= 1 },
-    { t: 'Большой брат', d: 'Ушёл от преследования любой фигуры', f: s => s.escapes >= 1 },
-    { t: 'Тёмная сторона', d: 'Сыграл за чёрных 10 партий', f: s => s.blackGames >= 10 },
-    { t: 'Мгновенный мат', d: 'Поставил мат за 10 ходов', f: s => s.fastMate },
-    { t: 'Ай, зевнул!', d: 'У тебя съели 3 ферзей', f: s => s.queensLost >= 3 },
-    { t: 'Не спи!', d: 'Играл партию целый час', f: s => s.hourGame },
-    { t: 'Равенство', d: 'Сыграл вничью 5 раз', f: s => s.draws >= 5 },
-    { t: 'Братство', d: 'Сдался 3 раза', f: s => s.resigns >= 3 },
-    { t: 'Туда-сюда', d: 'Повторил ход 3 раза', f: s => s.repeats >= 3 },
-    { t: 'Мафия', d: 'Съел у соперника 50 фигур', f: s => s.captures >= 50 },
-    { t: 'Казнить!', d: 'Съел 20 пешек', f: s => s.pawnsCaptured >= 20 }
+    { t: 'Шахматист', d: 'Поставь 15 шахов в одной партии', goal: 15, cur: s => s.maxChecksInGame },
+    { t: 'Вилка', d: 'Сделай вилку 3 раза', goal: 3, cur: s => s.forks },
+    { t: 'Выиграл ИИ', d: 'Выиграй со сложным ботом', goal: 1, cur: s => s.wonHardBot ? 1 : 0 },
+    { t: 'Любитель шахмат', d: 'Сыграй 100 и более партий', goal: 100, cur: s => s.games },
+    { t: 'Можно без матов?', d: 'Поставь 100 и более матов', goal: 100, cur: s => s.checkmatesBy },
+    { t: 'Превращение', d: 'Преврати пешку 5 раз', goal: 5, cur: s => s.promotions },
+    { t: 'Убит ферзь', d: 'Съешь у соперника 5 ферзей', goal: 5, cur: s => s.queensCaptured },
+    { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', goal: 1, cur: s => Math.min(s.knightThenPawn, 1) },
+    { t: 'Большой брат', d: 'Уйди от преследования фигуры', goal: 1, cur: s => Math.min(s.escapes, 1) },
+    { t: 'Тёмная сторона', d: 'Сыграй за чёрных 10 партий', goal: 10, cur: s => s.blackGames },
+    { t: 'Мгновенный мат', d: 'Поставь мат за 10 ходов', goal: 1, cur: s => s.fastMate ? 1 : 0 },
+    { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', goal: 3, cur: s => s.queensLost },
+    { t: 'Не спи!', d: 'Сыграй партию целый час', goal: 1, cur: s => s.hourGame ? 1 : 0 },
+    { t: 'Равенство', d: 'Сыграй вничью 5 раз', goal: 5, cur: s => s.draws },
+    { t: 'Братство', d: 'Сдайся 3 раза', goal: 3, cur: s => s.resigns },
+    { t: 'Туда-сюда', d: 'Повтори ход 3 раза', goal: 3, cur: s => s.repeats },
+    { t: 'Мафия', d: 'Съешь у соперника 50 фигур', goal: 50, cur: s => s.captures },
+    { t: 'Казнить!', d: 'Съешь 20 пешек', goal: 20, cur: s => s.pawnsCaptured }
   ];
 
   function openAch() {
     const s = ensureStats();
     let done = 0, html = '';
     for (const a of ACHIEVEMENTS) {
-      const ok = !!a.f(s); if (ok) done++;
-      html += `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-t">${ok ? '✅ ' : '🔒 '}${a.t}</span><span class="ach-d">${a.d}</span></div>`;
+      const cur = a.cur(s), ok = cur >= a.goal; if (ok) done++;
+      html += `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-prog">${Math.min(cur, a.goal)}/${a.goal}</span><span class="ach-t">${ok ? '✅ ' : '🔒 '}${a.t}</span><span class="ach-d">${a.d}</span></div>`;
     }
     $('achCount').textContent = `Выполнено: ${done} из ${ACHIEVEMENTS.length}`;
     $('achList').innerHTML = html;
     $('achModal').hidden = false;
+  }
+
+  // Обновить статистику и показать всплывашки по продвинувшимся достижениям
+  function bumpStats(fn) {
+    const s = ensureStats();
+    const before = ACHIEVEMENTS.map(a => a.cur(s));
+    fn(s);
+    saveStats(s);
+    for (let i = 0; i < ACHIEVEMENTS.length; i++) {
+      const a = ACHIEVEMENTS[i], now = a.cur(s);
+      if (now > before[i]) showAchToast(a, now, before[i] < a.goal && now >= a.goal);
+    }
+  }
+
+  let achToastWrap = null;
+  function showAchToast(a, cur, justDone) {
+    if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
+    const el = document.createElement('div');
+    el.className = 'ch-atoast' + (justDone ? ' done' : '');
+    el.innerHTML = `<span class="at-ico">${justDone ? '🏆' : '📈'}</span><span class="at-body"><span class="at-t">${a.t}${justDone ? ' — получено!' : ''}</span><span class="at-p">${Math.min(cur, a.goal)}/${a.goal}</span></span>`;
+    achToastWrap.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, justDone ? 2600 : 1900);
   }
 
 })();
