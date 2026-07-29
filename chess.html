@@ -4,7 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Шахматы · с ботом, с другом и рядом</title>
-  <meta name="description" content="Шахматы в браузере: игра с ботом, с другом по ссылке или рядом друг с другом. Выбор стороны и тем доски." />
+  <meta name="description" content="Шахматы: игра с ботом, с другом онлайн или рядом друг с другом. Устанавливается как приложение." />
+
+  <!-- Устанавливаемое приложение (PWA) -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f1220" />
+  <meta name="application-name" content="Шахматы" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Шахматы" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
+
   <script>
     // Подключаем стили со свежей версией, чтобы не оставался старый кэш.
     (function () {
@@ -13,7 +24,7 @@
       document.write('<link rel="stylesheet" href="' + href + '">');
     })();
   </script>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♞</text></svg>" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
 </head>
 <body data-chess-theme="classic">
   <header class="ch-topbar">
@@ -41,6 +52,13 @@
       document.write('<script src="chess.js' + v + '"><\/script>');
       document.write('<script src="chess-ui.js' + v + '"><\/script>');
     })();
+  </script>
+  <script>
+    // Регистрируем сервис-воркер — чтобы приложение можно было установить
+    // и открывать без браузера (на http/https, не на file://).
+    if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+      window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+    }
   </script>
 </body>
 </html>
