@@ -31,7 +31,15 @@
     <div id="chessRoot"><!-- интерфейс собирается из chess-ui.js --></div>
   </main>
 
-  <script src="chess.js"></script>
-  <script src="chess-ui.js"></script>
+  <script>
+    // Подключаем скрипты со свежей версией, чтобы браузер не держал
+    // старый кэш после обновлений (на file:// версию не добавляем).
+    (function () {
+      var online = location.protocol === "http:" || location.protocol === "https:";
+      var v = online ? "?v=" + Date.now() : "";
+      document.write('<script src="chess.js' + v + '"><\/script>');
+      document.write('<script src="chess-ui.js' + v + '"><\/script>');
+    })();
+  </script>
 </body>
 </html>
