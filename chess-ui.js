@@ -246,6 +246,7 @@
     bindSetup();
     bindGame();
     bindHistory();
+    initDrag();
   }
 
   /* ========================================================
@@ -636,7 +637,7 @@
       const lm = app.legalFrom.find(m => m.to === s);
       if (lm) { const dot = document.createElement('span'); dot.className = 'ch-dot' + (app.state.board[s] || lm.flag === 'ep' ? ' cap' : ''); cell.appendChild(dot); }
       if (p && C.typeOf(p) === 'k' && C.inCheck(app.state, C.colorOf(p)) && (C.colorOf(p) === app.state.turn || app.over)) cell.classList.add('check');
-      cell.addEventListener('click', () => onCellClick(s));
+      cell.addEventListener('pointerdown', (e) => onPointerDown(e, s));
       elBoard.appendChild(cell);
     }
   }
@@ -734,22 +735,99 @@
     return true;
   }
 
-  function onCellClick(s) {
+  function isMyPiece(p) {
+    return p && C.colorOf(p) === app.state.turn && !((app.mode === 'bot' || app.mode === 'friend') && C.colorOf(p) !== app.myColor);
+  }
+
+  // Попытка хода выбранной фигурой на клетку to. false — если так нельзя.
+  function tryMoveTo(to) {
+    const target = app.legalFrom.filter(m => m.to === to);
+    if (!target.length) return false;
+    if (target.length > 1) { app.paused = true; askPromotion(app.state.turn, (promo) => { app.paused = false; app.clock.lastTick = Date.now(); doMove(target.find(m => m.promo === promo)); }); }
+    else doMove(target[0]);
+    return true;
+  }
+
+  function onPointerDown(e, s) {
     if (!canMoveNow()) return;
     const p = app.state.board[s];
-    if (p && C.colorOf(p) === app.state.turn) {
-      if ((app.mode === 'bot' || app.mode === 'friend') && C.colorOf(p) !== app.myColor) { /* чужая — ниже */ }
-      else { app.selected = s; app.legalFrom = C.legalMovesFrom(app.state, s); renderBoard(); return; }
+    if (isMyPiece(p)) {
+      // выбор + начало перетаскивания
+      e.preventDefault();
+      app.selected = s; app.legalFrom = C.legalMovesFrom(app.state, s);
+      renderBoard();
+      startDrag(e, s, p);
+      return;
     }
+    // тап по клетке-цели, когда фигура уже выбрана
     if (app.selected >= 0) {
-      const target = app.legalFrom.filter(m => m.to === s);
-      if (target.length) {
-        if (target.length > 1) { app.paused = true; askPromotion(app.state.turn, (promo) => { app.paused = false; app.clock.lastTick = Date.now(); doMove(target.find(m => m.promo === promo)); }); }
-        else doMove(target[0]);
-        return;
-      }
+      e.preventDefault();
+      if (tryMoveTo(s)) return;
     }
     app.selected = -1; app.legalFrom = []; renderBoard();
+  }
+
+  /* ---- Перетаскивание фигур (мышь и палец) ---- */
+  const drag = { active: false, from: -1, moved: false, sx: 0, sy: 0, ghost: null };
+
+  function initDrag() {
+    const g = document.createElement('div');
+    g.className = 'ch-ghost'; g.style.display = 'none';
+    document.body.appendChild(g);
+    drag.ghost = g;
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', cancelDrag);
+  }
+
+  function startDrag(e, s, p) {
+    drag.active = true; drag.from = s; drag.moved = false; drag.sx = e.clientX; drag.sy = e.clientY;
+    const size = elBoard.clientWidth / 8;
+    const g = drag.ghost;
+    g.style.width = size + 'px'; g.style.height = size + 'px';
+    g.innerHTML = `<span class="ch-piece ${C.colorOf(p) === 'w' ? 'white' : 'black'}" style="font-size:${Math.round(size * 0.8)}px">${GLYPH[C.typeOf(p)]}</span>`;
+    g.style.display = 'none';
+    try { elBoard.setPointerCapture(e.pointerId); } catch (_) { }
+  }
+
+  function onPointerMove(e) {
+    if (!drag.active) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) {
+      drag.moved = true;
+      drag.ghost.style.display = 'flex';
+      const pc = elBoard.querySelector(`.ch-sq[data-sq="${drag.from}"] .ch-piece`);
+      if (pc) pc.style.visibility = 'hidden';
+    }
+    if (drag.moved) { e.preventDefault(); positionGhost(e.clientX, e.clientY); }
+  }
+
+  function positionGhost(x, y) {
+    const half = drag.ghost.clientWidth / 2;
+    drag.ghost.style.transform = `translate(${x - half}px, ${y - half}px)`;
+  }
+
+  function onPointerUp(e) {
+    if (!drag.active) return;
+    const moved = drag.moved;
+    drag.active = false; drag.ghost.style.display = 'none';
+    if (moved) {
+      const to = squareUnderPointer(e.clientX, e.clientY);
+      const ok = to >= 0 && tryMoveTo(to);
+      if (!ok) { app.selected = -1; app.legalFrom = []; renderBoard(); } // недопустимо → вернуть на место
+    }
+    // если не двигали — это тап, выбор остаётся (подсказки показаны)
+  }
+
+  function cancelDrag() {
+    if (!drag.active) return;
+    drag.active = false; drag.ghost.style.display = 'none';
+    app.selected = -1; app.legalFrom = []; renderBoard();
+  }
+
+  function squareUnderPointer(x, y) {
+    const el = document.elementFromPoint(x, y);
+    const cell = el && el.closest ? el.closest('.ch-sq') : null;
+    return cell ? parseInt(cell.dataset.sq, 10) : -1;
   }
 
   function applyMove(m) {
