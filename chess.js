@@ -412,11 +412,34 @@ function botMove(state, level) {
   return best[(Math.random() * best.length) | 0];
 }
 
+// Клетки, которые атакует фигура на клетке s (для «вилки» и т.п.)
+function attacksFrom(board, s) {
+  const p = board[s];
+  if (!p) return [];
+  const f = fileOf(s), r = rankOf(s), t = typeOf(p), c = colorOf(p);
+  const res = [];
+  if (t === 'p') {
+    const dir = c === 'w' ? 1 : -1;
+    for (const df of [-1, 1]) if (onBoard(f + df, r + dir)) res.push(sq(f + df, r + dir));
+  } else if (t === 'n') {
+    for (const [df, dr] of KNIGHT_D) if (onBoard(f + df, r + dr)) res.push(sq(f + df, r + dr));
+  } else if (t === 'k') {
+    for (const [df, dr] of KING_D) if (onBoard(f + df, r + dr)) res.push(sq(f + df, r + dr));
+  } else {
+    const rays = t === 'b' ? BISHOP_D : t === 'r' ? ROOK_D : BISHOP_D.concat(ROOK_D);
+    for (const [df, dr] of rays) {
+      let nf = f + df, nr = r + dr;
+      while (onBoard(nf, nr)) { res.push(sq(nf, nr)); if (board[sq(nf, nr)]) break; nf += df; nr += dr; }
+    }
+  }
+  return res;
+}
+
 /* ============================================================
    Экспорт для интерфейса
    ============================================================ */
 window.Chess = {
   newGameState, legalMoves, legalMovesFrom, makeMove, gameStatus,
   inCheck, botMove, sqName, nameToSq, sq, fileOf, rankOf, colorOf, typeOf,
-  kingSquare
+  kingSquare, isAttacked, attacksFrom
 };
