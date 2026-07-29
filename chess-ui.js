@@ -548,9 +548,11 @@
     const from = C.nameToSq(code.substr(0, 2)), to = C.nameToSq(code.substr(2, 2)), promo = code[4] || '';
     const lm = C.legalMoves(app.state).find(m => m.from === from && m.to === to && (!promo || m.promo === promo));
     if (!lm) return; // уже применён или не подходит
+    const cap = !!app.state.board[lm.to] || lm.flag === 'ep';
     C.makeMove(app.state, lm); app.history.push(encodeMove(lm)); app.lastMove = { from, to };
     adoptClock(o);
     render();
+    if (cap) showTaunt(lm.to);
     checkOver();
   }
 
@@ -830,6 +832,26 @@
     return cell ? parseInt(cell.dataset.sq, 10) : -1;
   }
 
+  /* ---- Облачко-подколка при взятии фигуры ---- */
+  const TAUNTS = ['Лашара!', 'Попался!', 'Го изи 😎', 'Ловите нуба', 'Скилл 💪', 'Ха-ха!', 'Минус фигурка', 'Не повезло 😏', 'Ам! 🍿', 'Так-то!', 'Изи катка', 'Нуб 😜', 'Съедено 😋', 'Бывай! 👋', 'Спасибо за фигуру'];
+  let tauntEl = null, tauntTimer = 0;
+  function showTaunt(sq) {
+    const cell = elBoard.querySelector(`.ch-sq[data-sq="${sq}"]`);
+    if (!cell) return;
+    if (!tauntEl) { tauntEl = document.createElement('div'); tauntEl.className = 'ch-taunt'; document.body.appendChild(tauntEl); }
+    const r = cell.getBoundingClientRect();
+    tauntEl.textContent = TAUNTS[(Math.random() * TAUNTS.length) | 0];
+    const below = r.top < 76;
+    tauntEl.classList.toggle('below', below);
+    tauntEl.style.left = (r.left + r.width / 2) + 'px';
+    tauntEl.style.top = (below ? r.bottom + 6 : r.top - 6) + 'px';
+    tauntEl.classList.remove('hide');
+    tauntEl.style.display = 'block';
+    tauntEl.classList.remove('pop'); void tauntEl.offsetWidth; tauntEl.classList.add('pop');
+    clearTimeout(tauntTimer);
+    tauntTimer = setTimeout(() => { tauntEl.classList.add('hide'); }, 1500);
+  }
+
   function applyMove(m) {
     const mover = app.state.turn;
     C.makeMove(app.state, m); app.history.push(encodeMove(m)); app.lastMove = { from: m.from, to: m.to };
@@ -838,10 +860,12 @@
   }
 
   function doMove(m) {
+    const cap = !!app.state.board[m.to] || m.flag === 'ep';
     applyMove(m);
     app.selected = -1; app.legalFrom = [];
     if (app.mode === 'friend' && app.online.on) publishMove();
     render();
+    if (cap) showTaunt(m.to);
     if (checkOver()) return;
     if (app.mode === 'friend' && !app.online.on) openShare();
     else if (app.mode === 'bot') maybeBotMove();
@@ -856,7 +880,8 @@
       if (app.over) { app.botThinking = false; return; }
       const m = C.botMove(app.state, app.level); app.botThinking = false;
       if (!m) { checkOver(); return; }
-      applyMove(m); render(); checkOver();
+      const cap = !!app.state.board[m.to] || m.flag === 'ep';
+      applyMove(m); render(); if (cap) showTaunt(m.to); checkOver();
     }, delay);
   }
 
