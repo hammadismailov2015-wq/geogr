@@ -380,7 +380,7 @@
     $('gameScreen').hidden = false;
     const onl = app.mode === 'friend' && app.online.on;
     $('onlineBar').hidden = !onl;
-    $('btnFlip').style.display = (app.mode === 'local' || onl) ? 'none' : '';
+    $('btnFlip').style.display = onl ? 'none' : '';
     $('btnUndo').style.display = app.mode === 'friend' ? 'none' : '';
     $('btnResign').style.display = (app.mode === 'friend' && !onl) ? 'none' : '';
     render();
@@ -726,7 +726,6 @@
   function doMove(m) {
     applyMove(m);
     app.selected = -1; app.legalFrom = [];
-    if (app.mode === 'local') app.orientation = app.state.turn;
     if (app.mode === 'friend' && app.online.on) publishMove();
     render();
     if (checkOver()) return;
@@ -832,7 +831,6 @@
     app.over = false; app.pendingShare = false;
     if (app.clock.movesOn) { let w = 0, b = 0; for (let i = 0; i < app.history.length; i++)(i % 2 === 0 ? w++ : b++); app.clock.movesLeft.w = setup.moveLim - w; app.clock.movesLeft.b = setup.moveLim - b; }
     app.clock.lastTick = Date.now();
-    if (app.mode === 'local') app.orientation = app.state.turn;
     render();
   }
 
