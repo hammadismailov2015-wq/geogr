@@ -1,7 +1,7 @@
 /* ============================================================
    ШАХМАТЫ — интерфейс
-   Экраны, доска, режимы, темы, ссылки, часы/лимит ходов,
-   съеденные фигуры, статусы, анимированный фон, аккордеоны.
+   Экраны, доска, режимы, темы, часы/лимит, съеденные фигуры,
+   статусы, анимированный фон, аккордеоны, ОНЛАЙН-игра с другом.
    ============================================================ */
 (function () {
   const C = window.Chess;
@@ -26,11 +26,42 @@
     botThinking: false,
     paused: false,
     theme: 'classic',
-    clock: { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 }
+    clock: { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 },
+    online: { on: false, role: null, room: null, myColor: 'w', hostColor: 'w', myId: null, net: null, connected: false, peerReady: false, failed: false }
   };
 
   const $ = (id) => document.getElementById(id);
   let elBoard, elStatus, elHistory;
+
+  const netAvailable = () => typeof mqtt !== 'undefined';
+
+  /* ========================================================
+     СЕТЬ (MQTT поверх WebSocket, публичный брокер)
+     ======================================================== */
+  const ChessNet = {
+    connect(room, handlers) {
+      if (!netAvailable()) { handlers.onFail && handlers.onFail('nolib'); return null; }
+      const url = 'wss://broker.emqx.io:8084/mqtt';
+      const topic = 'hammadchess/' + room;
+      const clientId = 'chs_' + Math.random().toString(36).slice(2, 10);
+      let client, active = true, opened = false;
+      try {
+        client = mqtt.connect(url, { clientId, clean: true, connectTimeout: 8000, reconnectPeriod: 3000, keepalive: 30 });
+      } catch (e) { handlers.onFail && handlers.onFail('err'); return null; }
+      client.on('connect', () => { opened = true; client.subscribe(topic, { qos: 0 }); handlers.onOpen && handlers.onOpen(); });
+      client.on('message', (t, payload) => { let o; try { o = JSON.parse(payload.toString()); } catch (e) { return; } handlers.onMessage && handlers.onMessage(o); });
+      client.on('reconnect', () => handlers.onReconnect && handlers.onReconnect());
+      client.on('close', () => handlers.onClose && handlers.onClose());
+      client.on('error', () => { });
+      // сторож: если за 15 c не подключились — сообщаем о проблеме
+      setTimeout(() => { if (active && !opened) handlers.onFail && handlers.onFail('timeout'); }, 15000);
+      return {
+        id: clientId,
+        publish(obj) { try { if (client && client.connected) client.publish(topic, JSON.stringify(obj), { qos: 0 }); } catch (e) { } },
+        close() { active = false; try { client && client.end(true); } catch (e) { } }
+      };
+    }
+  };
 
   /* ========================================================
      ЗАПУСК
@@ -41,11 +72,10 @@
     applyTheme(app.theme);
     initBackground();
     startClockLoop();
-    if (location.hash.startsWith('#g=')) {
-      startFromLink(location.hash.slice(3));
-    } else {
-      showSetup();
-    }
+    const h = location.hash;
+    if (h.indexOf('room=') >= 0) startOnlineGuest(h);
+    else if (h.startsWith('#g=')) startFromLink(h.slice(3));
+    else showSetup();
   });
 
   /* ========================================================
@@ -54,14 +84,12 @@
   function buildLayout() {
     const root = $('chessRoot');
     root.innerHTML = `
-      <!-- Переключатель темы (мини-доски) -->
       <div class="ch-themebar" id="themeBar">
         <button class="ch-sw" data-theme="green" title="Зелёная доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="classic" title="Чёрно-белая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="brown" title="Коричневая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
       </div>
 
-      <!-- ЭКРАН НАСТРОЙКИ -->
       <section id="setupScreen" class="ch-screen">
         <div class="ch-hero">
           <div class="ch-hero-ico">♞</div>
@@ -84,24 +112,20 @@
 
             <div class="ch-acc" id="accSide">
               <button class="ch-acc-head" data-acc><span class="ch-acc-ico">♟️</span><span class="ch-acc-title">Играть за</span><span class="ch-acc-val" id="valSide">—</span><span class="ch-acc-arrow">▾</span></button>
-              <div class="ch-acc-body">
-                <div class="ch-choices" id="sideChoices">
-                  <button class="ch-choice" data-side="w">♔ Белые</button>
-                  <button class="ch-choice" data-side="b">♚ Чёрные</button>
-                  <button class="ch-choice" data-side="r">🎲 Рандом</button>
-                </div>
-              </div>
+              <div class="ch-acc-body"><div class="ch-choices" id="sideChoices">
+                <button class="ch-choice" data-side="w">♔ Белые</button>
+                <button class="ch-choice" data-side="b">♚ Чёрные</button>
+                <button class="ch-choice" data-side="r">🎲 Рандом</button>
+              </div></div>
             </div>
 
             <div class="ch-acc" id="accLevel">
               <button class="ch-acc-head" data-acc><span class="ch-acc-ico">🤖</span><span class="ch-acc-title">Сложность бота</span><span class="ch-acc-val" id="valLevel">—</span><span class="ch-acc-arrow">▾</span></button>
-              <div class="ch-acc-body">
-                <div class="ch-choices" id="levelChoices">
-                  <button class="ch-choice" data-level="1">🙂 Лёгкий</button>
-                  <button class="ch-choice" data-level="2">😐 Средний</button>
-                  <button class="ch-choice" data-level="3">😈 Сложный</button>
-                </div>
-              </div>
+              <div class="ch-acc-body"><div class="ch-choices" id="levelChoices">
+                <button class="ch-choice" data-level="1">🙂 Лёгкий</button>
+                <button class="ch-choice" data-level="2">😐 Средний</button>
+                <button class="ch-choice" data-level="3">😈 Сложный</button>
+              </div></div>
             </div>
 
             <div class="ch-acc" id="accClock">
@@ -124,18 +148,27 @@
                   <button class="ch-chip" data-mv="50">50 ходов</button>
                   <button class="ch-chip" data-mv="100">100 ходов</button>
                 </div>
-                <div class="ch-hint-line" id="friendClockHint" hidden>В игре с другом по ссылке часы и лимит ходов недоступны.</div>
               </div>
             </div>
+
+            <div class="ch-hint-line" id="friendHint" hidden>🔗 Игра с другом идёт онлайн: отправьте ссылку — и ходите в реальном времени.</div>
           </div>
         </div>
 
         <button id="startBtn" class="ch-start">Начать партию ▶</button>
       </section>
 
-      <!-- ЭКРАН ИГРЫ -->
       <section id="gameScreen" class="ch-screen" hidden>
         <div class="ch-status" id="chStatus">—</div>
+
+        <div class="ch-online" id="onlineBar" hidden>
+          <div class="ch-online-status" id="onlineStatus">Подключение…</div>
+          <div class="ch-online-share" id="onlineShare">
+            <input id="onlineLink" class="ch-share-input" readonly />
+            <button class="ch-btn ch-btn-primary" id="btnOnlineCopy">📋 Скопировать ссылку для друга</button>
+          </div>
+          <button class="ch-btn" id="btnFallback" hidden>Не подключается? Играть по ссылке-ходу</button>
+        </div>
 
         <div class="ch-playerbar" id="barTop">
           <div class="pb-info"><span class="pb-name" id="topName">Чёрные</span><span class="pb-adv" id="topAdv"></span></div>
@@ -163,19 +196,14 @@
         </div>
       </section>
 
-      <!-- Модалка превращения -->
       <div id="promoModal" class="ch-modal" hidden>
-        <div class="ch-modal-box">
-          <div class="ch-modal-title">Выберите фигуру</div>
-          <div class="ch-promo-row" id="promoRow"></div>
-        </div>
+        <div class="ch-modal-box"><div class="ch-modal-title">Выберите фигуру</div><div class="ch-promo-row" id="promoRow"></div></div>
       </div>
 
-      <!-- Модалка ссылки -->
       <div id="shareModal" class="ch-modal" hidden>
         <div class="ch-modal-box">
           <div class="ch-modal-title">Ход сделан 📨</div>
-          <p class="ch-modal-text">Отправьте эту ссылку другу — он откроет её и сделает свой ход. Затем пришлёт ссылку вам обратно.</p>
+          <p class="ch-modal-text">Отправьте эту ссылку другу — он откроет её и сделает свой ход, затем пришлёт ссылку обратно.</p>
           <input id="shareLink" class="ch-share-input" readonly />
           <div class="ch-modal-actions">
             <button class="ch-btn ch-btn-primary" id="btnCopy">📋 Скопировать</button>
@@ -185,15 +213,12 @@
         </div>
       </div>
 
-      <!-- Модалка результата -->
       <div id="overModal" class="ch-modal" hidden>
         <div class="ch-modal-box ch-over-box">
           <div class="ch-over-ico" id="overIco">♚</div>
           <div class="ch-modal-title" id="overTitle">—</div>
           <p class="ch-modal-text" id="overText"></p>
-          <div class="ch-modal-actions">
-            <button class="ch-btn ch-btn-primary" id="btnNewGame">Новая партия</button>
-          </div>
+          <div class="ch-modal-actions"><button class="ch-btn ch-btn-primary" id="btnNewGame">Новая партия</button></div>
         </div>
       </div>
     `;
@@ -207,105 +232,55 @@
   }
 
   /* ========================================================
-     ФОН — анимированная мозаика шахматных плиток (меняется с темой)
+     ФОН — анимированная мозаика (меняется с темой)
      ======================================================== */
   const bg = { cv: null, ctx: null, T: 76, colors: null, reduce: false, raf: 0 };
 
   function initBackground() {
-    const cv = document.createElement('canvas');
-    cv.id = 'chBgCanvas';
-    const veil = document.createElement('div');
-    veil.id = 'chBgVeil';
-    document.body.appendChild(cv);
-    document.body.appendChild(veil);
-    bg.cv = cv;
-    bg.ctx = cv.getContext('2d');
+    const cv = document.createElement('canvas'); cv.id = 'chBgCanvas';
+    const veil = document.createElement('div'); veil.id = 'chBgVeil';
+    document.body.appendChild(cv); document.body.appendChild(veil);
+    bg.cv = cv; bg.ctx = cv.getContext('2d');
     bg.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    readBgColors();
-    resizeBg();
+    readBgColors(); resizeBg();
     window.addEventListener('resize', resizeBg);
-    if (bg.reduce) drawBg(0);
-    else loopBg();
+    if (bg.reduce) drawBg(0); else loopBg();
   }
-
   function readBgColors() {
     const cs = getComputedStyle(document.body);
-    bg.colors = {
-      light: cs.getPropertyValue('--sq-light').trim() || '#eaeaea',
-      dark: cs.getPropertyValue('--sq-dark').trim() || '#5a5f6d',
-      accent: cs.getPropertyValue('--accent').trim() || '#6c8cff'
-    };
+    bg.colors = { light: cs.getPropertyValue('--sq-light').trim() || '#eaeaea', dark: cs.getPropertyValue('--sq-dark').trim() || '#5a5f6d', accent: cs.getPropertyValue('--accent').trim() || '#6c8cff' };
   }
-
   function resizeBg() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const W = window.innerWidth, H = window.innerHeight;
-    bg.W = W; bg.H = H; bg.dpr = dpr;
-    bg.cv.width = W * dpr;
-    bg.cv.height = H * dpr;
-    bg.cv.style.width = W + 'px';
-    bg.cv.style.height = H + 'px';
+    bg.W = W; bg.H = H;
+    bg.cv.width = W * dpr; bg.cv.height = H * dpr;
+    bg.cv.style.width = W + 'px'; bg.cv.style.height = H + 'px';
     bg.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (bg.reduce) drawBg(0);
   }
-
-  function hash(i, j) {
-    let n = (i * 73856093) ^ (j * 19349663);
-    n = (n >>> 0) % 1000;
-    return n / 1000;
-  }
-
+  function hash(i, j) { let n = (i * 73856093) ^ (j * 19349663); n = (n >>> 0) % 1000; return n / 1000; }
   function drawBg(t) {
-    const { ctx, T, colors, W, H } = bg;
-    if (!ctx) return;
-    const speedX = 7, speedY = 4.2; // px/сек
-    const offX = (t / 1000) * speedX;
-    const offY = (t / 1000) * speedY;
+    const { ctx, T, colors, W, H } = bg; if (!ctx) return;
+    const offX = (t / 1000) * 7, offY = (t / 1000) * 4.2;
     const baseI = Math.floor(offX / T), baseJ = Math.floor(offY / T);
     const fracX = offX - baseI * T, fracY = offY - baseJ * T;
     const cols = Math.ceil(W / T) + 2, rows = Math.ceil(H / T) + 2;
     ctx.clearRect(0, 0, W, H);
     const gap = 3, rad = 10;
-    for (let a = 0; a < cols; a++) {
-      for (let b = 0; b < rows; b++) {
-        const i = baseI + a, j = baseJ + b;
-        const x = a * T - fracX, y = b * T - fracY;
-        const dark = (i + j) % 2 === 0;
-        const v = hash(i, j);
-        ctx.fillStyle = dark ? colors.dark : colors.light;
-        roundRect(ctx, x + gap, y + gap, T - gap * 2, T - gap * 2, rad);
-        ctx.fill();
-        // лёгкая вариация яркости для «мозаики»
-        const d = (v - 0.5) * 0.5;
-        ctx.fillStyle = d >= 0 ? `rgba(255,255,255,${d * 0.22})` : `rgba(0,0,0,${-d * 0.28})`;
-        ctx.fill();
-        // редкие плитки с акцентным ободком
-        if (v > 0.93) {
-          ctx.strokeStyle = colors.accent;
-          ctx.globalAlpha = 0.5;
-          ctx.lineWidth = 2;
-          roundRect(ctx, x + gap + 1, y + gap + 1, T - gap * 2 - 2, T - gap * 2 - 2, rad - 1);
-          ctx.stroke();
-          ctx.globalAlpha = 1;
-        }
-      }
+    for (let a = 0; a < cols; a++) for (let b = 0; b < rows; b++) {
+      const i = baseI + a, j = baseJ + b;
+      const x = a * T - fracX, y = b * T - fracY;
+      const dark = (i + j) % 2 === 0, v = hash(i, j);
+      ctx.fillStyle = dark ? colors.dark : colors.light;
+      roundRect(ctx, x + gap, y + gap, T - gap * 2, T - gap * 2, rad); ctx.fill();
+      const d = (v - 0.5) * 0.5;
+      ctx.fillStyle = d >= 0 ? `rgba(255,255,255,${d * 0.22})` : `rgba(0,0,0,${-d * 0.28})`; ctx.fill();
+      if (v > 0.93) { ctx.strokeStyle = colors.accent; ctx.globalAlpha = 0.5; ctx.lineWidth = 2; roundRect(ctx, x + gap + 1, y + gap + 1, T - gap * 2 - 2, T - gap * 2 - 2, rad - 1); ctx.stroke(); ctx.globalAlpha = 1; }
     }
   }
-
-  function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-
-  function loopBg() {
-    const step = (t) => { drawBg(t); bg.raf = requestAnimationFrame(step); };
-    bg.raf = requestAnimationFrame(step);
-  }
+  function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function loopBg() { const step = (t) => { drawBg(t); bg.raf = requestAnimationFrame(step); }; bg.raf = requestAnimationFrame(step); }
 
   /* ========================================================
      НАСТРОЙКА
@@ -315,45 +290,17 @@
   function bindSetup() {
     $('themeBar').addEventListener('click', (e) => {
       const b = e.target.closest('.ch-sw'); if (!b) return;
-      app.theme = b.dataset.theme;
-      localStorage.setItem('chessTheme', app.theme);
-      applyTheme(app.theme);
-      markActive('#themeBar .ch-sw', b);
+      app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b);
     });
-
     $('modeCards').addEventListener('click', (e) => {
       const c = e.target.closest('.ch-big'); if (!c) return;
-      setup.mode = c.dataset.mode;
-      markActive('#modeCards .ch-big', c);
-      updateSetupVisibility();
+      setup.mode = c.dataset.mode; markActive('#modeCards .ch-big', c); updateSetupVisibility();
     });
-
-    // аккордеоны: клик по шапке — раскрыть/свернуть
-    document.querySelectorAll('#setupScreen .ch-acc-head').forEach(h => {
-      h.addEventListener('click', () => {
-        const acc = h.parentElement;
-        if (acc.classList.contains('disabled')) return;
-        acc.classList.toggle('open');
-      });
-    });
-
-    $('sideChoices').addEventListener('click', (e) => {
-      const b = e.target.closest('.ch-choice'); if (!b) return;
-      setup.side = b.dataset.side; markActive('#sideChoices .ch-choice', b); updateSummaries();
-    });
-    $('levelChoices').addEventListener('click', (e) => {
-      const b = e.target.closest('.ch-choice'); if (!b) return;
-      setup.level = parseInt(b.dataset.level, 10); markActive('#levelChoices .ch-choice', b); updateSummaries();
-    });
-    $('timeChips').addEventListener('click', (e) => {
-      const b = e.target.closest('.ch-chip'); if (!b) return;
-      setup.timeMin = parseInt(b.dataset.min, 10); markActive('#timeChips .ch-chip', b); updateSummaries();
-    });
-    $('moveChips').addEventListener('click', (e) => {
-      const b = e.target.closest('.ch-chip'); if (!b) return;
-      setup.moveLim = parseInt(b.dataset.mv, 10); markActive('#moveChips .ch-chip', b); updateSummaries();
-    });
-
+    document.querySelectorAll('#setupScreen .ch-acc-head').forEach(h => h.addEventListener('click', () => { const acc = h.parentElement; if (!acc.classList.contains('disabled')) acc.classList.toggle('open'); }));
+    $('sideChoices').addEventListener('click', (e) => { const b = e.target.closest('.ch-choice'); if (!b) return; setup.side = b.dataset.side; markActive('#sideChoices .ch-choice', b); updateSummaries(); });
+    $('levelChoices').addEventListener('click', (e) => { const b = e.target.closest('.ch-choice'); if (!b) return; setup.level = parseInt(b.dataset.level, 10); markActive('#levelChoices .ch-choice', b); updateSummaries(); });
+    $('timeChips').addEventListener('click', (e) => { const b = e.target.closest('.ch-chip'); if (!b) return; setup.timeMin = parseInt(b.dataset.min, 10); markActive('#timeChips .ch-chip', b); updateSummaries(); });
+    $('moveChips').addEventListener('click', (e) => { const b = e.target.closest('.ch-chip'); if (!b) return; setup.moveLim = parseInt(b.dataset.mv, 10); markActive('#moveChips .ch-chip', b); updateSummaries(); });
     $('startBtn').addEventListener('click', startGame);
 
     selectDefault('#modeCards .ch-big', '[data-mode="bot"]');
@@ -362,15 +309,12 @@
     selectDefault('#timeChips .ch-chip', '[data-min="0"]');
     selectDefault('#moveChips .ch-chip', '[data-mv="0"]');
     selectDefault('#themeBar .ch-sw', `[data-theme="${app.theme}"]`);
-    updateSummaries();
-    updateSetupVisibility();
+    updateSummaries(); updateSetupVisibility();
   }
 
   function updateSummaries() {
-    const sideTxt = { w: '♔ Белые', b: '♚ Чёрные', r: '🎲 Рандом' }[setup.side];
-    const lvlTxt = { 1: '🙂 Лёгкий', 2: '😐 Средний', 3: '😈 Сложный' }[setup.level];
-    $('valSide').textContent = sideTxt;
-    $('valLevel').textContent = lvlTxt;
+    $('valSide').textContent = { w: '♔ Белые', b: '♚ Чёрные', r: '🎲 Рандом' }[setup.side];
+    $('valLevel').textContent = { 1: '🙂 Лёгкий', 2: '😐 Средний', 3: '😈 Сложный' }[setup.level];
     const parts = [];
     if (setup.timeMin > 0) parts.push(setup.timeMin + ' мин');
     if (setup.moveLim > 0) parts.push(setup.moveLim + ' ход.');
@@ -379,111 +323,238 @@
 
   function updateSetupVisibility() {
     $('accLevel').style.display = setup.mode === 'bot' ? '' : 'none';
-    const friend = setup.mode === 'friend';
-    const acc = $('accClock');
-    acc.classList.toggle('disabled', friend);
-    if (friend) acc.classList.remove('open');
-    $('friendClockHint').hidden = !friend;
-    // скрыть чипы у друга, показать подсказку
-    $('timeChips').style.display = friend ? 'none' : '';
-    $('moveChips').style.display = friend ? 'none' : '';
-    document.querySelectorAll('#accClock .ch-sublabel').forEach(el => el.style.display = friend ? 'none' : '');
-    $('valClock').textContent = friend ? 'недоступно' : ($('valClock').textContent);
-    if (!friend) updateSummaries();
+    $('friendHint').hidden = setup.mode !== 'friend';
   }
 
-  function selectDefault(groupSel, sel) {
-    const el = document.querySelector(groupSel + sel) || document.querySelector(groupSel);
-    if (el) markActive(groupSel, el);
-  }
-
-  function markActive(groupSel, el) {
-    document.querySelectorAll(groupSel).forEach(x => x.classList.remove('active'));
-    el.classList.add('active');
-  }
+  function selectDefault(g, s) { const el = document.querySelector(g + s) || document.querySelector(g); if (el) markActive(g, el); }
+  function markActive(g, el) { document.querySelectorAll(g).forEach(x => x.classList.remove('active')); el.classList.add('active'); }
 
   function showSetup() {
+    closeOnline();
     $('setupScreen').hidden = false;
     $('gameScreen').hidden = true;
     updateSetupVisibility();
   }
 
-  function resolveSide(side) {
-    if (side === 'r') return Math.random() < 0.5 ? 'w' : 'b';
-    return side;
+  function resolveSide(side) { return side === 'r' ? (Math.random() < 0.5 ? 'w' : 'b') : side; }
+
+  function resetGame() {
+    app.state = C.newGameState();
+    app.history = []; app.lastMove = null; app.selected = -1; app.legalFrom = [];
+    app.over = false; app.overText = ''; app.pendingShare = false; app.botThinking = false; app.paused = false;
   }
 
   function startGame() {
-    app.mode = setup.mode;
-    app.level = setup.level;
-    app.state = C.newGameState();
-    app.history = [];
-    app.lastMove = null;
-    app.selected = -1;
-    app.legalFrom = [];
-    app.over = false;
-    app.overText = '';
-    app.pendingShare = false;
-    app.botThinking = false;
-    app.paused = false;
+    closeOnline();
+    app.mode = setup.mode; app.level = setup.level;
+    resetGame();
 
-    if (app.mode === 'local') { app.myColor = null; app.orientation = resolveSide(setup.side); }
-    else { app.myColor = resolveSide(setup.side); app.orientation = app.myColor; }
+    if (app.mode === 'local') { app.myColor = null; app.orientation = resolveSide(setup.side); initClock(); enterGameScreen(); return; }
 
-    initClock();
-    enterGameScreen();
+    app.myColor = resolveSide(setup.side); app.orientation = app.myColor;
 
-    if (app.mode === 'friend' && app.myColor === 'b') openShare();
-    maybeBotMove();
+    if (app.mode === 'friend') {
+      if (netAvailable()) { startOnlineHost(); return; }
+      // запасной вариант — по ссылке-ходу
+      app.online.on = false; app.clock = emptyClock();
+      enterGameScreen();
+      if (app.myColor === 'b') openShare();
+      return;
+    }
+
+    // bot
+    initClock(); enterGameScreen(); maybeBotMove();
   }
 
-  function emptyClock() {
-    return { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: Date.now() };
-  }
+  function emptyClock() { return { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: Date.now() }; }
 
   function initClock() {
     const cl = emptyClock();
-    if (app.mode !== 'friend') {
-      if (setup.timeMin > 0) { cl.timeOn = true; const ms = setup.timeMin * 60000; cl.timeMs = { w: ms, b: ms }; }
-      if (setup.moveLim > 0) { cl.movesOn = true; cl.movesLeft = { w: setup.moveLim, b: setup.moveLim }; }
-    }
+    if (setup.timeMin > 0) { cl.timeOn = true; const ms = setup.timeMin * 60000; cl.timeMs = { w: ms, b: ms }; }
+    if (setup.moveLim > 0) { cl.movesOn = true; cl.movesLeft = { w: setup.moveLim, b: setup.moveLim }; }
     app.clock = cl;
   }
 
   function enterGameScreen() {
     $('setupScreen').hidden = true;
     $('gameScreen').hidden = false;
-    $('btnFlip').style.display = app.mode === 'local' ? 'none' : '';
+    const onl = app.mode === 'friend' && app.online.on;
+    $('onlineBar').hidden = !onl;
+    $('btnFlip').style.display = (app.mode === 'local' || onl) ? 'none' : '';
     $('btnUndo').style.display = app.mode === 'friend' ? 'none' : '';
-    $('btnResign').style.display = app.mode === 'friend' ? 'none' : '';
+    $('btnResign').style.display = (app.mode === 'friend' && !onl) ? 'none' : '';
     render();
+    if (onl) setOnlineStatus();
   }
 
   /* ========================================================
-     ССЫЛКИ (режим друга)
+     ОНЛАЙН-ИГРА С ДРУГОМ
+     ======================================================== */
+  function randId() { let s = ''; const a = 'abcdefghijkmnpqrstuvwxyz23456789'; for (let i = 0; i < 6; i++) s += a[(Math.random() * a.length) | 0]; return s; }
+
+  function startOnlineHost() {
+    const room = randId();
+    const host = app.myColor;
+    app.online = { on: true, role: 'host', room, myColor: host, hostColor: host, myId: null, net: null, connected: false, peerReady: false, failed: false, timeMin: setup.timeMin, moveLim: setup.moveLim };
+    initClock();
+    connectOnline();
+    enterGameScreen();
+  }
+
+  function startOnlineGuest(hash) {
+    const params = parseHash(hash);
+    if (!params.room) { showSetup(); return; }
+    app.theme = localStorage.getItem('chessTheme') || 'classic'; applyTheme(app.theme);
+    if (!netAvailable()) {
+      // без библиотеки живьём не подключиться
+      app.mode = 'friend'; resetGame();
+      alert('Чтобы играть онлайн, откройте ссылку в обычном браузере с интернетом.');
+      showSetup(); return;
+    }
+    app.mode = 'friend';
+    resetGame();
+    const hostColor = params.h === 'b' ? 'b' : 'w';
+    setup.timeMin = parseInt(params.t || '0', 10) || 0;
+    setup.moveLim = parseInt(params.m || '0', 10) || 0;
+    app.myColor = hostColor === 'w' ? 'b' : 'w';
+    app.orientation = app.myColor;
+    app.online = { on: true, role: 'guest', room: params.room, myColor: app.myColor, hostColor, myId: null, net: null, connected: false, peerReady: false, failed: false, timeMin: setup.timeMin, moveLim: setup.moveLim };
+    initClock();
+    connectOnline();
+    enterGameScreen();
+  }
+
+  function parseHash(h) {
+    const out = {};
+    h.replace(/^#/, '').split('&').forEach(kv => { const i = kv.indexOf('='); if (i > 0) out[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); });
+    return out;
+  }
+
+  function buildOnlineLink() {
+    const o = app.online;
+    return location.origin + location.pathname + '#room=' + o.room + '&h=' + o.hostColor + '&t=' + (o.timeMin || 0) + '&m=' + (o.moveLim || 0);
+  }
+
+  function connectOnline() {
+    const o = app.online;
+    o.net = ChessNet.connect(o.room, {
+      onOpen: () => { o.connected = true; o.failed = false; o.myId = o.net.id; netSend({ t: 'hi', s: o.myId, c: o.myColor }); setOnlineStatus(); },
+      onReconnect: () => { o.connected = false; setOnlineStatus(); },
+      onClose: () => { o.connected = false; setOnlineStatus(); },
+      onFail: () => { o.failed = true; setOnlineStatus(); },
+      onMessage: handleNetMsg
+    });
+    if (!o.net) { o.failed = true; setOnlineStatus(); }
+  }
+
+  function netSend(obj) { if (app.online.net) app.online.net.publish(obj); }
+
+  function closeOnline() {
+    if (app.online && app.online.net) { try { app.online.net.close(); } catch (e) { } }
+    app.online = { on: false, role: null, room: null, myColor: 'w', hostColor: 'w', myId: null, net: null, connected: false, peerReady: false, failed: false };
+  }
+
+  function handleNetMsg(o) {
+    const me = app.online;
+    if (!me.on) return;
+    if (o.s && o.s === me.myId) return; // свои сообщения игнорируем
+    if (o.t === 'hi') {
+      me.peerReady = true; setOnlineStatus();
+      if (me.role === 'host') sendSync();
+    } else if (o.t === 'sync') {
+      me.peerReady = true; applySync(o); setOnlineStatus();
+    } else if (o.t === 'mv') {
+      me.peerReady = true; applyRemoteMove(o);
+    } else if (o.t === 'end') {
+      me.peerReady = true;
+      if (o.kind === 'resign') finishGame({ type: 'resign', loser: o.loser });
+      else if (o.kind === 'time') finishGame({ type: 'time', loser: o.loser });
+    }
+  }
+
+  function clockSnapshot() {
+    const c = app.clock;
+    return { msW: c.timeMs.w, msB: c.timeMs.b, mvW: c.movesLeft.w, mvB: c.movesLeft.b };
+  }
+
+  function sendSync() {
+    netSend(Object.assign({ t: 'sync', s: app.online.myId, moves: app.history.slice(), h: app.online.hostColor, tm: app.online.timeMin || 0, mm: app.online.moveLim || 0 }, clockSnapshot()));
+  }
+
+  function applySync(o) {
+    if (!o.moves || o.moves.length < app.history.length) return; // не откатываем более длинную партию
+    rebuildFrom(o.moves);
+    adoptClock(o);
+    render();
+    checkOver();
+  }
+
+  function rebuildFrom(moves) {
+    app.state = C.newGameState(); app.history = []; app.lastMove = null;
+    for (const code of moves) {
+      const from = C.nameToSq(code.substr(0, 2)), to = C.nameToSq(code.substr(2, 2)), promo = code[4] || '';
+      const lm = C.legalMoves(app.state).find(m => m.from === from && m.to === to && (!promo || m.promo === promo));
+      if (!lm) break;
+      C.makeMove(app.state, lm); app.history.push(encodeMove(lm)); app.lastMove = { from, to };
+    }
+    app.selected = -1; app.legalFrom = [];
+  }
+
+  function adoptClock(o) {
+    if (app.clock.timeOn && o.msW != null) { app.clock.timeMs.w = o.msW; app.clock.timeMs.b = o.msB; }
+    if (app.clock.movesOn && o.mvW != null) { app.clock.movesLeft.w = o.mvW; app.clock.movesLeft.b = o.mvB; }
+    app.clock.lastTick = Date.now();
+  }
+
+  function applyRemoteMove(o) {
+    const code = o.mv || '';
+    const from = C.nameToSq(code.substr(0, 2)), to = C.nameToSq(code.substr(2, 2)), promo = code[4] || '';
+    const lm = C.legalMoves(app.state).find(m => m.from === from && m.to === to && (!promo || m.promo === promo));
+    if (!lm) return; // уже применён или не подходит
+    C.makeMove(app.state, lm); app.history.push(encodeMove(lm)); app.lastMove = { from, to };
+    adoptClock(o);
+    render();
+    checkOver();
+  }
+
+  function publishMove() {
+    netSend(Object.assign({ t: 'mv', s: app.online.myId, mv: app.history[app.history.length - 1] }, clockSnapshot()));
+  }
+
+  function setOnlineStatus() {
+    const o = app.online; if (!o.on) return;
+    const st = $('onlineStatus'); const fb = $('btnFallback');
+    st.classList.remove('ok', 'warn', 'bad');
+    if (o.failed && !o.connected) { st.textContent = '🔴 Нет связи с сервером. Проверьте интернет — или сыграйте по ссылке-ходу.'; st.classList.add('bad'); fb.hidden = false; }
+    else if (!o.connected) { st.textContent = '🟡 Подключение к серверу…'; st.classList.add('warn'); fb.hidden = true; }
+    else if (!o.peerReady) { st.textContent = '🟢 Готово! Отправьте ссылку другу и ждите — соперник ещё не зашёл.'; st.classList.add('ok'); fb.hidden = true; }
+    else { st.textContent = '🟢 Соперник в игре ✓'; st.classList.add('ok'); fb.hidden = true; }
+    $('onlineLink').value = buildOnlineLink();
+  }
+
+  function switchToCorrespondence() {
+    closeOnlineKeepMode();
+    app.online.on = false;
+    app.clock = emptyClock();
+    resetGame();
+    app.myColor = resolveSide(setup.side); app.orientation = app.myColor;
+    $('onlineBar').hidden = true;
+    $('btnResign').style.display = 'none';
+    render();
+    if (app.myColor === 'b') openShare();
+  }
+  function closeOnlineKeepMode() { if (app.online.net) { try { app.online.net.close(); } catch (e) { } app.online.net = null; } }
+
+  /* ========================================================
+     ССЫЛКИ (запасной режим «по ссылке-ходу»)
      ======================================================== */
   function startFromLink(encoded) {
-    app.mode = 'friend';
-    app.state = C.newGameState();
-    app.history = [];
-    app.lastMove = null;
-    app.selected = -1;
-    app.legalFrom = [];
-    app.over = false;
-    app.overText = '';
-    app.pendingShare = false;
-    app.paused = false;
+    app.mode = 'friend'; app.online.on = false;
+    resetGame();
     app.clock = emptyClock();
-
-    app.theme = localStorage.getItem('chessTheme') || 'classic';
-    applyTheme(app.theme);
-
-    const ok = replayMoves(encoded);
-    if (!ok) { showSetup(); return; }
-
-    app.myColor = app.state.turn;
-    app.orientation = app.state.turn;
-
+    app.theme = localStorage.getItem('chessTheme') || 'classic'; applyTheme(app.theme);
+    if (!replayMoves(encoded)) { showSetup(); return; }
+    app.myColor = app.state.turn; app.orientation = app.state.turn;
     enterGameScreen();
     checkOver();
   }
@@ -491,17 +562,12 @@
   function replayMoves(str) {
     let i = 0;
     while (i < str.length) {
-      const from = C.nameToSq(str.substr(i, 2));
-      const to = C.nameToSq(str.substr(i + 2, 2));
-      i += 4;
-      const piece = app.state.board[from];
-      let promo = '';
+      const from = C.nameToSq(str.substr(i, 2)), to = C.nameToSq(str.substr(i + 2, 2)); i += 4;
+      const piece = app.state.board[from]; let promo = '';
       if (piece && C.typeOf(piece) === 'p' && (C.rankOf(to) === 0 || C.rankOf(to) === 7)) { promo = str[i]; i += 1; }
       const legal = C.legalMoves(app.state).find(m => m.from === from && m.to === to && (!promo || m.promo === promo));
       if (!legal) return false;
-      C.makeMove(app.state, legal);
-      app.history.push(encodeMove(legal));
-      app.lastMove = { from, to };
+      C.makeMove(app.state, legal); app.history.push(encodeMove(legal)); app.lastMove = { from, to };
     }
     return true;
   }
@@ -520,47 +586,32 @@
   function renderBoard() {
     elBoard.innerHTML = '';
     const flip = app.orientation === 'b';
-    for (let rr = 7; rr >= 0; rr--) {
-      for (let ff = 0; ff < 8; ff++) {
-        const r = flip ? 7 - rr : rr;
-        const f = flip ? 7 - ff : ff;
-        const s = C.sq(f, r);
-        const cell = document.createElement('div');
-        cell.className = 'ch-sq ' + ((f + r) % 2 === 0 ? 'dark' : 'light');
-        cell.dataset.sq = s;
-
-        if (ff === 0) { const rk = document.createElement('span'); rk.className = 'ch-coord ch-coord-rank'; rk.textContent = r + 1; cell.appendChild(rk); }
-        if (rr === 0) { const fl = document.createElement('span'); fl.className = 'ch-coord ch-coord-file'; fl.textContent = FILE_LETTER(f); cell.appendChild(fl); }
-
-        if (app.lastMove && (app.lastMove.from === s || app.lastMove.to === s)) cell.classList.add('last');
-        if (app.selected === s) cell.classList.add('sel');
-
-        const p = app.state.board[s];
-        if (p) {
-          const pc = document.createElement('span');
-          pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black');
-          pc.textContent = GLYPH[C.typeOf(p)];
-          cell.appendChild(pc);
-        }
-
-        const lm = app.legalFrom.find(m => m.to === s);
-        if (lm) { const dot = document.createElement('span'); dot.className = 'ch-dot' + (app.state.board[s] || lm.flag === 'ep' ? ' cap' : ''); cell.appendChild(dot); }
-
-        if (p && C.typeOf(p) === 'k' && C.inCheck(app.state, C.colorOf(p)) && (C.colorOf(p) === app.state.turn || app.over)) cell.classList.add('check');
-
-        cell.addEventListener('click', () => onCellClick(s));
-        elBoard.appendChild(cell);
-      }
+    for (let rr = 7; rr >= 0; rr--) for (let ff = 0; ff < 8; ff++) {
+      const r = flip ? 7 - rr : rr, f = flip ? 7 - ff : ff, s = C.sq(f, r);
+      const cell = document.createElement('div');
+      cell.className = 'ch-sq ' + ((f + r) % 2 === 0 ? 'dark' : 'light');
+      cell.dataset.sq = s;
+      if (ff === 0) { const rk = document.createElement('span'); rk.className = 'ch-coord ch-coord-rank'; rk.textContent = r + 1; cell.appendChild(rk); }
+      if (rr === 0) { const fl = document.createElement('span'); fl.className = 'ch-coord ch-coord-file'; fl.textContent = FILE_LETTER(f); cell.appendChild(fl); }
+      if (app.lastMove && (app.lastMove.from === s || app.lastMove.to === s)) cell.classList.add('last');
+      if (app.selected === s) cell.classList.add('sel');
+      const p = app.state.board[s];
+      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.textContent = GLYPH[C.typeOf(p)]; cell.appendChild(pc); }
+      const lm = app.legalFrom.find(m => m.to === s);
+      if (lm) { const dot = document.createElement('span'); dot.className = 'ch-dot' + (app.state.board[s] || lm.flag === 'ep' ? ' cap' : ''); cell.appendChild(dot); }
+      if (p && C.typeOf(p) === 'k' && C.inCheck(app.state, C.colorOf(p)) && (C.colorOf(p) === app.state.turn || app.over)) cell.classList.add('check');
+      cell.addEventListener('click', () => onCellClick(s));
+      elBoard.appendChild(cell);
     }
   }
 
   function renderStatus() {
-    const st = elStatus;
-    st.classList.remove('check', 'over');
+    const st = elStatus; st.classList.remove('check', 'over');
     const turnName = colorName(app.state.turn);
     if (app.over) { st.classList.add('over'); st.textContent = app.overText || 'Партия окончена'; return; }
     let txt;
     if (app.botThinking) txt = '🤖 Бот думает…';
+    else if (app.mode === 'friend' && app.online.on) txt = (app.state.turn === app.online.myColor ? `Ваш ход · ${turnName}` : `Ход соперника · ${turnName}`);
     else if (app.mode === 'friend' && app.pendingShare) txt = 'Ход сделан — отправьте ссылку другу';
     else if (app.mode === 'friend') txt = `Ваш ход · ${turnName}`;
     else if (app.mode === 'bot') txt = app.state.turn === app.myColor ? `Ваш ход · ${turnName}` : `Ход бота · ${turnName}`;
@@ -571,14 +622,10 @@
 
   function renderHistory() {
     let html = '';
-    for (let i = 0; i < app.history.length; i += 2) {
-      const n = i / 2 + 1;
-      html += `<span class="ch-move"><b>${n}.</b> ${fmtMove(app.history[i] || '')} ${fmtMove(app.history[i + 1] || '')}</span>`;
-    }
+    for (let i = 0; i < app.history.length; i += 2) { const n = i / 2 + 1; html += `<span class="ch-move"><b>${n}.</b> ${fmtMove(app.history[i] || '')} ${fmtMove(app.history[i + 1] || '')}</span>`; }
     elHistory.innerHTML = html || '<span class="ch-move-empty">Ходов пока нет</span>';
     elHistory.scrollTop = elHistory.scrollHeight;
   }
-
   function fmtMove(m) { return !m ? '' : m.slice(0, 2) + '→' + m.slice(2, 4) + (m[4] ? '=' + m[4].toUpperCase() : ''); }
 
   function computeMissing() {
@@ -588,24 +635,20 @@
     for (const c of ['w', 'b']) for (const t in START) missing[c][t] = START[t] - (cnt[c][t] || 0);
     return missing;
   }
-
   function capturedValue(m) { let v = 0; for (const t in m) v += m[t] * VAL[t]; return v; }
 
   function renderPlayerBars() {
     const missing = computeMissing();
-    const bottomColor = app.orientation;
-    const topColor = bottomColor === 'w' ? 'b' : 'w';
+    const bottomColor = app.orientation, topColor = bottomColor === 'w' ? 'b' : 'w';
     const advBottom = capturedValue(missing[topColor]) - capturedValue(missing[bottomColor]);
     fillBar('bot', bottomColor, missing[topColor], topColor, advBottom);
     fillBar('top', topColor, missing[bottomColor], bottomColor, -advBottom);
     updateClocks();
   }
-
   function fillBar(which, color, captured, capturedColor, adv) {
     $(which + 'Name').textContent = colorName(color) + (app.state && app.state.turn === color && !app.over ? ' ●' : '');
     let pcs = '';
-    for (const t of ['q', 'r', 'b', 'n', 'p']) for (let k = 0; k < (captured[t] || 0); k++)
-      pcs += `<span class="pb-piece ${capturedColor === 'w' ? 'white' : 'black'}">${GLYPH[t]}</span>`;
+    for (const t of ['q', 'r', 'b', 'n', 'p']) for (let k = 0; k < (captured[t] || 0); k++) pcs += `<span class="pb-piece ${capturedColor === 'w' ? 'white' : 'black'}">${GLYPH[t]}</span>`;
     $(which + 'Captured').innerHTML = pcs;
     $(which + 'Adv').textContent = adv > 0 ? '+' + adv : '';
   }
@@ -617,42 +660,28 @@
     setInterval(() => {
       const cl = app.clock;
       if (!cl.timeOn) return;
-      if (app.over || app.paused || app.state == null || app.mode === 'friend') { cl.lastTick = Date.now(); return; }
-      const now = Date.now();
-      const dt = now - cl.lastTick; cl.lastTick = now;
-      const c = app.state.turn;
-      cl.timeMs[c] -= dt;
-      if (cl.timeMs[c] <= 0) { cl.timeMs[c] = 0; updateClocks(); finishGame({ type: 'time', loser: c }); return; }
+      if (app.over || app.paused || app.state == null) { cl.lastTick = Date.now(); return; }
+      const now = Date.now(), dt = now - cl.lastTick; cl.lastTick = now;
+      const c = app.state.turn; cl.timeMs[c] -= dt;
+      if (cl.timeMs[c] <= 0) {
+        cl.timeMs[c] = 0; updateClocks();
+        if (!app.online.on || c === app.online.myColor) { finishGame({ type: 'time', loser: c }); if (app.online.on) netSend({ t: 'end', s: app.online.myId, kind: 'time', loser: c }); }
+        return;
+      }
       updateClocks();
     }, 200);
   }
-
-  function fmtTime(ms) {
-    if (ms < 0) ms = 0;
-    const total = Math.ceil(ms / 1000);
-    const m = Math.floor(total / 60), s = total % 60;
-    return m + ':' + (s < 10 ? '0' : '') + s;
-  }
-
-  function updateClocks() {
-    const cl = app.clock;
-    const bottomColor = app.orientation;
-    const topColor = bottomColor === 'w' ? 'b' : 'w';
-    setClock('bot', bottomColor, cl);
-    setClock('top', topColor, cl);
-  }
-
+  function fmtTime(ms) { if (ms < 0) ms = 0; const total = Math.ceil(ms / 1000); const m = Math.floor(total / 60), s = total % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
+  function updateClocks() { const cl = app.clock, bottomColor = app.orientation, topColor = bottomColor === 'w' ? 'b' : 'w'; setClock('bot', bottomColor, cl); setClock('top', topColor, cl); }
   function setClock(which, color, cl) {
     const el = $(which + 'Clock');
     if (!cl.timeOn && !cl.movesOn) { el.hidden = true; return; }
-    el.hidden = false;
-    el.classList.remove('active', 'low');
+    el.hidden = false; el.classList.remove('active', 'low');
     if (!app.over && app.state && app.state.turn === color) el.classList.add('active');
     const parts = []; let low = false;
     if (cl.timeOn) { parts.push('⏱️ ' + fmtTime(cl.timeMs[color])); if (cl.timeMs[color] <= 20000) low = true; }
     if (cl.movesOn) { parts.push('🔢 ' + cl.movesLeft[color]); if (cl.movesLeft[color] <= 3) low = true; }
-    el.textContent = parts.join('  ·  ');
-    if (low) el.classList.add('low');
+    el.textContent = parts.join('  ·  '); if (low) el.classList.add('low');
   }
 
   /* ========================================================
@@ -660,7 +689,11 @@
      ======================================================== */
   function canMoveNow() {
     if (app.over || app.botThinking || app.paused) return false;
-    if (app.mode === 'friend' && app.pendingShare) return false;
+    if (app.mode === 'friend') {
+      if (app.online.on) return app.state.turn === app.online.myColor;
+      if (app.pendingShare) return false;
+      return app.state.turn === app.myColor;
+    }
     if (app.mode === 'bot' && app.state.turn !== app.myColor) return false;
     return true;
   }
@@ -675,10 +708,8 @@
     if (app.selected >= 0) {
       const target = app.legalFrom.filter(m => m.to === s);
       if (target.length) {
-        if (target.length > 1) {
-          app.paused = true;
-          askPromotion(app.state.turn, (promo) => { app.paused = false; app.clock.lastTick = Date.now(); doMove(target.find(m => m.promo === promo)); });
-        } else doMove(target[0]);
+        if (target.length > 1) { app.paused = true; askPromotion(app.state.turn, (promo) => { app.paused = false; app.clock.lastTick = Date.now(); doMove(target.find(m => m.promo === promo)); }); }
+        else doMove(target[0]);
         return;
       }
     }
@@ -687,9 +718,7 @@
 
   function applyMove(m) {
     const mover = app.state.turn;
-    C.makeMove(app.state, m);
-    app.history.push(encodeMove(m));
-    app.lastMove = { from: m.from, to: m.to };
+    C.makeMove(app.state, m); app.history.push(encodeMove(m)); app.lastMove = { from: m.from, to: m.to };
     if (app.clock.movesOn) app.clock.movesLeft[mover]--;
     app.clock.lastTick = Date.now();
   }
@@ -698,25 +727,22 @@
     applyMove(m);
     app.selected = -1; app.legalFrom = [];
     if (app.mode === 'local') app.orientation = app.state.turn;
+    if (app.mode === 'friend' && app.online.on) publishMove();
     render();
     if (checkOver()) return;
-    if (app.mode === 'friend') openShare();
+    if (app.mode === 'friend' && !app.online.on) openShare();
     else if (app.mode === 'bot') maybeBotMove();
   }
 
   function maybeBotMove() {
     if (app.mode !== 'bot' || app.over) return;
     if (app.state.turn === app.myColor) return;
-    app.botThinking = true;
-    renderStatus();
+    app.botThinking = true; renderStatus();
     setTimeout(() => {
       if (app.over) { app.botThinking = false; return; }
-      const m = C.botMove(app.state, app.level);
-      app.botThinking = false;
+      const m = C.botMove(app.state, app.level); app.botThinking = false;
       if (!m) { checkOver(); return; }
-      applyMove(m);
-      render();
-      checkOver();
+      applyMove(m); render(); checkOver();
     }, 320);
   }
 
@@ -742,8 +768,7 @@
 
   function finishGame(res) {
     if (app.over) return;
-    app.over = true;
-    app.selected = -1; app.legalFrom = []; app.pendingShare = false;
+    app.over = true; app.selected = -1; app.legalFrom = []; app.pendingShare = false;
     let ico = '🤝', title = 'Ничья', text = '';
     if (res.type === 'checkmate') { ico = '♚'; title = 'Мат!'; text = `${colorName(res.winner)} выиграли! 🎉`; }
     else if (res.type === 'stalemate') { ico = '🤝'; title = 'Пат — ничья'; text = 'Ходить нечем, но шаха нет. Ничья.'; }
@@ -753,19 +778,15 @@
     else { ico = '🤝'; title = 'Ничья'; text = 'Недостаточно материала или правило 50 ходов.'; }
     app.overText = ico + ' ' + title + ' — ' + text;
     render();
-    $('overIco').textContent = ico;
-    $('overTitle').textContent = title;
-    $('overText').textContent = text;
-    $('shareModal').hidden = true;
-    $('overModal').hidden = false;
+    $('overIco').textContent = ico; $('overTitle').textContent = title; $('overText').textContent = text;
+    $('shareModal').hidden = true; $('overModal').hidden = false;
   }
 
   /* ========================================================
      ПРЕВРАЩЕНИЕ
      ======================================================== */
   function askPromotion(color, cb) {
-    const row = $('promoRow');
-    row.innerHTML = '';
+    const row = $('promoRow'); row.innerHTML = '';
     for (const t of ['q', 'r', 'b', 'n']) {
       const btn = document.createElement('button');
       btn.className = 'ch-promo ' + (color === 'w' ? 'white' : 'black');
@@ -779,10 +800,7 @@
   /* ========================================================
      ТЕМЫ
      ======================================================== */
-  function applyTheme(name) {
-    document.body.setAttribute('data-chess-theme', name);
-    if (bg.ctx) { readBgColors(); if (bg.reduce) drawBg(0); }
-  }
+  function applyTheme(name) { document.body.setAttribute('data-chess-theme', name); if (bg.ctx) { readBgColors(); if (bg.reduce) drawBg(0); } }
 
   /* ========================================================
      КНОПКИ + МОДАЛКИ
@@ -794,42 +812,24 @@
     $('btnResign').addEventListener('click', () => {
       if (app.over) return;
       if (!confirm('Сдаться?')) return;
-      finishGame({ type: 'resign', loser: app.mode === 'bot' ? app.myColor : app.state.turn });
+      const loser = app.online.on ? app.online.myColor : (app.mode === 'bot' ? app.myColor : app.state.turn);
+      if (app.online.on) netSend({ t: 'end', s: app.online.myId, kind: 'resign', loser });
+      finishGame({ type: 'resign', loser });
     });
     $('btnNewGame').addEventListener('click', () => { $('overModal').hidden = true; location.hash = ''; showSetup(); });
-    $('btnCopy').addEventListener('click', () => {
-      const inp = $('shareLink'); inp.select();
-      copyText(inp.value).then(ok => { $('copyHint').textContent = ok ? '✓ Ссылка скопирована' : 'Скопируйте вручную (выделено выше)'; });
-    });
+    $('btnCopy').addEventListener('click', () => { const inp = $('shareLink'); inp.select(); copyText(inp.value).then(ok => { $('copyHint').textContent = ok ? '✓ Ссылка скопирована' : 'Скопируйте вручную (выделено выше)'; }); });
     $('btnShareEdit').addEventListener('click', () => { $('shareModal').hidden = true; app.pendingShare = false; undoLast(true); });
+    $('btnOnlineCopy').addEventListener('click', () => { const inp = $('onlineLink'); inp.select(); copyText(inp.value).then(ok => { $('btnOnlineCopy').textContent = ok ? '✓ Скопировано — отправьте другу' : '📋 Выделено — скопируйте вручную'; }); });
+    $('btnFallback').addEventListener('click', () => switchToCorrespondence());
   }
 
   function undoLast(single) {
-    if (app.history.length === 0 || app.over) return;
+    if (app.history.length === 0 || app.over || app.online.on) return;
     const back = (app.mode === 'bot' && !single) ? 2 : 1;
-    const target = Math.max(0, app.history.length - back);
-    const moves = app.history.slice(0, target);
-    app.state = C.newGameState();
-    app.history = [];
-    app.lastMove = null;
-    for (const code of moves) {
-      const from = C.nameToSq(code.substr(0, 2));
-      const to = C.nameToSq(code.substr(2, 2));
-      const promo = code[4] || '';
-      const lm = C.legalMoves(app.state).find(m => m.from === from && m.to === to && (!promo || m.promo === promo));
-      if (!lm) break;
-      C.makeMove(app.state, lm);
-      app.history.push(encodeMove(lm));
-      app.lastMove = { from, to };
-    }
-    app.selected = -1; app.legalFrom = [];
+    const moves = app.history.slice(0, Math.max(0, app.history.length - back));
+    rebuildFrom(moves);
     app.over = false; app.pendingShare = false;
-    if (app.clock.movesOn) {
-      let w = 0, b = 0;
-      for (let i = 0; i < app.history.length; i++) (i % 2 === 0 ? w++ : b++);
-      app.clock.movesLeft.w = setup.moveLim - w;
-      app.clock.movesLeft.b = setup.moveLim - b;
-    }
+    if (app.clock.movesOn) { let w = 0, b = 0; for (let i = 0; i < app.history.length; i++)(i % 2 === 0 ? w++ : b++); app.clock.movesLeft.w = setup.moveLim - w; app.clock.movesLeft.b = setup.moveLim - b; }
     app.clock.lastTick = Date.now();
     if (app.mode === 'local') app.orientation = app.state.turn;
     render();
