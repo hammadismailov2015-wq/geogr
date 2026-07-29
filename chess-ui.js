@@ -67,9 +67,9 @@
      ЗАПУСК
      ======================================================== */
   document.addEventListener('DOMContentLoaded', () => {
-    buildLayout();
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
+    buildLayout();
     initBackground();
     startClockLoop();
     const h = location.hash;
@@ -287,27 +287,46 @@
      ======================================================== */
   let setup = { mode: 'bot', side: 'w', level: 2, timeMin: 0, moveLim: 0 };
 
+  // Сохранение/загрузка настроек между запусками
+  function saveSetup() {
+    try { localStorage.setItem('chessSetup', JSON.stringify({ mode: setup.mode, side: setup.side, level: setup.level, timeMin: setup.timeMin, moveLim: setup.moveLim })); } catch (e) { }
+  }
+  function loadSetup() {
+    try {
+      const s = JSON.parse(localStorage.getItem('chessSetup') || '{}');
+      if (s && typeof s === 'object') {
+        if (['bot', 'friend', 'local'].indexOf(s.mode) >= 0) setup.mode = s.mode;
+        if (['w', 'b', 'r'].indexOf(s.side) >= 0) setup.side = s.side;
+        if ([1, 2, 3].indexOf(s.level) >= 0) setup.level = s.level;
+        if ([0, 1, 5, 10, 15, 20, 30].indexOf(s.timeMin) >= 0) setup.timeMin = s.timeMin;
+        if ([0, 30, 50, 100].indexOf(s.moveLim) >= 0) setup.moveLim = s.moveLim;
+      }
+    } catch (e) { }
+  }
+
   function bindSetup() {
+    loadSetup();
     $('themeBar').addEventListener('click', (e) => {
       const b = e.target.closest('.ch-sw'); if (!b) return;
       app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b);
     });
     $('modeCards').addEventListener('click', (e) => {
       const c = e.target.closest('.ch-big'); if (!c) return;
-      setup.mode = c.dataset.mode; markActive('#modeCards .ch-big', c); updateSetupVisibility();
+      setup.mode = c.dataset.mode; markActive('#modeCards .ch-big', c); updateSetupVisibility(); saveSetup();
     });
     document.querySelectorAll('#setupScreen .ch-acc-head').forEach(h => h.addEventListener('click', () => { const acc = h.parentElement; if (!acc.classList.contains('disabled')) acc.classList.toggle('open'); }));
-    $('sideChoices').addEventListener('click', (e) => { const b = e.target.closest('.ch-choice'); if (!b) return; setup.side = b.dataset.side; markActive('#sideChoices .ch-choice', b); updateSummaries(); });
-    $('levelChoices').addEventListener('click', (e) => { const b = e.target.closest('.ch-choice'); if (!b) return; setup.level = parseInt(b.dataset.level, 10); markActive('#levelChoices .ch-choice', b); updateSummaries(); });
-    $('timeChips').addEventListener('click', (e) => { const b = e.target.closest('.ch-chip'); if (!b) return; setup.timeMin = parseInt(b.dataset.min, 10); markActive('#timeChips .ch-chip', b); updateSummaries(); });
-    $('moveChips').addEventListener('click', (e) => { const b = e.target.closest('.ch-chip'); if (!b) return; setup.moveLim = parseInt(b.dataset.mv, 10); markActive('#moveChips .ch-chip', b); updateSummaries(); });
+    $('sideChoices').addEventListener('click', (e) => { const b = e.target.closest('.ch-choice'); if (!b) return; setup.side = b.dataset.side; markActive('#sideChoices .ch-choice', b); updateSummaries(); saveSetup(); });
+    $('levelChoices').addEventListener('click', (e) => { const b = e.target.closest('.ch-choice'); if (!b) return; setup.level = parseInt(b.dataset.level, 10); markActive('#levelChoices .ch-choice', b); updateSummaries(); saveSetup(); });
+    $('timeChips').addEventListener('click', (e) => { const b = e.target.closest('.ch-chip'); if (!b) return; setup.timeMin = parseInt(b.dataset.min, 10); markActive('#timeChips .ch-chip', b); updateSummaries(); saveSetup(); });
+    $('moveChips').addEventListener('click', (e) => { const b = e.target.closest('.ch-chip'); if (!b) return; setup.moveLim = parseInt(b.dataset.mv, 10); markActive('#moveChips .ch-chip', b); updateSummaries(); saveSetup(); });
     $('startBtn').addEventListener('click', startGame);
 
-    selectDefault('#modeCards .ch-big', '[data-mode="bot"]');
-    selectDefault('#sideChoices .ch-choice', '[data-side="w"]');
-    selectDefault('#levelChoices .ch-choice', '[data-level="2"]');
-    selectDefault('#timeChips .ch-chip', '[data-min="0"]');
-    selectDefault('#moveChips .ch-chip', '[data-mv="0"]');
+    // применяем сохранённые настройки (или значения по умолчанию)
+    selectDefault('#modeCards .ch-big', `[data-mode="${setup.mode}"]`);
+    selectDefault('#sideChoices .ch-choice', `[data-side="${setup.side}"]`);
+    selectDefault('#levelChoices .ch-choice', `[data-level="${setup.level}"]`);
+    selectDefault('#timeChips .ch-chip', `[data-min="${setup.timeMin}"]`);
+    selectDefault('#moveChips .ch-chip', `[data-mv="${setup.moveLim}"]`);
     selectDefault('#themeBar .ch-sw', `[data-theme="${app.theme}"]`);
     updateSummaries(); updateSetupVisibility();
   }
