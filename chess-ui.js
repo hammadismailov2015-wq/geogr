@@ -738,12 +738,13 @@
     if (app.mode !== 'bot' || app.over) return;
     if (app.state.turn === app.myColor) return;
     app.botThinking = true; renderStatus();
+    const delay = 2000 + Math.random() * 600; // бот «думает» минимум 2 секунды
     setTimeout(() => {
       if (app.over) { app.botThinking = false; return; }
       const m = C.botMove(app.state, app.level); app.botThinking = false;
       if (!m) { checkOver(); return; }
       applyMove(m); render(); checkOver();
-    }, 320);
+    }, delay);
   }
 
   /* ========================================================
