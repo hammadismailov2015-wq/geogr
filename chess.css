@@ -243,6 +243,26 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   will-change: transform; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .45));
 }
 .ch-ghost .ch-piece { line-height: 1; }
+
+/* Облачко-подколка при взятии фигуры */
+.ch-taunt {
+  position: fixed; z-index: 110; pointer-events: none; display: none;
+  transform: translate(-50%, -100%);
+  background: #fff; color: #16203a; font-weight: 800; font-size: 14px;
+  padding: 7px 13px; border-radius: 14px; white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .45);
+}
+.ch-taunt::after {
+  content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+  border: 7px solid transparent; border-top-color: #fff;
+}
+.ch-taunt.below { transform: translate(-50%, 0); }
+.ch-taunt.below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #fff; }
+.ch-taunt.pop { animation: taunt-pop .2s cubic-bezier(.2, 1.4, .5, 1); }
+.ch-taunt.hide { opacity: 0; transition: opacity .35s; }
+@keyframes taunt-pop { from { opacity: 0; transform: translate(-50%, -100%) scale(.6); } to { opacity: 1; } }
+.ch-taunt.below.pop { animation: taunt-pop-b .2s cubic-bezier(.2, 1.4, .5, 1); }
+@keyframes taunt-pop-b { from { opacity: 0; transform: translate(-50%, 0) scale(.6); } to { opacity: 1; } }
 .ch-sq {
   position: relative; display: flex; align-items: center; justify-content: center;
   cursor: pointer; user-select: none;
