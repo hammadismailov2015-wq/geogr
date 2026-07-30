@@ -128,28 +128,16 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 .ch-rank .rk-single { font-size: 60px; }
 
-/* БАШНЯ («X на ладье»): золотая ладья СПЕРЕДИ прикрывает белую фигуру, торчит только её верх */
-.ch-rank.tower .rk-top {
-  position: absolute; left: 50%; transform: translateX(-50%); bottom: 44px; font-size: 36px; z-index: 1;
+/* КОМБО-РАНГ: золотая нижняя фигура СПЕРЕДИ, белая верхняя КРУПНАЯ сидит глубоко и торчит сверху */
+.ch-rank.combo .rk-top {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: 34px; font-size: 56px; z-index: 1;
   background: linear-gradient(180deg, #ffffff 0%, #d3daea 55%, #9aa4bf 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55));
 }
-.ch-rank.tower .rk-bottom {
-  position: absolute; left: 50%; transform: translateX(-50%); bottom: 5px; font-size: 68px; z-index: 3;
+.ch-rank.combo .rk-bottom {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: 5px; font-size: 66px; z-index: 3;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .6));
-}
-
-/* ВСАДНИК («пешка на коне/слоне»): золотая пешка сидит СВЕРХУ на белом коне/слоне */
-.ch-rank.rider .rk-bottom {
-  position: absolute; left: 50%; transform: translateX(-50%); bottom: 4px; font-size: 62px; z-index: 1;
-  background: linear-gradient(180deg, #ffffff 0%, #d3daea 55%, #9aa4bf 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55));
-}
-.ch-rank.rider .rk-top {
-  position: absolute; left: 50%; transform: translateX(-50%); bottom: 34px; font-size: 34px; z-index: 3;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .7));
 }
 .ch-rank-info { margin: 0 0 6px !important; color: #f0d08a !important; font-size: 13px; font-weight: 700; }
 .ch-rank-info b { color: #ffe8a0; }
@@ -164,10 +152,8 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-rank.mini { width: 46px; height: 46px; margin: 0; flex: none; box-shadow: 0 4px 10px rgba(0, 0, 0, .4), inset 0 0 0 2px rgba(255, 215, 120, .3); }
 .ch-rank.mini::after { inset: 3px; }
 .ch-rank.mini .rk-single { font-size: 27px; }
-.ch-rank.mini.tower .rk-bottom { font-size: 32px; bottom: 2px; }
-.ch-rank.mini.tower .rk-top { font-size: 17px; bottom: 20px; top: auto; }
-.ch-rank.mini.rider .rk-bottom { font-size: 29px; bottom: 2px; }
-.ch-rank.mini.rider .rk-top { font-size: 16px; bottom: 16px; top: auto; }
+.ch-rank.mini.combo .rk-bottom { font-size: 31px; bottom: 2px; }
+.ch-rank.mini.combo .rk-top { font-size: 26px; bottom: 16px; top: auto; }
 
 /* Таблица всех рангов */
 .ch-ranks-box { max-width: 440px; }
