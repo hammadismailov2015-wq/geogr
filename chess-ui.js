@@ -815,32 +815,49 @@
     return audioCtx;
   }
   function unlockAudio() { const c = getAudio(); if (c && c.state === 'suspended') c.resume(); }
+
+  // короткая шумовая «вспышка» через фильтр
+  function noiseBurst(ctx, start, dur, filtType, cutoff, gain) {
+    const n = Math.max(1, Math.ceil(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, n, ctx.sampleRate), data = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = filtType; f.frequency.value = cutoff;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(gain, start);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    src.connect(f); f.connect(g); g.connect(ctx.destination);
+    src.start(start);
+  }
+
+  // низкий тон-«удар»
+  function thump(ctx, start, f0, f1, gain, dur, type) {
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = type || 'triangle';
+    osc.frequency.setValueAtTime(f0, start);
+    osc.frequency.exponentialRampToValueAtTime(f1, start + dur * 0.7);
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(gain, start + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(start); osc.stop(start + dur + 0.02);
+  }
+
   function playMoveSound(capture) {
     if (!app.soundOn) return;
     const ctx = getAudio(); if (!ctx) return;
     if (ctx.state === 'suspended') ctx.resume();
-    const now = ctx.currentTime;
-    // низкий «стук» дерева
-    const osc = ctx.createOscillator(), g = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(capture ? 250 : 190, now);
-    osc.frequency.exponentialRampToValueAtTime(capture ? 105 : 85, now + 0.08);
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.exponentialRampToValueAtTime(capture ? 0.5 : 0.4, now + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + (capture ? 0.16 : 0.12));
-    osc.connect(g); g.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.2);
-    // короткая шумовая атака — «тук»
-    const dur = 0.03, n = Math.max(1, Math.ceil(ctx.sampleRate * dur));
-    const buf = ctx.createBuffer(1, n, ctx.sampleRate), data = buf.getChannelData(0);
-    for (let i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / n);
-    const noise = ctx.createBufferSource(); noise.buffer = buf;
-    const nf = ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = capture ? 2600 : 1700;
-    const ng = ctx.createGain();
-    ng.gain.setValueAtTime(capture ? 0.35 : 0.22, now);
-    ng.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    noise.connect(nf); nf.connect(ng); ng.connect(ctx.destination);
-    noise.start(now);
+    const t = ctx.currentTime;
+    if (capture) {
+      // ВЗЯТИЕ: резкий «хруст/удар» с двойным щелчком
+      thump(ctx, t, 320, 80, 0.5, 0.14, 'sawtooth');
+      noiseBurst(ctx, t, 0.06, 'highpass', 900, 0.4);   // хруст
+      noiseBurst(ctx, t + 0.045, 0.04, 'bandpass', 2000, 0.3); // второй щелчок
+    } else {
+      // ХОД: мягкий деревянный «стук»
+      thump(ctx, t, 190, 85, 0.4, 0.12, 'triangle');
+      noiseBurst(ctx, t, 0.03, 'lowpass', 1700, 0.22);
+    }
   }
 
   function startDrag(e, s, p) {
