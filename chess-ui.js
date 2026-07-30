@@ -542,6 +542,7 @@
     } else if (o.t === 'chat') {
       me.peerReady = true;
       addChatMsg('them', o.text);
+      playChatSound();
     }
   }
 
@@ -881,6 +882,25 @@
     g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
     osc.connect(g); g.connect(ctx.destination);
     osc.start(start); osc.stop(start + dur + 0.02);
+  }
+
+  // «дзинь-дзинь» при новом сообщении в чате
+  function playChatSound() {
+    if (!app.soundOn) return;
+    const ctx = getAudio(); if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const t = ctx.currentTime;
+    const note = (freq, start, dur) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.exponentialRampToValueAtTime(0.25, start + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(start); o.stop(start + dur + 0.02);
+    };
+    note(660, t, 0.12);
+    note(880, t + 0.09, 0.16);
   }
 
   function playMoveSound(capture) {
