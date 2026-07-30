@@ -1342,7 +1342,7 @@
     const badge = $('rankBadge'); if (!badge) return;
     const g = ensureStats().games || 0;
     const r = rankFor(g);
-    badge.className = 'ch-rank' + (r.top ? ' combo' : '');
+    badge.className = 'ch-rank' + (r.top ? ' combo ' + (r.bottom === 'r' ? 'tower' : 'rider') : '');
     badge.innerHTML = rankHtml(r);
     const next = RANKS.find(x => x.g > g);
     const info = $('rankInfo');
@@ -1355,7 +1355,7 @@
     for (const r of RANKS) {
       const ok = g >= r.g, isCur = r.g === cur.g;
       html += `<div class="ch-rankrow ${ok ? 'ok' : ''} ${isCur ? 'cur' : ''}">
-        <span class="ch-rank mini ${r.top ? 'combo' : ''}">${rankHtml(r)}</span>
+        <span class="ch-rank mini ${r.top ? 'combo ' + (r.bottom === 'r' ? 'tower' : 'rider') : ''}">${rankHtml(r)}</span>
         <span class="rr-name">${r.name}${isCur ? ' <b>· ты здесь</b>' : ''}</span>
         <span class="rr-games">${r.g}${r.g === 200 ? '+' : ''} партий</span>
       </div>`;
