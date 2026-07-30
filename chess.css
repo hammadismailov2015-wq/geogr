@@ -84,7 +84,13 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 
 /* ---------- Переключатель темы (мини-доски) ---------- */
-.ch-themebar { position: sticky; top: 8px; z-index: 6; display: flex; justify-content: flex-end; gap: 10px; margin: 0 2px 6px; }
+.ch-themebar { position: sticky; top: 8px; z-index: 6; display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin: 0 2px 6px; }
+.ch-sound {
+  width: 40px; height: 40px; border-radius: 11px; cursor: pointer; font-size: 18px; line-height: 1;
+  background: rgba(20, 24, 40, .7); border: 2px solid rgba(255, 255, 255, .18); color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); transition: .16s; margin-right: auto;
+}
+.ch-sound:hover { transform: translateY(-2px); border-color: var(--accent); }
 .ch-sw {
   width: 40px; height: 40px; padding: 3px; border-radius: 11px; cursor: pointer;
   display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0;
