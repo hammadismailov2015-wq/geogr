@@ -812,6 +812,9 @@
   }
 
   function onPointerDown(e, s) {
+    // касание доски убирает фокус с поля чата (иначе экран «прилипает» к чату)
+    const ae = document.activeElement;
+    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
     if (!canMoveNow()) return;
     const p = app.state.board[s];
     if (isMyPiece(p)) {
