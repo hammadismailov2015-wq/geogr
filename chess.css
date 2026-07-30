@@ -139,6 +139,8 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   position: absolute; left: 50%; transform: translateX(-50%); bottom: 5px; font-size: 66px; z-index: 3;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .6));
 }
+/* «на ладье» — фигуру поднимаем чуть выше */
+.ch-rank.combo.tower .rk-top { bottom: 41px; }
 .ch-rank-info { margin: 0 0 6px !important; color: #f0d08a !important; font-size: 13px; font-weight: 700; }
 .ch-rank-info b { color: #ffe8a0; }
 .ch-rank-btn {
@@ -154,6 +156,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-rank.mini .rk-single { font-size: 27px; }
 .ch-rank.mini.combo .rk-bottom { font-size: 31px; bottom: 2px; }
 .ch-rank.mini.combo .rk-top { font-size: 26px; bottom: 16px; top: auto; }
+.ch-rank.mini.combo.tower .rk-top { bottom: 19px; }
 
 /* Таблица всех рангов */
 .ch-ranks-box { max-width: 440px; }
