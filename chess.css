@@ -131,6 +131,31 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-rank.combo .rk-top { position: absolute; top: 6px; font-size: 34px; }
 .ch-rank-info { margin: 0 0 6px !important; color: #f0d08a !important; font-size: 13px; font-weight: 700; }
 .ch-rank-info b { color: #ffe8a0; }
+.ch-rank-btn {
+  display: inline-block; margin: 0 0 10px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  font-size: 13px; font-weight: 700; color: #ffe8a0;
+  background: rgba(255, 215, 120, .12); border: 1px solid rgba(255, 215, 120, .45); transition: .16s;
+}
+.ch-rank-btn:hover { background: rgba(255, 215, 120, .22); transform: translateY(-1px); }
+
+/* Мини-значок ранга (в таблице) */
+.ch-rank.mini { width: 46px; height: 46px; margin: 0; flex: none; box-shadow: 0 4px 10px rgba(0, 0, 0, .4), inset 0 0 0 2px rgba(255, 215, 120, .3); }
+.ch-rank.mini::after { inset: 3px; }
+.ch-rank.mini .rk-single { font-size: 27px; }
+.ch-rank.mini.combo .rk-bottom { font-size: 26px; bottom: 4px; }
+.ch-rank.mini.combo .rk-top { font-size: 16px; top: 3px; }
+
+/* Таблица всех рангов */
+.ch-ranks-box { max-width: 440px; }
+.ch-ranks-list { max-height: 62vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.ch-rankrow { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); }
+.ch-rankrow .rr-name { flex: 1; font-weight: 700; font-size: 15px; }
+.ch-rankrow .rr-name b { color: #ffe08a; font-weight: 800; }
+.ch-rankrow .rr-games { font-size: 13px; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ch-rankrow.cur { border-color: #ffd97a; box-shadow: 0 0 0 2px rgba(255, 215, 120, .35); }
+.ch-rankrow:not(.ok) { opacity: .5; }
+.ch-rankrow:not(.ok) .ch-rank.mini { box-shadow: 0 4px 10px rgba(0, 0, 0, .4), inset 0 0 0 2px rgba(255, 255, 255, .12); }
+.ch-rankrow:not(.ok) .ch-rank.mini span { background: linear-gradient(180deg, #c3cadf, #7c85a2); -webkit-background-clip: text; background-clip: text; }
 
 /* Сетка настройки: слева режимы, справа настройки */
 .ch-setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }

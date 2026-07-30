@@ -97,6 +97,7 @@
           <div class="ch-rank" id="rankBadge"></div>
           <h2>Шахматы</h2>
           <p class="ch-rank-info" id="rankInfo"></p>
+          <button id="ranksBtn" class="ch-rank-btn">🏅 Посмотреть все ранги</button>
           <p>Выберите режим и настройки — и в бой.</p>
         </div>
 
@@ -257,6 +258,14 @@
           <div class="ch-ach-sub" id="achCount"></div>
           <div class="ch-ach-list" id="achList"></div>
           <div class="ch-modal-actions"><button class="ch-btn ch-btn-primary" id="achClose">Закрыть</button></div>
+        </div>
+      </div>
+
+      <div id="ranksModal" class="ch-modal" hidden>
+        <div class="ch-modal-box ch-ranks-box">
+          <div class="ch-modal-title">🏅 Ранги</div>
+          <div class="ch-ranks-list" id="ranksList"></div>
+          <div class="ch-modal-actions"><button class="ch-btn ch-btn-primary" id="ranksClose">Закрыть</button></div>
         </div>
       </div>
     `;
@@ -1183,6 +1192,8 @@
     $('histClear').addEventListener('click', () => { if (confirm('Очистить историю партий?')) { saveHist([]); openHistory(); } });
     $('achBtn').addEventListener('click', openAch);
     $('achClose').addEventListener('click', () => { $('achModal').hidden = true; });
+    $('ranksBtn').addEventListener('click', openRanks);
+    $('ranksClose').addEventListener('click', () => { $('ranksModal').hidden = true; });
   }
 
   /* ========================================================
@@ -1336,6 +1347,21 @@
     const next = RANKS.find(x => x.g > g);
     const info = $('rankInfo');
     if (info) info.innerHTML = `Ранг: <b>${r.name}</b> · сыграно партий: <b>${g}</b>` + (next ? ` · до «${next.name}»: ${next.g - g}` : '');
+  }
+  function openRanks() {
+    const g = ensureStats().games || 0;
+    const cur = rankFor(g);
+    let html = '';
+    for (const r of RANKS) {
+      const ok = g >= r.g, isCur = r.g === cur.g;
+      html += `<div class="ch-rankrow ${ok ? 'ok' : ''} ${isCur ? 'cur' : ''}">
+        <span class="ch-rank mini ${r.top ? 'combo' : ''}">${rankHtml(r)}</span>
+        <span class="rr-name">${r.name}${isCur ? ' <b>· ты здесь</b>' : ''}</span>
+        <span class="rr-games">${r.g}${r.g === 200 ? '+' : ''} партий</span>
+      </div>`;
+    }
+    $('ranksList').innerHTML = html;
+    $('ranksModal').hidden = false;
   }
   function showRankToast(name) {
     if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
