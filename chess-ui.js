@@ -198,6 +198,15 @@
           <div class="ch-history-title">Ходы</div>
           <div class="ch-history" id="chHistory"></div>
         </div>
+
+        <div class="ch-chat" id="chatBox" hidden>
+          <div class="ch-chat-title">💬 Чат с другом</div>
+          <div class="ch-chat-list" id="chatList"></div>
+          <div class="ch-chat-row">
+            <input id="chatInput" class="ch-chat-input" type="text" maxlength="300" placeholder="Написать другу…" autocomplete="off" />
+            <button id="chatSend" class="ch-btn ch-btn-primary">➤</button>
+          </div>
+        </div>
       </section>
 
       <div id="promoModal" class="ch-modal" hidden>
@@ -438,6 +447,8 @@
     $('gameScreen').hidden = false;
     const onl = app.mode === 'friend' && app.online.on;
     $('onlineBar').hidden = !onl;
+    $('chatBox').hidden = !onl;
+    if (onl) $('chatList').innerHTML = '';
     $('btnFlip').style.display = onl ? 'none' : '';
     $('btnUndo').style.display = app.mode === 'friend' ? 'none' : '';
     $('btnResign').style.display = (app.mode === 'friend' && !onl) ? 'none' : '';
@@ -528,7 +539,33 @@
       me.peerReady = true;
       if (o.kind === 'resign') finishGame({ type: 'resign', loser: o.loser });
       else if (o.kind === 'time') finishGame({ type: 'time', loser: o.loser });
+    } else if (o.t === 'chat') {
+      me.peerReady = true;
+      addChatMsg('them', o.text);
     }
+  }
+
+  function escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function addChatMsg(who, text) {
+    text = String(text || '').slice(0, 300);
+    if (!text.trim()) return;
+    const list = $('chatList');
+    const el = document.createElement('div');
+    el.className = 'ch-cmsg ' + (who === 'me' ? 'me' : 'them');
+    el.innerHTML = escHtml(text);
+    list.appendChild(el);
+    list.scrollTop = list.scrollHeight;
+  }
+  function sendChat() {
+    const inp = $('chatInput');
+    const text = inp.value.trim();
+    if (!text || !app.online.on) return;
+    netSend({ t: 'chat', s: app.online.myId, text: text.slice(0, 300) });
+    addChatMsg('me', text);
+    inp.value = '';
+    inp.focus();
   }
 
   function clockSnapshot() {
@@ -1052,6 +1089,8 @@
     $('btnShareEdit').addEventListener('click', () => { $('shareModal').hidden = true; app.pendingShare = false; undoLast(true); });
     $('btnOnlineCopy').addEventListener('click', () => { const inp = $('onlineLink'); inp.select(); copyText(inp.value).then(ok => { $('btnOnlineCopy').textContent = ok ? '✓ Скопировано — отправьте другу' : '📋 Выделено — скопируйте вручную'; }); });
     $('btnFallback').addEventListener('click', () => switchToCorrespondence());
+    $('chatSend').addEventListener('click', sendChat);
+    $('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } });
   }
 
   function undoLast(single) {
