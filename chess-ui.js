@@ -94,8 +94,9 @@
 
       <section id="setupScreen" class="ch-screen">
         <div class="ch-hero">
-          <div class="ch-hero-ico">♞</div>
+          <div class="ch-rank" id="rankBadge"></div>
           <h2>Шахматы</h2>
+          <p class="ch-rank-info" id="rankInfo"></p>
           <p>Выберите режим и настройки — и в бой.</p>
         </div>
 
@@ -400,6 +401,7 @@
     $('setupScreen').hidden = false;
     $('gameScreen').hidden = true;
     updateSetupVisibility();
+    renderRank();
   }
 
   function resolveSide(side) { return side === 'r' ? (Math.random() < 0.5 ? 'w' : 'b') : side; }
@@ -1066,6 +1068,7 @@
     else if (res.type === 'resign') { const w = res.loser === 'w' ? 'b' : 'w'; ico = '🏳️'; title = 'Сдача'; text = `${colorName(res.loser)} сдались. ${colorName(w)} выиграли! 🎉`; winnerColor = w; }
     else { ico = '🤝'; title = 'Ничья'; text = 'Недостаточно материала или правило 50 ходов.'; }
     recordResult(winnerColor);
+    countGame();
     trackGameEnd(res, winnerColor);
     app.overText = ico + ' ' + title + ' — ' + text;
     render();
@@ -1230,7 +1233,6 @@
     const fast = res.type === 'checkmate' && winnerColor === myC && app.history.length <= 20;
     const hour = app.gs && app.gs.start && (Date.now() - app.gs.start) >= 3600000;
     bumpStats(s => {
-      s.games++;
       if (myC === 'b') s.blackGames++;
       if (winnerColor == null) s.draws++;
       else if (winnerColor === myC) s.wins++; else s.losses++;
@@ -1301,6 +1303,55 @@
       if (a.secret && !justDone) continue; // секретные не спойлим до получения
       showAchToast(a, now, justDone);
     }
+  }
+
+  /* ---- Ранг по числу сыгранных партий ---- */
+  const RANKS = [
+    { g: 0, name: 'Пешка', bottom: 'p' },
+    { g: 5, name: 'Конь', bottom: 'n' },
+    { g: 10, name: 'Слон', bottom: 'b' },
+    { g: 20, name: 'Ладья', bottom: 'r' },
+    { g: 30, name: 'Ферзь', bottom: 'q' },
+    { g: 40, name: 'Король', bottom: 'k' },
+    { g: 50, name: 'Пешка на коне', top: 'p', bottom: 'n' },
+    { g: 60, name: 'Пешка на слоне', top: 'p', bottom: 'b' },
+    { g: 70, name: 'Пешка на ладье', top: 'p', bottom: 'r' },
+    { g: 80, name: 'Конь на ладье', top: 'n', bottom: 'r' },
+    { g: 90, name: 'Слон на ладье', top: 'b', bottom: 'r' },
+    { g: 100, name: 'Ферзь на ладье', top: 'q', bottom: 'r' },
+    { g: 200, name: 'Король на ладье', top: 'k', bottom: 'r' }
+  ];
+  function rankFor(g) { let r = RANKS[0]; for (const x of RANKS) if (g >= x.g) r = x; return r; }
+  function rankHtml(r) {
+    return r.top
+      ? `<span class="rk-bottom">${GLYPH[r.bottom]}</span><span class="rk-top">${GLYPH[r.top]}</span>`
+      : `<span class="rk-single">${GLYPH[r.bottom]}</span>`;
+  }
+  function renderRank() {
+    const badge = $('rankBadge'); if (!badge) return;
+    const g = ensureStats().games || 0;
+    const r = rankFor(g);
+    badge.className = 'ch-rank' + (r.top ? ' combo' : '');
+    badge.innerHTML = rankHtml(r);
+    const next = RANKS.find(x => x.g > g);
+    const info = $('rankInfo');
+    if (info) info.innerHTML = `Ранг: <b>${r.name}</b> · сыграно партий: <b>${g}</b>` + (next ? ` · до «${next.name}»: ${next.g - g}` : '');
+  }
+  function showRankToast(name) {
+    if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
+    const el = document.createElement('div');
+    el.className = 'ch-atoast done';
+    el.innerHTML = `<span class="at-ico">⭐</span><span class="at-body"><span class="at-t">Новый ранг!</span><span class="at-p">${name}</span></span>`;
+    achToastWrap.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 2800);
+  }
+  // считаем ВСЕ сыгранные партии (любой режим) + ранг-апы
+  function countGame() {
+    const beforeRank = rankFor(ensureStats().games || 0);
+    bumpStats(s => { s.games++; });
+    const afterRank = rankFor(ensureStats().games || 0);
+    if (afterRank.g !== beforeRank.g) showRankToast(afterRank.name);
   }
 
   let achToastWrap = null;
