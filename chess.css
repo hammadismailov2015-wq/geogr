@@ -127,14 +127,14 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .55)); line-height: 1;
 }
 .ch-rank .rk-single { font-size: 60px; }
-/* нижняя фигура — СПЕРЕДИ (прикрывает низ верхней), верхняя — СЗАДИ */
-.ch-rank.combo .rk-bottom { position: absolute; left: 50%; transform: translateX(-50%); bottom: 2px; font-size: 64px; z-index: 2; }
+/* верхняя фигура — СПЕРЕДИ и видна; сидит сверху, низ чуть заходит за нижнюю */
+.ch-rank.combo .rk-bottom { position: absolute; left: 50%; transform: translateX(-50%); bottom: 2px; font-size: 64px; z-index: 1; }
 .ch-rank.combo .rk-top {
-  position: absolute; left: 50%; transform: translateX(-50%); bottom: 26px; font-size: 40px; z-index: 1;
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: 37px; font-size: 40px; z-index: 2;
   /* верхняя фигура — серебристая, чтобы читалась отдельно от золотой нижней */
   background: linear-gradient(180deg, #ffffff 0%, #d3daea 55%, #9aa4bf 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .7));
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .75));
 }
 .ch-rank-info { margin: 0 0 6px !important; color: #f0d08a !important; font-size: 13px; font-weight: 700; }
 .ch-rank-info b { color: #ffe8a0; }
@@ -150,7 +150,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-rank.mini::after { inset: 3px; }
 .ch-rank.mini .rk-single { font-size: 27px; }
 .ch-rank.mini.combo .rk-bottom { font-size: 30px; bottom: 1px; }
-.ch-rank.mini.combo .rk-top { font-size: 19px; bottom: 12px; top: auto; }
+.ch-rank.mini.combo .rk-top { font-size: 19px; bottom: 17px; top: auto; }
 
 /* Таблица всех рангов */
 .ch-ranks-box { max-width: 440px; }
