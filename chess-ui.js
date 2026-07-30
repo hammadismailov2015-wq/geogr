@@ -1112,35 +1112,48 @@
     });
   }
 
-  // Каждое достижение: goal — цель, cur(s) — текущий прогресс
+  // Каждое достижение: ico — значок, goal — цель, cur(s) — прогресс, secret — секретное
   const ACHIEVEMENTS = [
-    { t: 'Шахматист', d: 'Поставь 15 шахов в одной партии', goal: 15, cur: s => s.maxChecksInGame },
-    { t: 'Вилка', d: 'Сделай вилку 3 раза', goal: 3, cur: s => s.forks },
-    { t: 'Выиграл ИИ', d: 'Выиграй со сложным ботом', goal: 1, cur: s => s.wonHardBot ? 1 : 0 },
-    { t: 'Любитель шахмат', d: 'Сыграй 100 и более партий', goal: 100, cur: s => s.games },
-    { t: 'Можно без матов?', d: 'Поставь 100 и более матов', goal: 100, cur: s => s.checkmatesBy },
-    { t: 'Превращение', d: 'Преврати пешку 5 раз', goal: 5, cur: s => s.promotions },
-    { t: 'Убит ферзь', d: 'Съешь у соперника 5 ферзей', goal: 5, cur: s => s.queensCaptured },
-    { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', goal: 1, cur: s => Math.min(s.knightThenPawn, 1) },
-    { t: 'Большой брат', d: 'Уйди от преследования фигуры', goal: 1, cur: s => Math.min(s.escapes, 1) },
-    { t: 'Тёмная сторона', d: 'Сыграй за чёрных 10 партий', goal: 10, cur: s => s.blackGames },
-    { t: 'Мгновенный мат', d: 'Поставь мат за 10 ходов', goal: 1, cur: s => s.fastMate ? 1 : 0 },
-    { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', goal: 3, cur: s => s.queensLost },
-    { t: 'Не спи!', d: 'Сыграй партию целый час', goal: 1, cur: s => s.hourGame ? 1 : 0 },
-    { t: 'Равенство', d: 'Сыграй вничью 5 раз', goal: 5, cur: s => s.draws },
-    { t: 'Братство', d: 'Сдайся 3 раза', goal: 3, cur: s => s.resigns },
-    { t: 'Туда-сюда', d: 'Повтори ход 3 раза', goal: 3, cur: s => s.repeats },
-    { t: 'Мафия', d: 'Съешь у соперника 50 фигур', goal: 50, cur: s => s.captures },
-    { t: 'Казнить!', d: 'Съешь 20 пешек', goal: 20, cur: s => s.pawnsCaptured }
+    { t: 'Шахматист', d: 'Поставь 15 шахов в одной партии', ico: '⚔️', goal: 15, cur: s => s.maxChecksInGame },
+    { t: 'Вилка', d: 'Сделай вилку 3 раза', ico: '🍴', goal: 3, cur: s => s.forks },
+    { t: 'Выиграл ИИ', d: 'Выиграй со сложным ботом', ico: '🤖', goal: 1, cur: s => s.wonHardBot ? 1 : 0 },
+    { t: 'Любитель шахмат', d: 'Сыграй 100 и более партий', ico: '♟️', goal: 100, cur: s => s.games },
+    { t: 'Можно без матов?', d: 'Поставь 100 и более матов', ico: '👑', goal: 100, cur: s => s.checkmatesBy },
+    { t: 'Мгновенный мат', d: 'Поставь мат за 10 ходов', ico: '⚡', goal: 1, cur: s => s.fastMate ? 1 : 0 },
+    { t: 'Убит ферзь', d: 'Съешь у соперника 5 ферзей', ico: '👸', goal: 5, cur: s => s.queensCaptured },
+    { t: 'Мафия', d: 'Съешь у соперника 50 фигур', ico: '🕵️', goal: 50, cur: s => s.captures },
+    { t: 'Казнить!', d: 'Съешь 20 пешек', ico: '🪓', goal: 20, cur: s => s.pawnsCaptured },
+    { t: 'Туда-сюда', d: 'Повтори ход 3 раза', ico: '🔄', goal: 3, cur: s => s.repeats },
+    // секретные
+    { t: 'Превращение', d: 'Преврати пешку 5 раз', ico: '✨', goal: 5, cur: s => s.promotions, secret: true },
+    { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', ico: '🐴', goal: 1, cur: s => Math.min(s.knightThenPawn, 1), secret: true },
+    { t: 'Большой брат', d: 'Уйди от преследования фигуры', ico: '🏃', goal: 1, cur: s => Math.min(s.escapes, 1), secret: true },
+    { t: 'Тёмная сторона', d: 'Сыграй за чёрных 10 партий', ico: '⚫', goal: 10, cur: s => s.blackGames, secret: true },
+    { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', ico: '🥱', goal: 3, cur: s => s.queensLost, secret: true },
+    { t: 'Не спи!', d: 'Сыграй партию целый час', ico: '⏰', goal: 1, cur: s => s.hourGame ? 1 : 0, secret: true },
+    { t: 'Братство', d: 'Сдайся 3 раза', ico: '🏳️', goal: 3, cur: s => s.resigns, secret: true },
+    { t: 'Равенство', d: 'Сыграй вничью 5 раз', ico: '🤝', goal: 5, cur: s => s.draws, secret: true }
   ];
+
+  function achCard(a, s) {
+    const cur = a.cur(s), ok = cur >= a.goal;
+    const locked = a.secret && !ok;
+    const ico = locked ? '❓' : a.ico;
+    const desc = locked ? '?' : a.d;
+    const prog = locked ? '?' : (Math.min(cur, a.goal) + '/' + a.goal);
+    return `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-ico">${ico}</span><div class="ach-txt"><span class="ach-t">${ok ? '✅ ' : '🔒 '}${a.t}</span><span class="ach-d">${desc}</span></div><span class="ach-prog">${prog}</span></div>`;
+  }
 
   function openAch() {
     const s = ensureStats();
-    let done = 0, html = '';
+    let done = 0;
+    const normal = [], secret = [];
     for (const a of ACHIEVEMENTS) {
-      const cur = a.cur(s), ok = cur >= a.goal; if (ok) done++;
-      html += `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-prog">${Math.min(cur, a.goal)}/${a.goal}</span><span class="ach-t">${ok ? '✅ ' : '🔒 '}${a.t}</span><span class="ach-d">${a.d}</span></div>`;
+      if (a.cur(s) >= a.goal) done++;
+      (a.secret ? secret : normal).push(a);
     }
+    let html = '<div class="ch-ach-head">Обычные</div>' + normal.map(a => achCard(a, s)).join('');
+    html += '<div class="ch-ach-head">Секретные</div>' + secret.map(a => achCard(a, s)).join('');
     $('achCount').textContent = `Выполнено: ${done} из ${ACHIEVEMENTS.length}`;
     $('achList').innerHTML = html;
     $('achModal').hidden = false;
@@ -1154,7 +1167,10 @@
     saveStats(s);
     for (let i = 0; i < ACHIEVEMENTS.length; i++) {
       const a = ACHIEVEMENTS[i], now = a.cur(s);
-      if (now > before[i]) showAchToast(a, now, before[i] < a.goal && now >= a.goal);
+      if (now <= before[i]) continue;
+      const justDone = before[i] < a.goal && now >= a.goal;
+      if (a.secret && !justDone) continue; // секретные не спойлим до получения
+      showAchToast(a, now, justDone);
     }
   }
 
