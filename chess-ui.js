@@ -26,6 +26,7 @@
     botThinking: false,
     paused: false,
     theme: 'classic',
+    soundOn: true,
     clock: { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 },
     online: { on: false, role: null, room: null, myColor: 'w', hostColor: 'w', myId: null, net: null, connected: false, peerReady: false, failed: false }
   };
@@ -85,6 +86,7 @@
     const root = $('chessRoot');
     root.innerHTML = `
       <div class="ch-themebar" id="themeBar">
+        <button class="ch-sound" id="soundBtn" title="Звук вкл/выкл">🔊</button>
         <button class="ch-sw" data-theme="green" title="Зелёная доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="classic" title="Чёрно-белая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="brown" title="Коричневая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
@@ -334,6 +336,14 @@
 
   function bindSetup() {
     loadSetup();
+    app.soundOn = localStorage.getItem('chessSound') !== 'off';
+    $('soundBtn').textContent = app.soundOn ? '🔊' : '🔇';
+    $('soundBtn').addEventListener('click', () => {
+      app.soundOn = !app.soundOn;
+      localStorage.setItem('chessSound', app.soundOn ? 'on' : 'off');
+      $('soundBtn').textContent = app.soundOn ? '🔊' : '🔇';
+      if (app.soundOn) playMoveSound(false); // короткий пример
+    });
     $('themeBar').addEventListener('click', (e) => {
       const b = e.target.closest('.ch-sw'); if (!b) return;
       app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b);
@@ -562,6 +572,7 @@
     if (!lm) return; // уже применён или не подходит
     const capType = capturedType(lm);
     C.makeMove(app.state, lm); app.history.push(encodeMove(lm)); app.lastMove = { from, to };
+    playMoveSound(!!capType);
     if (hasYou() && capType === 'q') bumpStats(s => { s.queensLost++; });
     adoptClock(o);
     render();
@@ -793,6 +804,43 @@
     window.addEventListener('pointermove', onPointerMove, { passive: false });
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', cancelDrag);
+    window.addEventListener('pointerdown', unlockAudio, { once: true });
+  }
+
+  /* ---- Звук хода (синтез через Web Audio, без файлов) ---- */
+  let audioCtx = null;
+  function getAudio() {
+    if (audioCtx) return audioCtx;
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+    return audioCtx;
+  }
+  function unlockAudio() { const c = getAudio(); if (c && c.state === 'suspended') c.resume(); }
+  function playMoveSound(capture) {
+    if (!app.soundOn) return;
+    const ctx = getAudio(); if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    // низкий «стук» дерева
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(capture ? 250 : 190, now);
+    osc.frequency.exponentialRampToValueAtTime(capture ? 105 : 85, now + 0.08);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(capture ? 0.5 : 0.4, now + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + (capture ? 0.16 : 0.12));
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.2);
+    // короткая шумовая атака — «тук»
+    const dur = 0.03, n = Math.max(1, Math.ceil(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, n, ctx.sampleRate), data = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const noise = ctx.createBufferSource(); noise.buffer = buf;
+    const nf = ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = capture ? 2600 : 1700;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(capture ? 0.35 : 0.22, now);
+    ng.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    noise.connect(nf); nf.connect(ng); ng.connect(ctx.destination);
+    noise.start(now);
   }
 
   function startDrag(e, s, p) {
@@ -883,6 +931,7 @@
     const fromAttacked = hasYou() && C.isAttacked(app.state.board, m.from, me === 'w' ? 'b' : 'w');
     applyMove(m);
     app.selected = -1; app.legalFrom = [];
+    playMoveSound(!!capType);
     if (hasYou()) trackMyMove(m, me, capType, fromAttacked);
     if (app.mode === 'friend' && app.online.on) publishMove();
     render();
@@ -903,6 +952,7 @@
       if (!m) { checkOver(); return; }
       const capType = capturedType(m);
       applyMove(m);
+      playMoveSound(!!capType);
       if (hasYou() && capType === 'q') bumpStats(s => { s.queensLost++; });
       render(); if (capType) showTaunt(m.to, capType); checkOver();
     }, delay);
