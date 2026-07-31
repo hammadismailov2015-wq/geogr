@@ -330,10 +330,11 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   text-align: center; font-size: 17px; font-weight: 600; padding: 10px;
   margin-bottom: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line);
 }
-/* Режим «Рядом»: на ходу чёрных весь игровой блок плавно поворачивается на 180°,
-   чтобы игрок напротив видел доску ровно (не вверх ногами). */
-.ch-fliparea { transition: transform .4s ease; transform-origin: center center; }
-.ch-fliparea.flip180 { transform: rotate(180deg); }
+/* Режим «Рядом»: на ходу чёрных поворачиваются НА 180° сами фигуры (лицом к тому,
+   чей ход), а доска, клетки и надписи остаются на месте. Игрок напротив видит
+   фигуры ровно, не вверх ногами. */
+.ch-fliparea .ch-piece { transition: transform .3s ease; }
+.ch-fliparea.flip180 .ch-piece { transform: rotate(180deg); }
 
 .ch-board-wrap { display: flex; justify-content: center; }
 .ch-board {
