@@ -1022,6 +1022,9 @@
     playMoveSound(!!capType);
     if (hasYou()) trackMyMove(m, me, capType, fromAttacked);
     if (app.mode === 'friend' && app.online.on) publishMove();
+    // «Играть рядом»: автоматически разворачиваем доску к тому, чей сейчас ход
+    // (настоящий разворот — фигуры остаются ровными, а не переворачиваются вверх ногами)
+    if (app.mode === 'local' && !app.over) app.orientation = app.state.turn;
     render();
     if (capType) showTaunt(m.to, capType);
     if (checkOver()) return;
