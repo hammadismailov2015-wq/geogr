@@ -165,6 +165,7 @@
       </section>
 
       <section id="gameScreen" class="ch-screen" hidden>
+        <div class="ch-fliparea" id="flipArea">
         <div class="ch-status" id="chStatus">—</div>
 
         <div class="ch-online" id="onlineBar" hidden>
@@ -196,6 +197,7 @@
           <button class="ch-btn" id="btnUndo">↶ Отменить</button>
           <button class="ch-btn ch-btn-warn" id="btnResign">🏳️ Сдаться</button>
         </div>
+        </div><!-- /flipArea -->
         <div class="ch-history-box">
           <div class="ch-history-title">Ходы</div>
           <div class="ch-history" id="chHistory"></div>
@@ -691,7 +693,17 @@
   /* ========================================================
      ОТРИСОВКА
      ======================================================== */
-  function render() { renderBoard(); renderStatus(); renderHistory(); renderPlayerBars(); }
+  function render() { renderBoard(); renderStatus(); renderHistory(); renderPlayerBars(); applyScreenFlip(); }
+
+  // «Играть рядом»: игроки сидят по разные стороны телефона лицом друг к другу.
+  // На ходу чёрных поворачиваем весь экран на 180°, чтобы игрок напротив
+  // видел доску ровно (не вверх ногами), а не логически переворачиваем доску.
+  function applyScreenFlip() {
+    const fa = $('flipArea'); if (!fa) return;
+    const flip = app.mode === 'local' && !app.over && app.state && app.state.turn === 'b';
+    fa.classList.toggle('flip180', !!flip);
+    app.screenFlipped = !!flip;
+  }
   function colorName(c) { return c === 'w' ? 'Белые' : 'Чёрные'; }
   function FILE_LETTER(f) { return 'abcdefgh'[f]; }
 
@@ -954,7 +966,9 @@
 
   function positionGhost(x, y) {
     const half = drag.ghost.clientWidth / 2;
-    drag.ghost.style.transform = `translate(${x - half}px, ${y - half}px)`;
+    // если экран повёрнут на 180° (режим «Рядом», ход чёрных) — крутим и «призрак»
+    const rot = app.screenFlipped ? ' rotate(180deg)' : '';
+    drag.ghost.style.transform = `translate(${x - half}px, ${y - half}px)${rot}`;
   }
 
   function onPointerUp(e) {
