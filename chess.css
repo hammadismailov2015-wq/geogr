@@ -380,8 +380,35 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   font-size: min(11vw, 46px); line-height: 1; position: relative; z-index: 1;
   pointer-events: none;
 }
-.ch-piece.white { color: var(--pc-white); text-shadow: 0 0 1px var(--pc-white-edge), 0 0 1px var(--pc-white-edge), 1px 1px 0 var(--pc-white-edge), -1px -1px 0 var(--pc-white-edge), 1px -1px 0 var(--pc-white-edge), -1px 1px 0 var(--pc-white-edge); }
-.ch-piece.black { color: var(--pc-black); text-shadow: 0 1px 1px rgba(0, 0, 0, .35); }
+/* Базовый (запасной) вид — сплошной цвет + мягкая тень под фигурой */
+.ch-piece.white { color: var(--pc-white); text-shadow: 0 0 1px var(--pc-white-edge), 0 0 1px var(--pc-white-edge), 1px 1px 0 var(--pc-white-edge), -1px -1px 0 var(--pc-white-edge), 1px -1px 0 var(--pc-white-edge), -1px 1px 0 var(--pc-white-edge); filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .4)); }
+.ch-piece.black { color: var(--pc-black); text-shadow: 0 1px 1px rgba(0, 0, 0, .35); filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .5)); }
+
+/* Красивый объёмный вид: блик сверху, тень снизу, контур и падающая тень.
+   Включаем только если браузер умеет background-clip:text и color-mix,
+   иначе остаётся базовый вид выше — фигуры никогда не пропадут. */
+@supports (-webkit-background-clip: text) and (background: color-mix(in srgb, red, blue)) {
+  .ch-piece.white {
+    color: transparent;
+    background: linear-gradient(165deg,
+      color-mix(in srgb, var(--pc-white) 78%, #ffffff) 0%,
+      var(--pc-white) 45%,
+      color-mix(in srgb, var(--pc-white) 74%, #000000) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-stroke: .7px var(--pc-white-edge); text-shadow: none;
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .5)) drop-shadow(0 3px 3px rgba(0, 0, 0, .45));
+  }
+  .ch-piece.black {
+    color: transparent;
+    background: linear-gradient(165deg,
+      color-mix(in srgb, var(--pc-black) 58%, #ffffff) 0%,
+      var(--pc-black) 48%,
+      color-mix(in srgb, var(--pc-black) 68%, #000000) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-stroke: .5px color-mix(in srgb, var(--pc-black) 55%, #000000); text-shadow: none;
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .28)) drop-shadow(0 3px 3px rgba(0, 0, 0, .55));
+  }
+}
 
 .ch-dot { position: absolute; width: 26%; height: 26%; border-radius: 50%; background: rgba(30, 30, 40, .35); z-index: 1; pointer-events: none; }
 .ch-sq.light .ch-dot { background: rgba(30, 30, 40, .28); }
