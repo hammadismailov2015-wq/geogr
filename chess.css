@@ -330,6 +330,11 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   text-align: center; font-size: 17px; font-weight: 600; padding: 10px;
   margin-bottom: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line);
 }
+/* Режим «Рядом»: на ходу чёрных весь игровой блок плавно поворачивается на 180°,
+   чтобы игрок напротив видел доску ровно (не вверх ногами). */
+.ch-fliparea { transition: transform .4s ease; transform-origin: center center; }
+.ch-fliparea.flip180 { transform: rotate(180deg); }
+
 .ch-board-wrap { display: flex; justify-content: center; }
 .ch-board {
   width: min(92vw, 560px); aspect-ratio: 1/1;
