@@ -1327,6 +1327,7 @@
     for (let i = 0; i < ACHIEVEMENTS.length; i++) {
       const a = ACHIEVEMENTS[i], now = a.cur(s);
       if (now <= before[i]) continue;
+      if (before[i] >= a.goal) continue; // уже выполнено раньше — больше не всплывает
       const justDone = before[i] < a.goal && now >= a.goal;
       if (a.secret && !justDone) continue; // секретные не спойлим до получения
       showAchToast(a, now, justDone);
