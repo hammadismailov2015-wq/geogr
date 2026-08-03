@@ -336,6 +336,8 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-fliparea .ch-piece { transition: transform .3s ease; }
 .ch-fliparea.flip180 .ch-piece { transform: rotate(180deg); }
 
+.ch-gametime { text-align: center; margin: 0 auto 8px; font-size: 13px; font-weight: 700; color: #cdd5f0; font-variant-numeric: tabular-nums; opacity: .85; }
+
 .ch-board-wrap { display: flex; justify-content: center; }
 .ch-board {
   width: min(92vw, 560px); aspect-ratio: 1/1;
