@@ -167,6 +167,7 @@
       <section id="gameScreen" class="ch-screen" hidden>
         <div class="ch-fliparea" id="flipArea">
         <div class="ch-status" id="chStatus">—</div>
+        <div class="ch-gametime" id="gameTime">⏱ 0:00</div>
 
         <div class="ch-online" id="onlineBar" hidden>
           <div class="ch-online-status" id="onlineStatus">Подключение…</div>
@@ -490,6 +491,7 @@
     resetUndoBtn();
     resetRematchBtn();
     render();
+    updateGameTime();
     if (onl) setOnlineStatus();
   }
 
@@ -840,6 +842,7 @@
      ======================================================== */
   function startClockLoop() {
     setInterval(() => {
+      updateGameTime();
       const cl = app.clock;
       if (!cl.timeOn) return;
       if (app.over || app.paused || app.state == null) { cl.lastTick = Date.now(); return; }
@@ -854,6 +857,22 @@
     }, 200);
   }
   function fmtTime(ms) { if (ms < 0) ms = 0; const total = Math.ceil(ms / 1000); const m = Math.floor(total / 60), s = total % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
+  // длительность партии (сколько всего шла): Ч:ММ:СС либо М:СС
+  function fmtDur(ms) {
+    if (!ms || ms < 0) ms = 0;
+    const total = Math.floor(ms / 1000);
+    const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+    const ss = (s < 10 ? '0' : '') + s;
+    if (h > 0) return h + ':' + (m < 10 ? '0' : '') + m + ':' + ss;
+    return m + ':' + ss;
+  }
+  // Таймер общей длительности партии (идёт всегда, независимо от лимита времени)
+  function updateGameTime() {
+    const gt = $('gameTime'); if (!gt) return;
+    if ($('gameScreen').hidden || !app.gs || !app.gs.start) return;
+    const ms = app.over ? (app.gameDurMs || 0) : (Date.now() - app.gs.start);
+    gt.textContent = (app.over ? '⏱ Партия длилась: ' : '⏱ Идёт: ') + fmtDur(ms);
+  }
   function updateClocks() { const cl = app.clock, bottomColor = app.orientation, topColor = bottomColor === 'w' ? 'b' : 'w'; setClock('bot', bottomColor, cl); setClock('top', topColor, cl); }
   function setClock(which, color, cl) {
     const el = $(which + 'Clock');
@@ -1151,10 +1170,12 @@
     else if (res.type === 'moves') { const mw = materialWinner(); ico = '🔢'; if (mw.winner) { title = 'Лимит ходов'; text = `Ходы закончились. ${colorName(mw.winner)} выиграли по материалу (+${mw.adv}). 🎉`; winnerColor = mw.winner; } else { title = 'Лимит ходов — ничья'; text = 'Ходы закончились, материал равный. Ничья.'; } }
     else if (res.type === 'resign') { const w = res.loser === 'w' ? 'b' : 'w'; ico = '🏳️'; title = 'Сдача'; text = `${colorName(res.loser)} сдались. ${colorName(w)} выиграли! 🎉`; winnerColor = w; }
     else { ico = '🤝'; title = 'Ничья'; text = 'Недостаточно материала или правило 50 ходов.'; }
+    app.gameDurMs = (app.gs && app.gs.start) ? (Date.now() - app.gs.start) : 0;
     recordResult(winnerColor);
     countGame();
     trackGameEnd(res, winnerColor);
     app.overText = ico + ' ' + title + ' — ' + text;
+    updateGameTime();
     render();
     $('overIco').textContent = ico; $('overTitle').textContent = title; $('overText').textContent = text;
     $('shareModal').hidden = true; $('overModal').hidden = false;
@@ -1334,7 +1355,7 @@
     let myC = null;
     if (app.mode === 'bot') myC = app.myColor;
     else if (app.mode === 'friend' && app.online.on) myC = app.online.myColor;
-    const rec = { mode: app.mode, t: Date.now() };
+    const rec = { mode: app.mode, t: Date.now(), dur: app.gameDurMs || 0 };
     if (myC) rec.r = winnerColor == null ? 'draw' : (winnerColor === myC ? 'win' : 'loss');
     else if (winnerColor == null) rec.r = 'draw';
     else { rec.r = 'side'; rec.w = winnerColor; }
@@ -1357,7 +1378,8 @@
       else if (r.r === 'loss') { cls = 'loss'; main = 'Проиграл'; }
       else if (r.r === 'side') { cls = 'side'; main = (r.w === 'w' ? 'Белые' : 'Чёрные') + ' победили'; }
       else { cls = 'draw'; main = 'Ничья'; }
-      html += `<div class="ch-hist-item ${cls}"><span class="hi-main">${main}</span><span class="hi-sub">${modeLabel(r.mode)}</span></div>`;
+      const sub = modeLabel(r.mode) + (r.dur ? ' · ⏱ ' + fmtDur(r.dur) : '');
+      html += `<div class="ch-hist-item ${cls}"><span class="hi-main">${main}</span><span class="hi-sub">${sub}</span></div>`;
     }
     $('histList').innerHTML = html || '<div class="ch-hist-empty">Пока нет сыгранных партий</div>';
     $('histModal').hidden = false;
