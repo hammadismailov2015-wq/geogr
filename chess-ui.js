@@ -242,6 +242,17 @@
         </div>
       </div>
 
+      <div id="rematchModal" class="ch-modal" hidden>
+        <div class="ch-modal-box">
+          <div class="ch-modal-title">🔁 Соперник зовёт на реванш</div>
+          <p class="ch-modal-text">Соперник хочет сыграть ещё одну партию с теми же настройками. Согласиться?</p>
+          <div class="ch-modal-actions">
+            <button class="ch-btn ch-btn-primary" id="btnRematchYes">✅ Играть</button>
+            <button class="ch-btn ch-btn-warn" id="btnRematchNo">❌ Нет</button>
+          </div>
+        </div>
+      </div>
+
       <div id="undoModal" class="ch-modal" hidden>
         <div class="ch-modal-box">
           <div class="ch-modal-title">↶ Соперник просит отмену</div>
@@ -477,6 +488,7 @@
     $('btnUndo').style.display = (app.mode === 'friend' && !onl) ? 'none' : '';
     $('btnResign').style.display = (app.mode === 'friend' && !onl) ? 'none' : '';
     resetUndoBtn();
+    resetRematchBtn();
     render();
     if (onl) setOnlineStatus();
   }
@@ -580,6 +592,12 @@
       onUndoAnswer(true);
     } else if (o.t === 'undoNo') {
       onUndoAnswer(false);
+    } else if (o.t === 'rematchReq') {
+      onRematchRequested();
+    } else if (o.t === 'rematchOk') {
+      onRematchAnswer(true);
+    } else if (o.t === 'rematchNo') {
+      onRematchAnswer(false);
     }
   }
 
@@ -1178,7 +1196,12 @@
       if (app.online.on) netSend({ t: 'end', s: app.online.myId, kind: 'resign', loser });
       finishGame({ type: 'resign', loser });
     });
-    $('btnNewGame').addEventListener('click', () => { $('overModal').hidden = true; location.hash = ''; startGame(); });
+    $('btnNewGame').addEventListener('click', () => {
+      if (app.online && app.online.on) { requestRematch(); return; }
+      $('overModal').hidden = true; location.hash = ''; startGame();
+    });
+    $('btnRematchYes').addEventListener('click', () => answerRematch(true));
+    $('btnRematchNo').addEventListener('click', () => answerRematch(false));
     $('btnCopy').addEventListener('click', () => { const inp = $('shareLink'); inp.select(); copyText(inp.value).then(ok => { $('copyHint').textContent = ok ? '✓ Ссылка скопирована' : 'Скопируйте вручную (выделено выше)'; }); });
     $('btnShareEdit').addEventListener('click', () => { $('shareModal').hidden = true; app.pendingShare = false; undoLast(true); });
     $('btnOnlineCopy').addEventListener('click', () => { const inp = $('onlineLink'); inp.select(); copyText(inp.value).then(ok => { $('btnOnlineCopy').textContent = ok ? '✓ Скопировано — отправьте другу' : '📋 Выделено — скопируйте вручную'; }); });
@@ -1241,6 +1264,47 @@
     app.clock.lastTick = Date.now();
     render();
   }
+  /* ---- Реванш (новая партия с тем же соперником) ---- */
+  function requestRematch() {
+    const o = app.online;
+    if (!o.on || o.rematchPending) return;
+    if (!o.peerReady) { showInfoToast('⌛', 'Соперника нет в сети', false); return; }
+    o.rematchPending = true;
+    netSend({ t: 'rematchReq', s: o.myId });
+    const b = $('btnNewGame'); if (b) { b.disabled = true; b.textContent = '⏳ Ждём соперника…'; }
+    o.rematchTimer = setTimeout(() => { if (app.online && app.online.rematchPending) { resetRematchBtn(); showInfoToast('⌛', 'Соперник не ответил', false); } }, 25000);
+  }
+  function resetRematchBtn() {
+    if (app.online) { app.online.rematchPending = false; if (app.online.rematchTimer) { clearTimeout(app.online.rematchTimer); app.online.rematchTimer = null; } }
+    const b = $('btnNewGame'); if (b) { b.disabled = false; b.textContent = 'Новая партия'; }
+  }
+  function onRematchRequested() {
+    if (!app.online.on) return;
+    $('rematchModal').hidden = false;
+  }
+  function answerRematch(allow) {
+    $('rematchModal').hidden = true;
+    if (!app.online.on) return;
+    if (allow) { netSend({ t: 'rematchOk', s: app.online.myId }); $('overModal').hidden = true; startRematch(); }
+    else { netSend({ t: 'rematchNo', s: app.online.myId }); }
+  }
+  function onRematchAnswer(allowed) {
+    resetRematchBtn();
+    if (allowed) { $('overModal').hidden = true; startRematch(); }
+    else { showInfoToast('❌', 'Соперник отказался от новой партии', false); }
+  }
+  // Новая партия с тем же соперником и настройками — соединение не рвём
+  function startRematch() {
+    const o = app.online;
+    resetGame();
+    resetGameStats();
+    app.myColor = o.myColor; app.orientation = o.myColor;
+    setup.timeMin = o.timeMin || 0; setup.moveLim = o.moveLim || 0;
+    initClock();
+    enterGameScreen();
+    setOnlineStatus();
+  }
+
   function showInfoToast(ico, text, ok) {
     if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
     const el = document.createElement('div');
