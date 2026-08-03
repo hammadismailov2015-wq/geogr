@@ -242,6 +242,17 @@
         </div>
       </div>
 
+      <div id="undoModal" class="ch-modal" hidden>
+        <div class="ch-modal-box">
+          <div class="ch-modal-title">↶ Соперник просит отмену</div>
+          <p class="ch-modal-text">Соперник хочет отменить последний ход. Разрешить?</p>
+          <div class="ch-modal-actions">
+            <button class="ch-btn ch-btn-primary" id="btnUndoAllow">✅ Разрешить</button>
+            <button class="ch-btn ch-btn-warn" id="btnUndoDeny">❌ Не разрешать</button>
+          </div>
+        </div>
+      </div>
+
       <div id="histModal" class="ch-modal" hidden>
         <div class="ch-modal-box ch-hist-box">
           <div class="ch-modal-title">📊 Мои партии</div>
@@ -463,8 +474,9 @@
     $('chatBox').hidden = !onl;
     if (onl) $('chatList').innerHTML = '';
     $('btnFlip').style.display = onl ? 'none' : '';
-    $('btnUndo').style.display = app.mode === 'friend' ? 'none' : '';
+    $('btnUndo').style.display = (app.mode === 'friend' && !onl) ? 'none' : '';
     $('btnResign').style.display = (app.mode === 'friend' && !onl) ? 'none' : '';
+    resetUndoBtn();
     render();
     if (onl) setOnlineStatus();
   }
@@ -521,7 +533,7 @@
   function connectOnline() {
     const o = app.online;
     o.net = ChessNet.connect(o.room, {
-      onOpen: () => { o.connected = true; o.failed = false; o.myId = o.net.id; netSend({ t: 'hi', s: o.myId, c: o.myColor }); setOnlineStatus(); },
+      onOpen: () => { o.connected = true; o.failed = false; o.myId = o.net.id; netSend({ t: 'hi', s: o.myId, c: o.myColor }); startPresence(); setOnlineStatus(); },
       onReconnect: () => { o.connected = false; setOnlineStatus(); },
       onClose: () => { o.connected = false; setOnlineStatus(); },
       onFail: () => { o.failed = true; setOnlineStatus(); },
@@ -533,6 +545,8 @@
   function netSend(obj) { if (app.online.net) app.online.net.publish(obj); }
 
   function closeOnline() {
+    if (app.online && app.online.on) { try { netSend({ t: 'bye', s: app.online.myId }); } catch (e) { } }
+    clearPresence();
     if (app.online && app.online.net) { try { app.online.net.close(); } catch (e) { } }
     app.online = { on: false, role: null, room: null, myColor: 'w', hostColor: 'w', myId: null, net: null, connected: false, peerReady: false, failed: false };
   }
@@ -541,22 +555,48 @@
     const me = app.online;
     if (!me.on) return;
     if (o.s && o.s === me.myId) return; // свои сообщения игнорируем
+    me.lastSeen = Date.now();
+    // соперник вышел (закрыл вкладку)
+    if (o.t === 'bye') { me.peerReady = false; setOnlineStatus(); return; }
+    const wasReady = me.peerReady;
+    me.peerReady = true; // любое сообщение = соперник на связи
+    if (o.t === 'ping') { if (!wasReady) setOnlineStatus(); return; }
     if (o.t === 'hi') {
-      me.peerReady = true; setOnlineStatus();
+      setOnlineStatus();
       if (me.role === 'host') sendSync();
     } else if (o.t === 'sync') {
-      me.peerReady = true; applySync(o); setOnlineStatus();
+      applySync(o); setOnlineStatus();
     } else if (o.t === 'mv') {
-      me.peerReady = true; applyRemoteMove(o);
+      applyRemoteMove(o); if (!wasReady) setOnlineStatus();
     } else if (o.t === 'end') {
-      me.peerReady = true;
       if (o.kind === 'resign') finishGame({ type: 'resign', loser: o.loser });
       else if (o.kind === 'time') finishGame({ type: 'time', loser: o.loser });
     } else if (o.t === 'chat') {
-      me.peerReady = true;
-      addChatMsg('them', o.text);
-      playChatSound();
+      addChatMsg('them', o.text); playChatSound();
+      if (!wasReady) setOnlineStatus();
+    } else if (o.t === 'undoReq') {
+      onUndoRequested();
+    } else if (o.t === 'undoOk') {
+      onUndoAnswer(true);
+    } else if (o.t === 'undoNo') {
+      onUndoAnswer(false);
     }
+  }
+
+  /* ---- Присутствие соперника: «пинги» + сторож ---- */
+  function startPresence() {
+    const o = app.online; clearPresence();
+    o.lastSeen = Date.now();
+    o.hbTimer = setInterval(() => { if (app.online.on) netSend({ t: 'ping', s: app.online.myId }); }, 3000);
+    o.wdTimer = setInterval(() => {
+      const a = app.online;
+      if (a.on && a.peerReady && Date.now() - (a.lastSeen || 0) > 8000) { a.peerReady = false; setOnlineStatus(); }
+    }, 2000);
+  }
+  function clearPresence() {
+    const o = app.online; if (!o) return;
+    if (o.hbTimer) { clearInterval(o.hbTimer); o.hbTimer = null; }
+    if (o.wdTimer) { clearInterval(o.wdTimer); o.wdTimer = null; }
   }
 
   function escHtml(s) {
@@ -641,8 +681,8 @@
     st.classList.remove('ok', 'warn', 'bad');
     if (o.failed && !o.connected) { st.textContent = '🔴 Нет связи с сервером. Проверьте интернет — или сыграйте по ссылке-ходу.'; st.classList.add('bad'); fb.hidden = false; }
     else if (!o.connected) { st.textContent = '🟡 Подключение к серверу…'; st.classList.add('warn'); fb.hidden = true; }
-    else if (!o.peerReady) { st.textContent = '🟢 Готово! Отправьте ссылку другу и ждите — соперник ещё не зашёл.'; st.classList.add('ok'); fb.hidden = true; }
-    else { st.textContent = '🟢 Соперник в игре ✓'; st.classList.add('ok'); fb.hidden = true; }
+    else if (!o.peerReady) { st.textContent = '🔴 Соперника нет'; st.classList.add('bad'); fb.hidden = true; }
+    else { st.textContent = '🟢 Соперник есть'; st.classList.add('ok'); fb.hidden = true; }
     $('onlineLink').value = buildOnlineLink();
   }
 
@@ -657,7 +697,7 @@
     render();
     if (app.myColor === 'b') openShare();
   }
-  function closeOnlineKeepMode() { if (app.online.net) { try { app.online.net.close(); } catch (e) { } app.online.net = null; } }
+  function closeOnlineKeepMode() { clearPresence(); if (app.online.net) { try { netSend({ t: 'bye', s: app.online.myId }); } catch (e) { } try { app.online.net.close(); } catch (e) { } app.online.net = null; } }
 
   /* ========================================================
      ССЫЛКИ (запасной режим «по ссылке-ходу»)
@@ -1128,7 +1168,9 @@
   function bindGame() {
     $('btnMenu').addEventListener('click', () => { if (confirm('Выйти в меню? Текущая партия будет прекращена.')) { location.hash = ''; showSetup(); } });
     $('btnFlip').addEventListener('click', () => { app.orientation = app.orientation === 'w' ? 'b' : 'w'; renderBoard(); renderPlayerBars(); });
-    $('btnUndo').addEventListener('click', () => undoLast());
+    $('btnUndo').addEventListener('click', () => { if (app.online && app.online.on) requestUndo(); else undoLast(); });
+    $('btnUndoAllow').addEventListener('click', () => answerUndo(true));
+    $('btnUndoDeny').addEventListener('click', () => answerUndo(false));
     $('btnResign').addEventListener('click', () => {
       if (app.over) return;
       if (!confirm('Сдаться?')) return;
@@ -1143,6 +1185,7 @@
     $('btnFallback').addEventListener('click', () => switchToCorrespondence());
     $('chatSend').addEventListener('click', sendChat);
     $('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } });
+    window.addEventListener('beforeunload', () => { if (app.online && app.online.on && app.online.net) { try { app.online.net.publish({ t: 'bye', s: app.online.myId }); } catch (e) { } } });
   }
 
   function undoLast(single) {
@@ -1154,6 +1197,58 @@
     if (app.clock.movesOn) { let w = 0, b = 0; for (let i = 0; i < app.history.length; i++)(i % 2 === 0 ? w++ : b++); app.clock.movesLeft.w = setup.moveLim - w; app.clock.movesLeft.b = setup.moveLim - b; }
     app.clock.lastTick = Date.now();
     render();
+  }
+
+  /* ---- Отмена хода в игре с другом (через разрешение соперника) ---- */
+  // Я прошу отменить последний ход — отправляю запрос сопернику.
+  function requestUndo() {
+    const o = app.online;
+    if (!o.on || app.over || app.history.length === 0) return;
+    if (o.undoPending) return;
+    o.undoPending = true;
+    netSend({ t: 'undoReq', s: o.myId });
+    const b = $('btnUndo'); if (b) { b.disabled = true; b.textContent = '⏳ Ждём…'; }
+    o.undoTimer = setTimeout(() => { if (app.online && app.online.undoPending) { resetUndoBtn(); showInfoToast('⌛', 'Соперник не ответил', false); } }, 20000);
+  }
+  function resetUndoBtn() {
+    if (app.online) { app.online.undoPending = false; if (app.online.undoTimer) { clearTimeout(app.online.undoTimer); app.online.undoTimer = null; } }
+    const b = $('btnUndo'); if (b) { b.disabled = false; b.textContent = '↶ Отменить'; }
+  }
+  // Соперник прислал ответ на мой запрос
+  function onUndoAnswer(allowed) {
+    resetUndoBtn();
+    if (allowed) { performUndoOnline(); showInfoToast('✅', 'Соперник разрешил отмену', true); }
+    else { showInfoToast('❌', 'Соперник не разрешил отмену', false); }
+  }
+  // Мне пришёл запрос на отмену — показываю окошко «Разрешить / Не разрешать»
+  function onUndoRequested() {
+    if (app.over || app.history.length === 0) { netSend({ t: 'undoNo', s: app.online.myId }); return; }
+    $('undoModal').hidden = false;
+  }
+  function answerUndo(allow) {
+    $('undoModal').hidden = true;
+    if (!app.online.on) return;
+    if (allow) { netSend({ t: 'undoOk', s: app.online.myId }); performUndoOnline(); }
+    else { netSend({ t: 'undoNo', s: app.online.myId }); }
+  }
+  // Откат последнего хода на обеих сторонах
+  function performUndoOnline() {
+    if (app.history.length === 0) return;
+    const moves = app.history.slice(0, app.history.length - 1);
+    rebuildFrom(moves);
+    app.over = false;
+    if (app.clock.movesOn) { let w = 0, b = 0; for (let i = 0; i < app.history.length; i++)(i % 2 === 0 ? w++ : b++); app.clock.movesLeft.w = setup.moveLim - w; app.clock.movesLeft.b = setup.moveLim - b; }
+    app.clock.lastTick = Date.now();
+    render();
+  }
+  function showInfoToast(ico, text, ok) {
+    if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
+    const el = document.createElement('div');
+    el.className = 'ch-atoast' + (ok ? ' done' : '');
+    el.innerHTML = `<span class="at-ico">${ico}</span><span class="at-body"><span class="at-t">${text}</span></span>`;
+    achToastWrap.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 2400);
   }
 
   function copyText(text) {
