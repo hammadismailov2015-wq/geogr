@@ -237,7 +237,7 @@
           <p class="ch-modal-text" id="overText"></p>
           <div class="ch-modal-actions">
             <button class="ch-btn ch-btn-primary" id="btnNewGame">Новая партия</button>
-            <button class="ch-btn" id="btnViewOver">📊 Результаты</button>
+            <button class="ch-btn" id="btnViewOver">☰ В меню</button>
           </div>
         </div>
       </div>
@@ -1178,7 +1178,7 @@
       if (app.online.on) netSend({ t: 'end', s: app.online.myId, kind: 'resign', loser });
       finishGame({ type: 'resign', loser });
     });
-    $('btnNewGame').addEventListener('click', () => { $('overModal').hidden = true; location.hash = ''; showSetup(); });
+    $('btnNewGame').addEventListener('click', () => { $('overModal').hidden = true; location.hash = ''; startGame(); });
     $('btnCopy').addEventListener('click', () => { const inp = $('shareLink'); inp.select(); copyText(inp.value).then(ok => { $('copyHint').textContent = ok ? '✓ Ссылка скопирована' : 'Скопируйте вручную (выделено выше)'; }); });
     $('btnShareEdit').addEventListener('click', () => { $('shareModal').hidden = true; app.pendingShare = false; undoLast(true); });
     $('btnOnlineCopy').addEventListener('click', () => { const inp = $('onlineLink'); inp.select(); copyText(inp.value).then(ok => { $('btnOnlineCopy').textContent = ok ? '✓ Скопировано — отправьте другу' : '📋 Выделено — скопируйте вручную'; }); });
@@ -1299,7 +1299,7 @@
 
   function bindHistory() {
     $('viewBtn').addEventListener('click', openHistory);
-    $('btnViewOver').addEventListener('click', openHistory);
+    $('btnViewOver').addEventListener('click', () => { $('overModal').hidden = true; location.hash = ''; showSetup(); });
     $('histClose').addEventListener('click', () => { $('histModal').hidden = true; });
     $('histClear').addEventListener('click', () => { if (confirm('Очистить историю партий?')) { saveHist([]); openHistory(); } });
     $('achBtn').addEventListener('click', openAch);
