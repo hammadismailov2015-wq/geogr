@@ -1219,6 +1219,7 @@
     app.over = false; app.pendingShare = false;
     if (app.clock.movesOn) { let w = 0, b = 0; for (let i = 0; i < app.history.length; i++)(i % 2 === 0 ? w++ : b++); app.clock.movesLeft.w = setup.moveLim - w; app.clock.movesLeft.b = setup.moveLim - b; }
     app.clock.lastTick = Date.now();
+    bumpStats(s => { s.undos++; });
     render();
   }
 
@@ -1262,6 +1263,7 @@
     app.over = false;
     if (app.clock.movesOn) { let w = 0, b = 0; for (let i = 0; i < app.history.length; i++)(i % 2 === 0 ? w++ : b++); app.clock.movesLeft.w = setup.moveLim - w; app.clock.movesLeft.b = setup.moveLim - b; }
     app.clock.lastTick = Date.now();
+    bumpStats(s => { s.undos++; });
     render();
   }
   /* ---- Реванш (новая партия с тем же соперником) ---- */
@@ -1378,11 +1380,39 @@
   const STATS_KEY = 'chessStats';
   function hasYou() { return app.mode === 'bot' || (app.mode === 'friend' && app.online.on); }
   function myStatColor() { return app.mode === 'bot' ? app.myColor : (app.mode === 'friend' && app.online.on ? app.online.myColor : null); }
-  function resetGameStats() { app.gs = { checks: 0, start: Date.now(), lastCapType: null, lastFrom: -1, lastTo: -1 }; }
+  function resetGameStats() { app.gs = { checks: 0, start: Date.now(), lastCapType: null, lastFrom: -1, lastTo: -1, myCaps: 0, alphaNext: 0, prevPins: new Set() }; }
+
+  // Клетки соперника, «связанные» (абсолютный пин к своему королю) моими дальнобойными фигурами
+  function pinnedSquares(board, enemyColor) {
+    const res = new Set();
+    let kSq = -1;
+    for (let i = 0; i < 64; i++) { const p = board[i]; if (p && C.colorOf(p) === enemyColor && C.typeOf(p) === 'k') { kSq = i; break; } }
+    if (kSq < 0) return res;
+    const me = enemyColor === 'w' ? 'b' : 'w';
+    const dirs = [[1, 0, 'r'], [-1, 0, 'r'], [0, 1, 'r'], [0, -1, 'r'], [1, 1, 'b'], [1, -1, 'b'], [-1, 1, 'b'], [-1, -1, 'b']];
+    const kf = kSq % 8, kr = (kSq / 8) | 0;
+    for (const d of dirs) {
+      let f = kf + d[0], r = kr + d[1], firstEnemy = -1;
+      while (f >= 0 && f < 8 && r >= 0 && r < 8) {
+        const s = r * 8 + f, p = board[s];
+        if (p) {
+          if (firstEnemy < 0) {
+            if (C.colorOf(p) === enemyColor && C.typeOf(p) !== 'k') firstEnemy = s; else break;
+          } else {
+            const t = C.typeOf(p);
+            if (C.colorOf(p) === me && (t === 'q' || t === d[2])) res.add(firstEnemy);
+            break;
+          }
+        }
+        f += d[0]; r += d[1];
+      }
+    }
+    return res;
+  }
 
   function ensureStats() {
     let s; try { s = JSON.parse(localStorage.getItem(STATS_KEY) || '{}'); } catch (e) { s = {}; }
-    const def = { games: 0, wins: 0, losses: 0, draws: 0, checkmatesBy: 0, resigns: 0, promotions: 0, captures: 0, pawnsCaptured: 0, queensCaptured: 0, queensLost: 0, blackGames: 0, wonHardBot: false, maxChecksInGame: 0, forks: 0, escapes: 0, knightThenPawn: 0, fastMate: false, hourGame: false, repeats: 0 };
+    const def = { games: 0, wins: 0, losses: 0, draws: 0, checkmatesBy: 0, resigns: 0, promotions: 0, captures: 0, pawnsCaptured: 0, queensCaptured: 0, queensLost: 0, blackGames: 0, wonHardBot: false, maxChecksInGame: 0, forks: 0, escapes: 0, knightThenPawn: 0, fastMate: false, hourGame: false, repeats: 0, pins: 0, blackPins: 0, alphabet: false, freeGames: 0, castles: 0, wipeout: false, minorsCaptured: 0, undos: 0 };
     for (const k in def) if (!(k in s)) s[k] = def[k];
     return s;
   }
@@ -1398,11 +1428,30 @@
     const escaped = fromAttacked && !C.isAttacked(app.state.board, m.to, enemy);
     const backForth = app.gs && app.gs.lastFrom === m.to && app.gs.lastTo === m.from;
     const knightThenPawn = capType === 'p' && app.gs && app.gs.lastCapType === 'n';
+    // рокировка: король шагнул на 2 клетки
+    const castled = C.typeOf(app.state.board[m.to]) === 'k' && Math.abs(C.fileOf(m.from) - C.fileOf(m.to)) === 2;
+    // новые «связки» соперника, созданные этим ходом
+    const afterPins = pinnedSquares(app.state.board, enemy);
+    const prevPins = (app.gs && app.gs.prevPins) || new Set();
+    let newPins = 0, newBlackPins = 0;
+    afterPins.forEach(sq => { if (!prevPins.has(sq)) { newPins++; if (C.colorOf(app.state.board[sq]) === 'b') newBlackPins++; } });
+    if (app.gs) app.gs.prevPins = afterPins;
+    // алфавитный порядок: посадка на файлы a→b→c→d→e→f подряд
+    const landFile = C.fileOf(m.to);
+    let alphaDone = false;
+    if (app.gs) {
+      if (landFile === app.gs.alphaNext) { app.gs.alphaNext++; if (app.gs.alphaNext >= 6) alphaDone = true; }
+      else app.gs.alphaNext = (landFile === 0) ? 1 : 0;
+    }
+    // все фигуры соперника съедены за партию (15 фигур кроме короля)
+    let wipeout = false;
+    if (capType && app.gs) { app.gs.myCaps++; if (app.gs.myCaps >= 15) wipeout = true; }
     bumpStats(s => {
       if (capType) {
         s.captures++;
         if (capType === 'p') s.pawnsCaptured++;
         if (capType === 'q') s.queensCaptured++;
+        if (capType === 'n' || capType === 'b') s.minorsCaptured++;
         if (knightThenPawn) s.knightThenPawn++;
       }
       if (m.promo) s.promotions++;
@@ -1410,6 +1459,11 @@
       if (fc >= 2) s.forks++;
       if (escaped) s.escapes++;
       if (backForth) s.repeats++;
+      if (castled) s.castles++;
+      if (newPins) s.pins += newPins;
+      if (newBlackPins) s.blackPins += newBlackPins;
+      if (alphaDone) s.alphabet = true;
+      if (wipeout) s.wipeout = true;
     });
     if (app.gs) { app.gs.lastFrom = m.from; app.gs.lastTo = m.to; if (capType) app.gs.lastCapType = capType; }
   }
@@ -1442,6 +1496,10 @@
     { t: 'Мафия', d: 'Съешь у соперника 50 фигур', ico: '🕵️', goal: 50, cur: s => s.captures },
     { t: 'Казнить!', d: 'Съешь 20 пешек', ico: '🪓', goal: 20, cur: s => s.pawnsCaptured },
     { t: 'Туда-сюда', d: 'Повтори ход 3 раза', ico: '🔄', goal: 3, cur: s => s.repeats },
+    { t: 'Заложник', d: 'Свяжи 3 фигуры соперника', ico: '🔗', goal: 3, cur: s => s.pins },
+    { t: 'Алфавитный порядок', d: 'Сходи на клетки a-b-c-d-e-f подряд', ico: '🔤', goal: 1, cur: s => s.alphabet ? 1 : 0 },
+    { t: 'Свобода!', d: 'Сыграй 30 партий без ограничений', ico: '🕊️', goal: 30, cur: s => s.freeGames },
+    { t: 'В укрытие!', d: 'Сделай рокировку 3 раза', ico: '🏰', goal: 3, cur: s => s.castles },
     // секретные
     { t: 'Превращение', d: 'Преврати пешку 5 раз', ico: '✨', goal: 5, cur: s => s.promotions, secret: true },
     { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', ico: '🐴', goal: 1, cur: s => Math.min(s.knightThenPawn, 1), secret: true },
@@ -1450,7 +1508,11 @@
     { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', ico: '🥱', goal: 3, cur: s => s.queensLost, secret: true },
     { t: 'Не спи!', d: 'Сыграй партию целый час', ico: '⏰', goal: 1, cur: s => s.hourGame ? 1 : 0, secret: true },
     { t: 'Братство', d: 'Сдайся 3 раза', ico: '🏳️', goal: 3, cur: s => s.resigns, secret: true },
-    { t: 'Равенство', d: 'Сыграй вничью 5 раз', ico: '🤝', goal: 5, cur: s => s.draws, secret: true }
+    { t: 'Равенство', d: 'Сыграй вничью 5 раз', ico: '🤝', goal: 5, cur: s => s.draws, secret: true },
+    { t: 'Убийство племя', d: 'Съешь все фигуры соперника за одну партию', ico: '💀', goal: 1, cur: s => s.wipeout ? 1 : 0, secret: true },
+    { t: 'Бедные животные!', d: 'Съешь 30 коней или слонов', ico: '🐘', goal: 30, cur: s => s.minorsCaptured, secret: true },
+    { t: 'Ой, не туда', d: 'Отмени ход 5 раз', ico: '🙈', goal: 5, cur: s => s.undos, secret: true },
+    { t: 'Нет прав у чёрных!', d: 'Свяжи 5 чёрных фигур', ico: '⛓️', goal: 5, cur: s => s.blackPins, secret: true }
   ];
 
   function achCard(a, s) {
@@ -1552,7 +1614,8 @@
   // считаем ВСЕ сыгранные партии (любой режим) + ранг-апы
   function countGame() {
     const beforeRank = rankFor(ensureStats().games || 0);
-    bumpStats(s => { s.games++; });
+    const noLimits = !app.clock.timeOn && !app.clock.movesOn;
+    bumpStats(s => { s.games++; if (noLimits) s.freeGames++; });
     const afterRank = rankFor(ensureStats().games || 0);
     if (afterRank.g !== beforeRank.g) showRankToast(afterRank.name);
   }
