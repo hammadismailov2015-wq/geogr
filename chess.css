@@ -358,6 +358,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-tutor-prompt { text-align: center; margin: 12px auto 10px; font-size: 16px; font-weight: 700; color: #eef1fb; max-width: 560px; }
 .ch-tutor-prompt .tut-hint { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 4px; }
 .ch-tutor-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+.tut-hintbox { flex-basis: 100%; text-align: center; margin-top: 4px; padding: 10px 14px; border-radius: 12px; background: rgba(255, 215, 120, .12); border: 1px solid rgba(255, 215, 120, .4); color: #ffe8a0; font-weight: 600; font-size: 14px; }
 
 #tutFlash { position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 130; }
 #tutFlash.show.good { animation: tutflash .65s ease-out; background: radial-gradient(circle at 50% 45%, rgba(70, 220, 120, .5), rgba(70, 220, 120, 0) 70%); }

@@ -1377,71 +1377,71 @@
   {
     name: 'Движение фигур', lessons: [
       { id: 'm-pawn', title: 'Пешка', icon: '♟', explain: 'Пешка ходит только вперёд: на 1 клетку, а с начального места — сразу на 2. Ест по-другому — по диагонали на 1 клетку вперёд.', steps: [
-        { board: ['e2 wp', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи пешкой вперёд на 2 клетки — на e4.', answers: ['e2e4'] },
-        { board: ['d4 wp', 'e5 bp', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку по диагонали.', answers: ['d4e5'] },
-        { board: ['d4 wp', 'a1 wr', 'h1 wb', 'c5 bp', 'e1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь пешку c5 — но только пешкой! (не ладьёй и не слоном)', answers: ['d4c5'] } ] },
+        { board: ['e2 wp', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи пешкой вперёд.', hint: 'С начального места пешка может пойти на 2 клетки — на e4.', answers: ['e2e4'] },
+        { board: ['d4 wp', 'e5 bp', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь чёрную фигуру.', hint: 'Пешка бьёт по диагонали: d4 берёт e5.', answers: ['d4e5'] },
+        { board: ['d4 wp', 'a1 wr', 'h1 wb', 'c5 bp', 'e1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку — но какой фигурой?', hint: 'По диагонали её берёт только пешка: d4 на c5.', answers: ['d4c5'] } ] },
       { id: 'm-knight', title: 'Конь', icon: '♞', explain: 'Конь ходит буквой «Г»: две клетки прямо и одну вбок. Он единственный, кто перепрыгивает через другие фигуры! Ест туда же, куда ходит.', steps: [
-        { board: ['e4 wn', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи конём на f6.', answers: ['e4f6'] },
-        { board: ['e4 wn', 'f6 bp', 'a1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь пешку конём (на f6).', answers: ['e4f6'] },
-        { board: ['e4 wn', 'a1 wb', 'h1 wr', 'g5 bp', 'e1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь пешку g5 именно конём.', answers: ['e4g5'] } ] },
+        { board: ['e4 wn', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи конём буквой «Г».', hint: 'Например на f6: две клетки вперёд и одну вбок.', answers: ['e4f6'] },
+        { board: ['e4 wn', 'f6 bp', 'a1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку.', hint: 'Конь ест туда же, куда ходит: e4 на f6.', answers: ['e4f6'] },
+        { board: ['e4 wn', 'a1 wb', 'h1 wr', 'g5 bp', 'e1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку — но какой фигурой?', hint: 'Буквой «Г» до неё дойдёт только конь: e4 на g5.', answers: ['e4g5'] } ] },
       { id: 'm-bishop', title: 'Слон', icon: '♝', explain: 'Слон ходит по диагоналям на любое число клеток. Ест туда же. Каждый слон всю партию ходит по клеткам одного цвета.', steps: [
-        { board: ['c1 wb', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи слоном на h6.', answers: ['c1h6'] },
-        { board: ['c1 wb', 'g5 bp', 'a1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь пешку слоном (на g5).', answers: ['c1g5'] },
-        { board: ['f1 wb', 'h1 wn', 'g2 wp', 'a6 bp', 'e1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь пешку a6 слоном.', answers: ['f1a6'] } ] },
+        { board: ['c1 wb', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи слоном по диагонали.', hint: 'Например на h6.', answers: ['c1h6'] },
+        { board: ['c1 wb', 'g5 bp', 'a1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку.', hint: 'Слон бьёт по диагонали: c1 на g5.', answers: ['c1g5'] },
+        { board: ['f1 wb', 'h1 wn', 'g2 wp', 'a6 bp', 'e1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку — но какой фигурой?', hint: 'По диагонали её достанет слон: f1 на a6.', answers: ['f1a6'] } ] },
       { id: 'm-rook', title: 'Ладья', icon: '♜', explain: 'Ладья ходит по прямым — по вертикали и горизонтали — на любое число клеток. Ест туда же.', steps: [
-        { board: ['a1 wr', 'h1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи ладьёй на a8.', answers: ['a1a8'] },
-        { board: ['a1 wr', 'a6 bp', 'h1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь пешку ладьёй (на a6).', answers: ['a1a6'] },
-        { board: ['h1 wr', 'a1 wb', 'b1 wn', 'h6 bp', 'e1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь пешку h6 именно ладьёй.', answers: ['h1h6'] } ] },
+        { board: ['a1 wr', 'h1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи ладьёй по прямой.', hint: 'Например на a8.', answers: ['a1a8'] },
+        { board: ['a1 wr', 'a6 bp', 'h1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку.', hint: 'Ладья бьёт по прямой: a1 на a6.', answers: ['a1a6'] },
+        { board: ['h1 wr', 'a1 wb', 'b1 wn', 'h6 bp', 'e1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку — но какой фигурой?', hint: 'По вертикали её возьмёт ладья: h1 на h6.', answers: ['h1h6'] } ] },
       { id: 'm-queen', title: 'Ферзь', icon: '♛', explain: 'Ферзь — самая сильная фигура: ходит и как ладья, и как слон (прямо и по диагонали) на любое число клеток.', steps: [
-        { board: ['d1 wq', 'h1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи ферзём на d7.', answers: ['d1d7'] },
-        { board: ['d1 wq', 'd5 bp', 'h1 wk', 'b8 bk'], turn: 'w', prompt: 'Съешь пешку ферзём (на d5).', answers: ['d1d5'] },
-        { board: ['d1 wq', 'a1 wr', 'c1 wb', 'd5 bp', 'e1 wk', 'b8 bk'], turn: 'w', prompt: 'Съешь пешку d5 именно ферзём.', answers: ['d1d5'] } ] },
+        { board: ['d1 wq', 'h1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи ферзём.', hint: 'Ферзь ходит куда хочет — например на d7.', answers: ['d1d7'] },
+        { board: ['d1 wq', 'd5 bp', 'h1 wk', 'b8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку.', hint: 'Ферзь бьёт и прямо, и по диагонали: d1 на d5.', answers: ['d1d5'] },
+        { board: ['d1 wq', 'a1 wr', 'c1 wb', 'd5 bp', 'e1 wk', 'b8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку — но какой фигурой?', hint: 'Прямо по вертикали её возьмёт ферзь: d1 на d5.', answers: ['d1d5'] } ] },
       { id: 'm-king', title: 'Король', icon: '♚', explain: 'Король ходит на 1 клетку в любую сторону. Короля нельзя ставить под бой, и его нельзя съесть — ему объявляют мат.', steps: [
-        { board: ['e1 wk', 'e8 bk'], turn: 'w', prompt: 'Сходи королём на e2.', answers: ['e1e2'] },
-        { board: ['d5 wk', 'e5 bp', 'a1 bk'], turn: 'w', prompt: 'Съешь пешку королём (на e5).', answers: ['d5e5'] },
-        { board: ['d5 wk', 'a1 wr', 'e5 bp', 'h8 bk'], turn: 'w', prompt: 'Съешь пешку e5 именно королём.', answers: ['d5e5'] } ] }
+        { board: ['e1 wk', 'e8 bk'], turn: 'w', prompt: 'Сходи королём.', hint: 'Король ходит на 1 клетку — например на e2.', answers: ['e1e2'] },
+        { board: ['d5 wk', 'e5 bp', 'a1 bk'], turn: 'w', prompt: 'Съешь чёрную пешку.', hint: 'Король ест рядом с собой: d5 на e5.', answers: ['d5e5'] },
+        { board: ['d5 wk', 'a1 wr', 'e5 bp', 'h8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку — но какой фигурой?', hint: 'Рядом её съест король: d5 на e5.', answers: ['d5e5'] } ] }
     ]
   },
   {
     name: 'Правила и приёмы', lessons: [
       { id: 't-defend', title: 'Защита фигур', icon: '🛡️', explain: 'Если твою фигуру атакуют — её можно защитить: поставить рядом свою фигуру, которая «съест обратно», закрыться или увести. Здесь потренируемся защищать.', steps: [
-        { board: ['e4 wr', 'a1 wr', 'e8 br', 'g1 wk', 'g8 bk'], turn: 'w', prompt: 'Ладью e4 бьёт ладья e8. Защити её: поставь вторую ладью на e1.', answers: ['a1e1'] },
-        { board: ['d4 wn', 'e2 wp', 'd8 br', 'g1 wk', 'g8 bk'], turn: 'w', prompt: 'Коня d4 атакует ладья. Защити коня пешкой — сходи e2-e3.', answers: ['e2e3'] },
-        { board: ['a1 wr', 'c3 wn', 'a8 br', 'g1 wk', 'g8 bk'], turn: 'w', prompt: 'Ладью a1 бьёт ладья a8. Закройся конём — поставь его на a4 между ними.', answers: ['c3a4'] } ] },
+        { board: ['e4 wr', 'a1 wr', 'e8 br', 'g1 wk', 'g8 bk'], turn: 'w', prompt: 'Твою ладью e4 атакуют. Защити её.', hint: 'Поставь вторую ладью на e1 — будет кому взять обратно: a1 на e1.', answers: ['a1e1'] },
+        { board: ['d4 wn', 'e2 wp', 'd8 br', 'g1 wk', 'g8 bk'], turn: 'w', prompt: 'Твоего коня d4 атакуют. Защити его.', hint: 'Подопри коня пешкой: e2 на e3.', answers: ['e2e3'] },
+        { board: ['a1 wr', 'c3 wn', 'a8 br', 'g1 wk', 'g8 bk'], turn: 'w', prompt: 'Твою ладью a1 атакуют по линии. Спрячься.', hint: 'Закройся конём между ними: c3 на a4.', answers: ['c3a4'] } ] },
       { id: 't-check', title: 'Шах', icon: '⚠️', explain: 'Шах — это нападение на короля. В ответ король должен спастись: уйти, закрыться другой фигурой или съесть нападающего.', steps: [
-        { board: ['c4 wq', 'h8 bk', 'a1 wk'], turn: 'w', prompt: 'Объяви шах королю: поставь ферзя на c8 или h4.', answers: ['c4c8', 'c4h4'], goal: 'check' },
-        { board: ['d1 wq', 'b1 wn', 'h8 bk', 'a4 wk'], turn: 'w', prompt: 'Дай шах именно ферзём (на h1 или d8).', answers: ['d1h1', 'd1d8'], goal: 'check' },
-        { board: ['g4 wn', 'c1 wb', 'g8 bk', 'a1 wk'], turn: 'w', prompt: 'Дай шах конём — сходи на h6.', answers: ['g4h6'], goal: 'check' } ] },
+        { board: ['c4 wq', 'h8 bk', 'a1 wk'], turn: 'w', prompt: 'Объяви шах королю соперника.', hint: 'Ферзём на линию короля: c4 на c8 или на h4.', answers: ['c4c8', 'c4h4'], goal: 'check' },
+        { board: ['d1 wq', 'b1 wn', 'h8 bk', 'a4 wk'], turn: 'w', prompt: 'Дай шах — но правильной фигурой.', hint: 'Только ферзь дотянется: d1 на h1 или на d8.', answers: ['d1h1', 'd1d8'], goal: 'check' },
+        { board: ['g4 wn', 'c1 wb', 'g8 bk', 'a1 wk'], turn: 'w', prompt: 'Дай шах королю.', hint: 'Конём на h6 — он бьёт клетку рядом с королём: g4 на h6.', answers: ['g4h6'], goal: 'check' } ] },
       { id: 't-mate', title: 'Мат', icon: '👑', explain: 'Мат — это шах, от которого нет спасения: король не может ни уйти, ни закрыться, ни съесть. Это победа! Защита от мата на последней линии — заранее сделать «форточку» (ход крайней пешкой).', steps: [
-        { board: ['a1 wr', 'g1 wk', 'g8 bk', 'f7 bp', 'g7 bp', 'h7 bp', 'h2 wp', 'b3 wb'], turn: 'w', prompt: 'Поставь мат ладьёй по 8-й линии (не отвлекайся на другие фигуры!).', answers: ['a1a8'], goal: 'mate' },
-        { board: ['g1 wq', 'f6 wk', 'h8 bk', 'a1 wr', 'b2 wp'], turn: 'w', prompt: 'Поставь мат ферзём — сходи на g7 (король f6 защищает ферзя).', answers: ['g1g7'], goal: 'mate' },
-        { board: ['h8 bk', 'f7 wk', 'b1 wq'], turn: 'w', prompt: 'Мат в 2 хода! Ход 1: дай шах ферзём — на b8.', prompt2: 'Отлично! Ход 2: поставь мат ферзём — на h2.', plies: [ { answers: ['b1b8'], reply: 'h8h7' }, { answers: ['b8h2'] } ], goal: 'mate' } ] },
+        { board: ['a1 wr', 'g1 wk', 'g8 bk', 'f7 bp', 'g7 bp', 'h7 bp', 'h2 wp', 'b3 wb'], turn: 'w', prompt: 'Поставь мат в 1 ход.', hint: 'Ладью на 8-ю линию: a1 на a8. Свои пешки не дают королю убежать.', answers: ['a1a8'], goal: 'mate' },
+        { board: ['g1 wq', 'f6 wk', 'h8 bk', 'a1 wr', 'b2 wp'], turn: 'w', prompt: 'Поставь мат в 1 ход.', hint: 'Ферзём на g7 — король f6 его защищает: g1 на g7.', answers: ['g1g7'], goal: 'mate' },
+        { board: ['h8 bk', 'f7 wk', 'b1 wq'], turn: 'w', prompt: 'Поставь мат в 2 хода!', prompt2: 'Отлично! Теперь поставь мат вторым ходом!', hint: 'Сначала шах ферзём: b1 на b8.', hint2: 'Теперь мат ферзём: b8 на h2.', plies: [ { answers: ['b1b8'], reply: 'h8h7' }, { answers: ['b8h2'] } ], goal: 'mate' } ] },
       { id: 't-draw', title: 'Ничья', icon: '🤝', info: true, demo: ['e4 wk', 'e6 bk'], explain: 'Ничья — когда никто не выиграл. Бывает: по согласию, при вечном повторении позиции, когда не хватает фигур для мата (например, остались одни короли), по правилу 50 ходов без взятий и ходов пешкой, и при пате.', note: '📖 Тема для понимания.' },
       { id: 't-stale', title: 'Пат', icon: '😐', explain: 'Пат — у соперника нет ни одного хода, но его королю НЕ шах. Это ничья! Имея большой перевес, будь аккуратен, чтобы случайно не запатовать.', steps: [
-        { board: ['a8 bk', 'a6 wk', 'b1 wq'], turn: 'w', prompt: 'Поставь пат: сходи ферзём на b6 — королю некуда пойти, но шаха нет.', answers: ['b1b6'], goal: 'stalemate' },
-        { board: ['h8 bk', 'g6 wk', 'c1 wq'], turn: 'w', prompt: 'Поставь пат: сходи ферзём на c4 — королю некуда пойти, но шаха нет.', answers: ['c1c4'], goal: 'stalemate' } ] },
+        { board: ['a8 bk', 'a6 wk', 'b1 wq'], turn: 'w', prompt: 'Поставь пат (ничья без шаха).', hint: 'Ферзём на b6 — королю некуда пойти, но шаха нет: b1 на b6.', answers: ['b1b6'], goal: 'stalemate' },
+        { board: ['h8 bk', 'g6 wk', 'c1 wq'], turn: 'w', prompt: 'Поставь пат.', hint: 'Ферзём на c4 — король заперт, но без шаха: c1 на c4.', answers: ['c1c4'], goal: 'stalemate' } ] },
       { id: 't-develop', title: 'Развитие фигур', icon: '🚀', explain: 'Развитие — вывод фигур с начальных клеток в начале партии. Выводи коней и слонов к центру, борись за центр, потом рокируйся. Не ходи одной фигурой много раз.', steps: [
-        { board: ['b1 wn', 'e1 wk', 'e8 bk'], turn: 'w', prompt: 'Разви коня: выведи его на c3.', answers: ['b1c3'] },
-        { board: ['e4 wp', 'f1 wb', 'g1 wn', 'e1 wk', 'e8 bk'], turn: 'w', prompt: 'Разви слона на активную клетку c4.', answers: ['f1c4'] },
-        { board: ['e4 wp', 'g1 wn', 'e1 wk', 'e8 bk'], turn: 'w', prompt: 'Разви коня наف3... то есть на f3!', answers: ['g1f3'] } ] },
+        { board: ['b1 wn', 'e1 wk', 'e8 bk'], turn: 'w', prompt: 'Разви фигуру в начале партии.', hint: 'Выведи коня к центру: b1 на c3.', answers: ['b1c3'] },
+        { board: ['e4 wp', 'f1 wb', 'g1 wn', 'e1 wk', 'e8 bk'], turn: 'w', prompt: 'Разви фигуру к центру.', hint: 'Слона на активную клетку: f1 на c4.', answers: ['f1c4'] },
+        { board: ['e4 wp', 'g1 wn', 'e1 wk', 'e8 bk'], turn: 'w', prompt: 'Разви ещё одну фигуру.', hint: 'Второго коня в центр: g1 на f3.', answers: ['g1f3'] } ] },
       { id: 't-sac', title: 'Пожертвование', icon: '💥', info: true, demo: ['g1 wk', 'g8 bk', 'h6 wq', 'f6 wn', 'g7 bp'], explain: 'Жертва (пожертвование) — отдать свою фигуру, чтобы получить что-то важнее: мат или сильную атаку. Например, отдать ферзя, но следующим ходом поставить мат. Жертвуй с расчётом, а не просто так!', note: '📖 Тема для понимания.' },
       { id: 't-promo', title: 'Превращение пешки', icon: '✨', explain: 'Когда пешка доходит до последней горизонтали — она превращается в любую фигуру. Обычно выбирают ферзя, он самый сильный!', steps: [
-        { board: ['b7 wp', 'e1 wk', 'h8 bk'], turn: 'w', prompt: 'Проведи пешку на b8 и стань ферзём.', answers: ['b7b8q', 'b7b8'] },
-        { board: ['b7 wp', 'a8 br', 'e1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь ладью и превратись в ферзя — сходи b7 на a8.', answers: ['b7a8q', 'b7a8'] },
-        { board: ['g7 wp', 'b1 wr', 'h1 wn', 'e1 wk', 'a8 bk'], turn: 'w', prompt: 'Проведи в ферзи именно пешку g7 (на g8).', answers: ['g7g8q', 'g7g8'] } ] },
+        { board: ['b7 wp', 'e1 wk', 'h8 bk'], turn: 'w', prompt: 'Проведи пешку в ферзи.', hint: 'Дойди до последней линии: b7 на b8.', answers: ['b7b8q', 'b7b8'] },
+        { board: ['b7 wp', 'a8 br', 'e1 wk', 'h8 bk'], turn: 'w', prompt: 'Стань ферзём — со взятием!', hint: 'Пешка бьёт по диагонали на последнюю линию: b7 берёт a8.', answers: ['b7a8q', 'b7a8'] },
+        { board: ['g7 wp', 'b1 wr', 'h1 wn', 'e1 wk', 'a8 bk'], turn: 'w', prompt: 'Проведи в ферзи — но какой фигурой?', hint: 'Превращается только пешка: g7 на g8.', answers: ['g7g8q', 'g7g8'] } ] },
       { id: 't-fork', title: 'Вилка', icon: '🍴', explain: 'Вилка — одна фигура нападает сразу на две (и больше). Вилку могут делать ВСЕ фигуры! Потренируемся каждой.', steps: [
-        { board: ['d4 wp', 'c6 bn', 'e6 bb', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Вилка ПЕШКОЙ: сходи d4-d5 — пешка нападёт сразу на коня и слона.', answers: ['d4d5'], goal: 'fork' },
-        { board: ['e5 wn', 'h8 bk', 'd8 bq', 'a1 wk'], turn: 'w', prompt: 'Вилка КОНЁМ: сходи на f7 — шах королю и нападение на ферзя!', answers: ['e5f7'], goal: 'fork' },
-        { board: ['d3 wb', 'b1 br', 'h7 br', 'a3 wk', 'e8 bk'], turn: 'w', prompt: 'Вилка СЛОНОМ: сходи на e4 — слон нападёт сразу на две ладьи.', answers: ['d3e4'], goal: 'fork' },
-        { board: ['h5 wr', 'e8 bk', 'a5 bb', 'a1 wk'], turn: 'w', prompt: 'Вилка ЛАДЬЁЙ: сходи на e5 — шах королю и нападение на слона!', answers: ['h5e5'], goal: 'fork' },
-        { board: ['d2 wq', 'g7 bk', 'b2 bq', 'h3 wk'], turn: 'w', prompt: 'Вилка ФЕРЗЁМ: сходи на g2 — шах королю и нападение на ферзя!', answers: ['d2g2'], goal: 'fork' } ] },
+        { board: ['d4 wp', 'c6 bn', 'e6 bb', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сделай вилку — напади сразу на две фигуры.', hint: 'Пешкой: d4 на d5 — под ударом конь и слон.', answers: ['d4d5'], goal: 'fork' },
+        { board: ['e5 wn', 'h8 bk', 'd8 bq', 'a1 wk'], turn: 'w', prompt: 'Сделай вилку.', hint: 'Конём: e5 на f7 — шах королю и удар по ферзю.', answers: ['e5f7'], goal: 'fork' },
+        { board: ['d3 wb', 'b1 br', 'h7 br', 'a3 wk', 'e8 bk'], turn: 'w', prompt: 'Сделай вилку.', hint: 'Слоном: d3 на e4 — под ударом обе ладьи.', answers: ['d3e4'], goal: 'fork' },
+        { board: ['h5 wr', 'e8 bk', 'a5 bb', 'a1 wk'], turn: 'w', prompt: 'Сделай вилку.', hint: 'Ладьёй: h5 на e5 — шах королю и удар по слону.', answers: ['h5e5'], goal: 'fork' },
+        { board: ['d2 wq', 'g7 bk', 'b2 bq', 'h3 wk'], turn: 'w', prompt: 'Сделай вилку.', hint: 'Ферзём: d2 на g2 — шах королю и удар по ферзю.', answers: ['d2g2'], goal: 'fork' } ] },
       { id: 't-pin', title: 'Связка', icon: '📌', explain: 'Связка — фигура не может уйти, потому что за ней стоит более важная (например, король). Такая фигура «приклеена» к месту.', steps: [
-        { board: ['d7 bn', 'd8 bk', 'a1 wr', 'h1 wk'], turn: 'w', prompt: 'Свяжи коня: поставь ладью на d1 — за конём стоит король.', answers: ['a1d1'], goal: 'pin', pinAt: 'd7' },
-        { board: ['f1 wb', 'd5 bn', 'a8 bk', 'h1 wk'], turn: 'w', prompt: 'Свяжи коня слоном: сходи на g2 — конь d5 «приклеится» к королю a8.', answers: ['f1g2'], goal: 'pin', pinAt: 'd5' },
-        { board: ['a1 wr', 'f3 bb', 'f8 bk', 'h3 wk'], turn: 'w', prompt: 'Свяжи слона: поставь ладью на f1 — за слоном король f8.', answers: ['a1f1'], goal: 'pin', pinAt: 'f3' } ] },
+        { board: ['d7 bn', 'd8 bk', 'a1 wr', 'h1 wk'], turn: 'w', prompt: 'Свяжи фигуру соперника.', hint: 'Ладьёй на d1 — за конём стоит король: a1 на d1.', answers: ['a1d1'], goal: 'pin', pinAt: 'd7' },
+        { board: ['f1 wb', 'd5 bn', 'a8 bk', 'h1 wk'], turn: 'w', prompt: 'Свяжи коня.', hint: 'Слоном на g2 — конь d5 «приклеится» к королю: f1 на g2.', answers: ['f1g2'], goal: 'pin', pinAt: 'd5' },
+        { board: ['a1 wr', 'f3 bb', 'f8 bk', 'h3 wk'], turn: 'w', prompt: 'Свяжи слона.', hint: 'Ладьёй на f1 — за слоном король f8: a1 на f1.', answers: ['a1f1'], goal: 'pin', pinAt: 'f3' } ] },
       { id: 't-castle', title: 'Рокировка', icon: '🏰', explain: 'Рокировка — единственный ход, где двигаются сразу две фигуры: король и ладья. Король прыгает на 2 клетки к ладье, а ладья становится рядом. Условия: король и ладья ещё не ходили, между ними пусто, король не под шахом и не проходит через битое поле.', steps: [
-        { board: ['e1 wk', 'h1 wr', 'a1 wr', 'e8 bk'], turn: 'w', castling: { wK: true, wQ: true, bK: false, bQ: false }, prompt: 'Короткая рокировка — сходи королём на g1.', answers: ['e1g1'] },
-        { board: ['e1 wk', 'a1 wr', 'h1 wr', 'e8 bk'], turn: 'w', castling: { wK: true, wQ: true, bK: false, bQ: false }, prompt: 'Длинная рокировка — сходи королём на c1.', answers: ['e1c1'] } ] },
+        { board: ['e1 wk', 'h1 wr', 'a1 wr', 'e8 bk'], turn: 'w', castling: { wK: true, wQ: true, bK: false, bQ: false }, prompt: 'Сделай короткую рокировку.', hint: 'Король прыгает к ближней ладье: e1 на g1.', answers: ['e1g1'] },
+        { board: ['e1 wk', 'a1 wr', 'h1 wr', 'e8 bk'], turn: 'w', castling: { wK: true, wQ: true, bK: false, bQ: false }, prompt: 'Сделай длинную рокировку.', hint: 'Король прыгает к дальней ладье: e1 на c1.', answers: ['e1c1'] } ] },
       { id: 't-deflect', title: 'Отвлечение', icon: '🎣', info: true, demo: ['g1 wk', 'g8 bk', 'a8 br', 'e1 wr', 'a1 wq'], explain: 'Отвлечение — заставить фигуру соперника уйти с важного места. Если фигура защищает поле мата или другую фигуру — напади на неё или отдай что-нибудь, чтобы она отвлеклась, и тогда бей!', note: '📖 Тема для понимания.' },
       { id: 't-zug', title: 'Цугцванг', icon: '⛓️', info: true, demo: ['e6 wk', 'e8 bk', 'e5 wp'], explain: 'Цугцванг — положение, где ЛЮБОЙ ход только вредит. Игрок и рад бы «пропустить» ход, но по правилам ходить обязан — и портит свою позицию. Часто встречается в эндшпиле, когда фигур мало.', note: '📖 Тема для понимания.' }
     ]
@@ -1511,8 +1511,22 @@
     $('tutExplain').innerHTML = step.explain || run.explain || '';
     const n = run.steps.length; const prog = n > 1 ? ` (${run.idx + 1}/${n})` : '';
     $('tutPrompt').innerHTML = `<b>Задание${prog}:</b> ${step.prompt}<br><span class="tut-hint">Твой ход белыми — нажми на фигуру, потом на клетку.</span>`;
-    $('tutActions').innerHTML = '';
     renderTutBoard();
+    renderTaskActions();
+  }
+
+  // Кнопка «Подсказка» во время задания
+  function renderTaskActions() {
+    const run = tut.run; if (!run) return; const step = run.steps[run.idx];
+    const hints = step._hints || (step._hints = step.hints || [step.hint || '']);
+    const h = hints[run.plyIdx] || hints[0] || '';
+    $('tutActions').innerHTML = h ? `<button class="ch-btn" id="tutHint">💡 Подсказка</button>` : '';
+    const btn = $('tutHint');
+    if (btn) btn.addEventListener('click', () => {
+      const old = $('tutActions').querySelector('.tut-hintbox'); if (old) old.remove();
+      const box = document.createElement('div'); box.className = 'tut-hintbox'; box.innerHTML = '💡 ' + h;
+      $('tutActions').appendChild(box);
+    });
   }
 
   function renderTutBoard() {
@@ -1567,6 +1581,7 @@
       }
       run.plyIdx++; tut.locked = false; renderTutBoard();
       $('tutPrompt').innerHTML = `<b>Продолжай:</b> ${step.prompt2 || step.prompt}<br><span class="tut-hint">Твой ход.</span>`;
+      renderTaskActions();
     }, 550);
   }
 
