@@ -162,7 +162,26 @@
         <button id="startBtn" class="ch-start">Начать партию ▶</button>
         <button id="viewBtn" class="ch-view">📊 Посмотреть результаты</button>
         <button id="achBtn" class="ch-view">🏆 Достижения</button>
+        <button id="tutBtn" class="ch-view">📚 Обучение</button>
       </section>
+
+      <section id="tutorScreen" class="ch-screen" hidden>
+        <div class="ch-tutor-head">
+          <button class="ch-btn" id="tutBack">← Назад</button>
+          <h2 id="tutTitle">📚 Обучение</h2>
+        </div>
+        <div id="tutMenu">
+          <button class="ch-start" id="tutReview">🔁 Повторение всех тем</button>
+          <div id="tutSections"></div>
+        </div>
+        <div id="tutLesson" hidden>
+          <div class="ch-tutor-explain" id="tutExplain"></div>
+          <div class="ch-board-wrap"><div class="ch-board" id="tutBoard"></div></div>
+          <div class="ch-tutor-prompt" id="tutPrompt"></div>
+          <div class="ch-tutor-actions" id="tutActions"></div>
+        </div>
+      </section>
+      <div id="tutFlash"></div>
 
       <section id="gameScreen" class="ch-screen" hidden>
         <div class="ch-fliparea" id="flipArea">
@@ -434,6 +453,7 @@
     closeOnline();
     $('setupScreen').hidden = false;
     $('gameScreen').hidden = true;
+    $('tutorScreen').hidden = true;
     updateSetupVisibility();
     renderRank();
   }
@@ -1338,6 +1358,217 @@
     setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 2400);
   }
 
+  /* ========================================================
+     ОБУЧЕНИЕ (интерактивные уроки)
+     ======================================================== */
+  function playGoodSound() {
+    if (!app.soundOn) return; const ctx = getAudio(); if (!ctx) return; if (ctx.state === 'suspended') ctx.resume();
+    const t = ctx.currentTime;
+    const note = (f, s, d) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.3, s + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, s + d); o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + d + 0.02); };
+    note(523, t, 0.12); note(659, t + 0.1, 0.12); note(784, t + 0.2, 0.2);
+  }
+  function playBadSound() {
+    if (!app.soundOn) return; const ctx = getAudio(); if (!ctx) return; if (ctx.state === 'suspended') ctx.resume();
+    const t = ctx.currentTime; thump(ctx, t, 200, 80, 0.32, 0.28, 'sawtooth'); noiseBurst(ctx, t, 0.14, 'lowpass', 480, 0.14);
+  }
+
+  // Разделы и уроки. steps: массив задач-позиций; info:true — тема «для понимания».
+  const TUT_SECTIONS = [
+    {
+      name: 'Движение фигур', lessons: [
+        { id: 'm-pawn', title: 'Пешка', icon: '♟', explain: 'Пешка ходит только вперёд: на 1 клетку, а с начального места — сразу на 2. А ест по-другому — по диагонали на 1 клетку вперёд.', steps: [
+          { board: ['e2 wp', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи пешкой вперёд на 2 клетки — на e4.', answers: ['e2e4'] },
+          { board: ['d4 wp', 'e5 bp', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь чёрную пешку по диагонали.', answers: ['d4e5'] } ] },
+        { id: 'm-knight', title: 'Конь', icon: '♞', explain: 'Конь ходит буквой «Г»: две клетки прямо и одну вбок. Он единственный, кто перепрыгивает через другие фигуры! Ест туда же, куда ходит.', steps: [
+          { board: ['e4 wn', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи конём на f6.', answers: ['e4f6'] },
+          { board: ['e4 wn', 'f6 bp', 'a1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь пешку конём (на f6).', answers: ['e4f6'] } ] },
+        { id: 'm-bishop', title: 'Слон', icon: '♝', explain: 'Слон ходит по диагоналям на любое число клеток. Ест туда же. Каждый слон всю партию ходит по клеткам одного цвета.', steps: [
+          { board: ['c1 wb', 'a1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи слоном на h6.', answers: ['c1h6'] },
+          { board: ['c1 wb', 'g5 bp', 'a1 wk', 'a8 bk'], turn: 'w', prompt: 'Съешь пешку слоном (на g5).', answers: ['c1g5'] } ] },
+        { id: 'm-rook', title: 'Ладья', icon: '♜', explain: 'Ладья ходит по прямым — по вертикали и горизонтали — на любое число клеток. Ест туда же.', steps: [
+          { board: ['a1 wr', 'h1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи ладьёй на a8.', answers: ['a1a8'] },
+          { board: ['a1 wr', 'a6 bp', 'h1 wk', 'h8 bk'], turn: 'w', prompt: 'Съешь пешку ладьёй (на a6).', answers: ['a1a6'] } ] },
+        { id: 'm-queen', title: 'Ферзь', icon: '♛', explain: 'Ферзь — самая сильная фигура: ходит и как ладья, и как слон (прямо и по диагонали) на любое число клеток.', steps: [
+          { board: ['d1 wq', 'h1 wk', 'h8 bk'], turn: 'w', prompt: 'Сходи ферзём на d7.', answers: ['d1d7'] },
+          { board: ['d1 wq', 'd5 bp', 'h1 wk', 'b8 bk'], turn: 'w', prompt: 'Съешь пешку ферзём (на d5).', answers: ['d1d5'] } ] },
+        { id: 'm-king', title: 'Король', icon: '♚', explain: 'Король ходит на 1 клетку в любую сторону. Короля нельзя ставить под бой, и его нельзя съесть — ему объявляют мат.', steps: [
+          { board: ['e1 wk', 'e8 bk'], turn: 'w', prompt: 'Сходи королём на e2.', answers: ['e1e2'] },
+          { board: ['d5 wk', 'e5 bp', 'a1 bk'], turn: 'w', prompt: 'Съешь пешку королём (на e5).', answers: ['d5e5'] } ] }
+      ]
+    },
+    {
+      name: 'Правила и приёмы', lessons: [
+        { id: 't-defend', title: 'Защита фигур', icon: '🛡️', explain: 'Если твою фигуру атакуют — её можно защитить: поставить рядом свою фигуру, которая «съест обратно», если соперник возьмёт. Здесь ладью e4 бьёт чёрная ладья e8.', steps: [
+          { board: ['e4 wr', 'a1 wr', 'e8 br', 'g1 wk', 'g8 bk'], turn: 'w', prompt: 'Защити ладью e4: поставь вторую ладью на e1.', answers: ['a1e1'] } ] },
+        { id: 't-check', title: 'Шах', icon: '⚠️', explain: 'Шах — это нападение на короля. В ответ король должен спастись: уйти, закрыться другой фигурой или съесть нападающего.', steps: [
+          { board: ['c4 wq', 'h8 bk', 'a1 wk'], turn: 'w', prompt: 'Объяви шах королю: поставь ферзя на c8 или h4.', answers: ['c4c8', 'c4h4'] } ] },
+        { id: 't-mate', title: 'Мат', icon: '👑', explain: 'Мат — это шах, от которого нет спасения: король не может ни уйти, ни закрыться, ни съесть. Это победа! Защита от мата на последней линии — заранее сделать «форточку» (ход крайней пешкой, например h2-h3).', steps: [
+          { board: ['a1 wr', 'g1 wk', 'g8 bk', 'f7 bp', 'g7 bp', 'h7 bp'], turn: 'w', prompt: 'Поставь мат ладьёй по 8-й линии (пешки мешают королю убежать).', answers: ['a1a8'] } ] },
+        { id: 't-draw', title: 'Ничья', icon: '🤝', info: true, demo: ['e4 wk', 'e6 bk'], explain: 'Ничья — когда никто не выиграл. Бывает: по согласию, при вечном повторении позиции, когда не хватает фигур для мата (например, остались одни короли), по правилу 50 ходов без взятий и ходов пешкой, и при пате.', note: '📖 Тема для понимания.' },
+        { id: 't-stale', title: 'Пат', icon: '😐', explain: 'Пат — у соперника нет ни одного хода, но его королю НЕ шах. Это ничья! Имея большой перевес, будь аккуратен, чтобы случайно не запатовать.', steps: [
+          { board: ['a8 bk', 'a6 wk', 'b1 wq'], turn: 'w', prompt: 'Поставь пат: сходи ферзём на b6 — королю некуда пойти, но шаха нет.', answers: ['b1b6'] } ] },
+        { id: 't-develop', title: 'Развитие фигур', icon: '🚀', explain: 'Развитие — вывод фигур с начальных клеток в начале партии. Выводи коней и слонов к центру, борись за центр, потом рокируйся. Не ходи одной фигурой много раз.', steps: [
+          { board: ['b1 wn', 'e1 wk', 'e8 bk'], turn: 'w', prompt: 'Разви коня: выведи его на c3.', answers: ['b1c3'] } ] },
+        { id: 't-sac', title: 'Пожертвование', icon: '💥', info: true, demo: ['g1 wk', 'g8 bk', 'h6 wq', 'f6 wn', 'g7 bp'], explain: 'Жертва (пожертвование) — отдать свою фигуру, чтобы получить что-то важнее: мат или сильную атаку. Например, отдать ферзя, но следующим ходом поставить мат. Жертвуй с расчётом, а не просто так!', note: '📖 Тема для понимания.' },
+        { id: 't-promo', title: 'Превращение пешки', icon: '✨', explain: 'Когда пешка доходит до последней горизонтали — она превращается в любую фигуру. Обычно выбирают ферзя, он самый сильный!', steps: [
+          { board: ['b7 wp', 'e1 wk', 'h8 bk'], turn: 'w', prompt: 'Проведи пешку на b8 и стань ферзём.', answers: ['b7b8q', 'b7b8'] } ] },
+        { id: 't-fork', title: 'Вилка', icon: '🍴', explain: 'Вилка — одна фигура нападает сразу на две (и больше). Особенно любит вилки конь: он может напасть на короля и ферзя одновременно.', steps: [
+          { board: ['e5 wn', 'h8 bk', 'd8 bq', 'a1 wk'], turn: 'w', prompt: 'Сделай вилку конём: сходи на f7 — шах королю и нападение на ферзя!', answers: ['e5f7'] } ] },
+        { id: 't-pin', title: 'Связка', icon: '📌', explain: 'Связка — фигура не может уйти, потому что за ней стоит более важная (например, король). Такая фигура «приклеена» к месту.', steps: [
+          { board: ['d7 bn', 'd8 bk', 'a1 wr', 'h1 wk'], turn: 'w', prompt: 'Свяжи коня: поставь ладью на d1 — за конём стоит король, коню нельзя ходить.', answers: ['a1d1'] } ] },
+        { id: 't-castle', title: 'Рокировка', icon: '🏰', explain: 'Рокировка — единственный ход, где двигаются сразу две фигуры: король и ладья. Король прыгает на 2 клетки к ладье, а ладья становится рядом. Условия: король и ладья ещё не ходили, между ними пусто, король не под шахом и не проходит через битое поле.', steps: [
+          { board: ['e1 wk', 'h1 wr', 'a1 wr', 'e8 bk'], turn: 'w', castling: { wK: true, wQ: true, bK: false, bQ: false }, prompt: 'Сделай короткую рокировку — сходи королём на g1.', answers: ['e1g1', 'e1c1'] } ] },
+        { id: 't-deflect', title: 'Отвлечение', icon: '🎣', info: true, demo: ['g1 wk', 'g8 bk', 'a8 br', 'e1 wr', 'a1 wq'], explain: 'Отвлечение — заставить фигуру соперника уйти с важного места. Если фигура защищает поле мата или другую фигуру — напади на неё или отдай что-нибудь, чтобы она отвлеклась, и тогда бей!', note: '📖 Тема для понимания.' },
+        { id: 't-zug', title: 'Цугцванг', icon: '⛓️', info: true, demo: ['e6 wk', 'e8 bk', 'e5 wp'], explain: 'Цугцванг — положение, где ЛЮБОЙ ход только вредит. Игрок и рад бы «пропустить» ход, но по правилам ходить обязан — и портит свою позицию. Часто встречается в эндшпиле, когда фигур мало.', note: '📖 Тема для понимания.' }
+      ]
+    }
+  ];
+  const TUT_BY_ID = {}; for (const sec of TUT_SECTIONS) for (const L of sec.lessons) TUT_BY_ID[L.id] = L;
+
+  const tut = { run: null, state: null, sel: -1, legal: [], lastMove: null, locked: false, info: false };
+
+  function tutParse(list) { const b = new Array(64).fill(null); for (const it of list) { const sp = it.split(' '); b[C.nameToSq(sp[0])] = sp[1]; } return b; }
+  function tutState(step) { return { board: tutParse(step.board), turn: step.turn || 'w', castling: step.castling || { wK: false, wQ: false, bK: false, bQ: false }, ep: -1, half: 0, full: 1 }; }
+
+  function openTutorial() { unlockAudio(); $('setupScreen').hidden = true; $('gameScreen').hidden = true; $('tutorScreen').hidden = false; showTutMenu(); }
+  function showTutMenu() { tut.run = null; tut.info = false; tut.locked = true; $('tutTitle').textContent = '📚 Обучение'; $('tutMenu').hidden = false; $('tutLesson').hidden = true; renderTutMenu(); }
+  function tutBackAction() { if (!$('tutLesson').hidden) { showTutMenu(); } else { $('tutorScreen').hidden = true; showSetup(); } }
+
+  function renderTutMenu() {
+    let html = '';
+    for (const sec of TUT_SECTIONS) {
+      html += `<div class="ch-ach-head">${sec.name}</div><div class="ch-tut-grid">`;
+      for (const L of sec.lessons) html += `<button class="ch-tut-card" data-lid="${L.id}"><span class="tc-ico">${L.icon}</span><span class="tc-t">${L.title}</span></button>`;
+      html += '</div>';
+    }
+    $('tutSections').innerHTML = html;
+    document.querySelectorAll('#tutSections .ch-tut-card').forEach(b => b.addEventListener('click', () => openLesson(b.dataset.lid)));
+  }
+
+  function openLesson(id) { const L = TUT_BY_ID[id]; if (!L) return; if (L.info) showTutInfo(L); else startLesson(L); }
+
+  function showTutInfo(L) {
+    tut.info = true; tut.run = null; tut.locked = true;
+    $('tutTitle').textContent = L.icon + ' ' + L.title;
+    $('tutMenu').hidden = true; $('tutLesson').hidden = false;
+    tut.state = tutState({ board: L.demo || ['e1 wk', 'e8 bk'], turn: 'w' });
+    tut.sel = -1; tut.legal = []; tut.lastMove = null;
+    $('tutExplain').innerHTML = L.explain;
+    $('tutPrompt').innerHTML = L.note || '📖 Тема для понимания.';
+    $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutInfoOk">Понятно →</button>`;
+    $('tutInfoOk').addEventListener('click', showTutMenu);
+    renderTutBoard();
+  }
+
+  function startLesson(L) {
+    tut.info = false;
+    tut.run = { title: L.title, icon: L.icon, explain: L.explain, steps: L.steps.map(s => ({ ...s })), idx: 0, reviewMode: false };
+    $('tutTitle').textContent = L.icon + ' ' + L.title;
+    $('tutMenu').hidden = true; $('tutLesson').hidden = false;
+    loadRunStep();
+  }
+
+  function startReview() {
+    const steps = [];
+    for (const sec of TUT_SECTIONS) for (const L of sec.lessons) if (L.steps) for (const s of L.steps) steps.push({ ...s, explain: `<b>${L.icon} ${L.title}.</b> ${L.explain}` });
+    if (!steps.length) return;
+    tut.info = false;
+    tut.run = { title: 'Повторение', explain: '', steps, idx: 0, reviewMode: true };
+    $('tutTitle').textContent = '🔁 Повторение всех тем';
+    $('tutMenu').hidden = true; $('tutLesson').hidden = false;
+    loadRunStep();
+  }
+
+  function loadRunStep() {
+    const run = tut.run; const step = run.steps[run.idx];
+    tut.state = tutState(step); tut.sel = -1; tut.legal = []; tut.lastMove = null; tut.locked = false;
+    $('tutExplain').innerHTML = step.explain || run.explain || '';
+    const n = run.steps.length; const prog = n > 1 ? ` (${run.idx + 1}/${n})` : '';
+    $('tutPrompt').innerHTML = `<b>Задание${prog}:</b> ${step.prompt}<br><span class="tut-hint">Твой ход белыми — нажми на фигуру, потом на клетку.</span>`;
+    $('tutActions').innerHTML = '';
+    renderTutBoard();
+  }
+
+  function renderTutBoard() {
+    const el = $('tutBoard'); if (!el) return; el.innerHTML = '';
+    for (let rr = 7; rr >= 0; rr--) for (let ff = 0; ff < 8; ff++) {
+      const f = ff, r = rr, s = C.sq(f, r);
+      const cell = document.createElement('div');
+      cell.className = 'ch-sq ' + ((f + r) % 2 === 0 ? 'dark' : 'light');
+      cell.dataset.sq = s;
+      if (ff === 0) { const rk = document.createElement('span'); rk.className = 'ch-coord ch-coord-rank'; rk.textContent = r + 1; cell.appendChild(rk); }
+      if (rr === 0) { const fl = document.createElement('span'); fl.className = 'ch-coord ch-coord-file'; fl.textContent = FILE_LETTER(f); cell.appendChild(fl); }
+      if (tut.lastMove && (tut.lastMove.from === s || tut.lastMove.to === s)) cell.classList.add('last');
+      if (tut.sel === s) cell.classList.add('sel');
+      const p = tut.state.board[s];
+      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.textContent = GLYPH[C.typeOf(p)]; cell.appendChild(pc); }
+      if (tut.legal.some(m => m.to === s)) { const dot = document.createElement('span'); dot.className = 'ch-dot' + (tut.state.board[s] ? ' cap' : ''); cell.appendChild(dot); }
+      if (p && C.typeOf(p) === 'k' && C.inCheck(tut.state, C.colorOf(p))) cell.classList.add('check');
+      cell.addEventListener('pointerdown', () => onTutTap(s));
+      el.appendChild(cell);
+    }
+  }
+
+  function onTutTap(s) {
+    if (tut.locked) return; unlockAudio();
+    const st = tut.state; const p = st.board[s];
+    if (tut.sel >= 0 && tut.legal.some(m => m.to === s)) { doTutMove(tut.sel, s); return; }
+    if (p && C.colorOf(p) === st.turn) { tut.sel = s; tut.legal = C.legalMovesFrom(st, s); renderTutBoard(); return; }
+    tut.sel = -1; tut.legal = []; renderTutBoard();
+  }
+
+  function doTutMove(from, to) {
+    const st = tut.state;
+    let mv = C.legalMovesFrom(st, from).find(m => m.to === to && (!m.promo || m.promo === 'q'));
+    if (!mv) mv = C.legalMovesFrom(st, from).find(m => m.to === to);
+    if (!mv) return;
+    const code = C.sqName(from) + C.sqName(to) + (mv.promo || '');
+    const step = tut.run.steps[tut.run.idx];
+    const ok = step.answers.indexOf(code) >= 0 || step.answers.indexOf(C.sqName(from) + C.sqName(to)) >= 0;
+    if (ok) { C.makeMove(st, mv); tut.lastMove = { from, to }; tut.sel = -1; tut.legal = []; renderTutBoard(); tutGood(); }
+    else { tut.sel = -1; tut.legal = []; renderTutBoard(); tutBad(); }
+  }
+
+  function flashTut(kind) { const fl = $('tutFlash'); if (!fl) return; fl.className = ''; void fl.offsetWidth; fl.className = 'show ' + kind; }
+
+  function tutGood() {
+    tut.locked = true; flashTut('good'); playGoodSound();
+    const run = tut.run; const last = run.idx >= run.steps.length - 1;
+    $('tutPrompt').innerHTML = '✅ <b>Верно!</b> Отличный ход!';
+    $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutNext">${last ? '🎉 Готово' : 'Продолжить →'}</button>`;
+    $('tutNext').addEventListener('click', () => { if (last) finishRun(); else { run.idx++; loadRunStep(); } });
+  }
+
+  function tutBad() {
+    tut.locked = true; flashTut('bad'); playBadSound();
+    $('tutPrompt').innerHTML = '❌ <b>Не тот ход.</b> Попробуй ещё раз!';
+    $('tutActions').innerHTML = `<button class="ch-btn" id="tutRetry">↻ Ещё раз</button><button class="ch-btn ch-btn-primary" id="tutShow">💡 Показать ответ и дальше</button>`;
+    $('tutRetry').addEventListener('click', () => loadRunStep());
+    $('tutShow').addEventListener('click', showTutAnswer);
+  }
+
+  function showTutAnswer() {
+    const run = tut.run; const step = run.steps[run.idx]; const ans = step.answers[0];
+    tut.state = tutState(step);
+    const from = C.nameToSq(ans.substr(0, 2)), to = C.nameToSq(ans.substr(2, 2)), promo = ans[4] || '';
+    let mv = C.legalMovesFrom(tut.state, from).find(m => m.to === to && (!promo || m.promo === promo));
+    if (!mv) mv = C.legalMovesFrom(tut.state, from).find(m => m.to === to);
+    if (mv) { C.makeMove(tut.state, mv); tut.lastMove = { from, to }; }
+    tut.sel = -1; tut.legal = []; tut.locked = true; renderTutBoard();
+    const last = run.idx >= run.steps.length - 1;
+    $('tutPrompt').innerHTML = '💡 Вот правильный ход. Запомни его!';
+    $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutNext2">${last ? '🎉 Готово' : 'Дальше →'}</button>`;
+    $('tutNext2').addEventListener('click', () => { if (last) finishRun(); else { run.idx++; loadRunStep(); } });
+  }
+
+  function finishRun() {
+    flashTut('good'); playGoodSound(); tut.locked = true;
+    $('tutExplain').innerHTML = tut.run.reviewMode ? '🏆 Ты повторил все темы! Ты молодец!' : '🎉 Урок пройден! Отличная работа!';
+    $('tutPrompt').innerHTML = '';
+    $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutDone">← В меню обучения</button>`;
+    $('tutDone').addEventListener('click', showTutMenu);
+  }
+
   function copyText(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
     try { return Promise.resolve(document.execCommand('copy')); } catch (e) { return Promise.resolve(false); }
@@ -1392,6 +1623,9 @@
     $('histClear').addEventListener('click', () => { if (confirm('Очистить историю партий?')) { saveHist([]); openHistory(); } });
     $('achBtn').addEventListener('click', openAch);
     $('achClose').addEventListener('click', () => { $('achModal').hidden = true; });
+    $('tutBtn').addEventListener('click', openTutorial);
+    $('tutBack').addEventListener('click', tutBackAction);
+    $('tutReview').addEventListener('click', startReview);
     $('ranksBtn').addEventListener('click', openRanks);
     $('ranksClose').addEventListener('click', () => { $('ranksModal').hidden = true; });
   }

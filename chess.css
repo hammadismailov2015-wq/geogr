@@ -338,6 +338,32 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 
 .ch-gametime { text-align: center; margin: 0 auto 8px; font-size: 13px; font-weight: 700; color: #cdd5f0; font-variant-numeric: tabular-nums; opacity: .85; }
 
+/* ---------- ОБУЧЕНИЕ ---------- */
+.ch-tutor-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.ch-tutor-head h2 { margin: 0; font-size: 22px; }
+#tutReview { margin-bottom: 6px; }
+.ch-tut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 6px; }
+.ch-tut-card {
+  display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 14px; cursor: pointer;
+  background: var(--panel2); border: 1px solid var(--line); color: var(--text); font-size: 15px; font-weight: 700;
+  text-align: left; transition: .14s;
+}
+.ch-tut-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.ch-tut-card .tc-ico { font-size: 24px; flex: none; }
+.ch-tutor-explain {
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
+  margin-bottom: 12px; font-size: 15px; line-height: 1.45; color: #dfe4f5;
+}
+.ch-tutor-explain b { color: #ffe08a; }
+.ch-tutor-prompt { text-align: center; margin: 12px auto 10px; font-size: 16px; font-weight: 700; color: #eef1fb; max-width: 560px; }
+.ch-tutor-prompt .tut-hint { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 4px; }
+.ch-tutor-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+
+#tutFlash { position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 130; }
+#tutFlash.show.good { animation: tutflash .65s ease-out; background: radial-gradient(circle at 50% 45%, rgba(70, 220, 120, .5), rgba(70, 220, 120, 0) 70%); }
+#tutFlash.show.bad { animation: tutflash .65s ease-out; background: radial-gradient(circle at 50% 45%, rgba(255, 70, 70, .5), rgba(255, 70, 70, 0) 70%); }
+@keyframes tutflash { 0% { opacity: .85; } 100% { opacity: 0; } }
+
 .ch-board-wrap { display: flex; justify-content: center; }
 .ch-board {
   width: min(92vw, 560px); aspect-ratio: 1/1;
