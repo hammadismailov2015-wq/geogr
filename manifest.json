@@ -1,6 +1,6 @@
 {
-  "name": "МатШахи",
-  "short_name": "МатШахи",
+  "name": "Матшахи",
+  "short_name": "Матшахи",
   "description": "Шахматы: с ботом, с другом онлайн или рядом друг с другом.",
   "id": "geogr-chess",
   "start_url": "chess.html",

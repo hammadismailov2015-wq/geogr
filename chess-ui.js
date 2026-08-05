@@ -95,7 +95,7 @@
       <section id="setupScreen" class="ch-screen">
         <div class="ch-hero">
           <div class="ch-rank" id="rankBadge"></div>
-          <h2>МатШахи</h2>
+          <h2>Матшахи</h2>
           <p class="ch-rank-info" id="rankInfo"></p>
           <button id="ranksBtn" class="ch-rank-btn">🏅 Посмотреть все ранги</button>
           <p>Выберите режим и настройки — и в бой.</p>
