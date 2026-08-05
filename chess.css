@@ -346,7 +346,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-tut-count { text-align: center; font-weight: 800; color: #ffe08a; margin-bottom: 12px; font-size: 14px; }
 .ch-tut-card {
   display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 14px; cursor: pointer;
-  background: rgba(120, 130, 160, .12); border: 1px solid var(--line); color: #aeb6cf; font-size: 15px; font-weight: 700;
+  background: rgba(16, 19, 33, .82); border: 1px solid var(--line); color: #9aa2bd; font-size: 15px; font-weight: 700;
   text-align: left; transition: .14s;
 }
 .ch-tut-card:hover { border-color: var(--accent); transform: translateY(-2px); }
