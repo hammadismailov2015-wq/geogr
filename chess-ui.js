@@ -1462,11 +1462,22 @@
   function showTutMenu() { tut.run = null; tut.info = false; tut.locked = true; $('tutTitle').textContent = '📚 Обучение'; $('tutMenu').hidden = false; $('tutLesson').hidden = true; renderTutMenu(); }
   function tutBackAction() { if (!$('tutLesson').hidden) { showTutMenu(); } else { $('tutorScreen').hidden = true; showSetup(); } }
 
+  // Пройденные темы (зелёные) хранятся между запусками
+  const TUT_DONE_KEY = 'chessTutDone';
+  function loadTutDone() { try { const a = JSON.parse(localStorage.getItem(TUT_DONE_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function markTutDone(id) { if (!id) return; const a = loadTutDone(); if (a.indexOf(id) < 0) { a.push(id); try { localStorage.setItem(TUT_DONE_KEY, JSON.stringify(a)); } catch (e) { } } }
+
   function renderTutMenu() {
-    let html = '';
+    const done = loadTutDone();
+    let total = 0, doneCount = 0;
+    for (const sec of TUT_SECTIONS) for (const L of sec.lessons) { total++; if (done.indexOf(L.id) >= 0) doneCount++; }
+    let html = `<div class="ch-tut-count">Пройдено тем: ${doneCount} из ${total}</div>`;
     for (const sec of TUT_SECTIONS) {
       html += `<div class="ch-ach-head">${sec.name}</div><div class="ch-tut-grid">`;
-      for (const L of sec.lessons) html += `<button class="ch-tut-card" data-lid="${L.id}"><span class="tc-ico">${L.icon}</span><span class="tc-t">${L.title}</span></button>`;
+      for (const L of sec.lessons) {
+        const ok = done.indexOf(L.id) >= 0;
+        html += `<button class="ch-tut-card${ok ? ' done' : ''}" data-lid="${L.id}"><span class="tc-ico">${L.icon}</span><span class="tc-t">${L.title}</span><span class="tc-status">${ok ? '✅' : ''}</span></button>`;
+      }
       html += '</div>';
     }
     $('tutSections').innerHTML = html;
@@ -1490,7 +1501,7 @@
 
   function startLesson(L) {
     tut.info = false;
-    tut.run = { title: L.title, icon: L.icon, explain: L.explain, steps: L.steps.map(s => ({ ...s })), idx: 0, reviewMode: false };
+    tut.run = { title: L.title, icon: L.icon, explain: L.explain, lessonId: L.id, steps: L.steps.map(s => ({ ...s })), idx: 0, reviewMode: false };
     $('tutTitle').textContent = L.icon + ' ' + L.title;
     $('tutMenu').hidden = true; $('tutLesson').hidden = false;
     loadRunStep();
@@ -1626,6 +1637,8 @@
 
   function finishRun() {
     flashTut('good'); playGoodSound(); tut.locked = true;
+    if (tut.run.reviewMode) { for (const sec of TUT_SECTIONS) for (const L of sec.lessons) markTutDone(L.id); }
+    else markTutDone(tut.run.lessonId);
     $('tutExplain').innerHTML = tut.run.reviewMode ? '🏆 Ты повторил все темы! Ты молодец!' : '🎉 Урок пройден! Отличная работа!';
     $('tutPrompt').innerHTML = '';
     $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutDone">← В меню обучения</button>`;
