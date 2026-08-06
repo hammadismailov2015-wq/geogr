@@ -171,7 +171,7 @@
           <h2 id="tutTitle">📚 Обучение</h2>
         </div>
         <div id="tutMenu">
-          <button class="ch-start" id="tutReview">🔁 Повторение всех тем</button>
+          <button class="ch-start" id="tutReview">📝 Проверка знаний</button>
           <button class="ch-start ch-start-game" id="tutGameBtn">🎮 Игра — повторение</button>
           <div id="tutSections"></div>
         </div>
@@ -1490,10 +1490,10 @@
     // без объяснения темы — только задание (это проверка, а не урок)
     for (const sec of TUT_SECTIONS) for (const L of sec.lessons) if (L.steps) for (const s of L.steps) steps.push({ ...s, explain: '' });
     if (!steps.length) return;
-    steps = shuffleArr(steps);   // задания вперемешку
+    steps = shuffleArr(steps).slice(0, 30);   // 30 заданий вперемешку
     tut.info = false;
-    tut.run = { title: 'Повторение', explain: '', steps, idx: 0, reviewMode: true };
-    $('tutTitle').textContent = '🔁 Повторение всех тем';
+    tut.run = { title: 'Проверка знаний', explain: '', steps, idx: 0, reviewMode: true };
+    $('tutTitle').textContent = '📝 Проверка знаний';
     $('tutMenu').hidden = true; $('tutLesson').hidden = false;
     loadRunStep();
   }
@@ -1622,7 +1622,7 @@
     flashTut('good'); playGoodSound(); tut.locked = true;
     if (tut.run.reviewMode) { for (const sec of TUT_SECTIONS) for (const L of sec.lessons) markTutDone(L.id); }
     else markTutDone(tut.run.lessonId);
-    $('tutExplain').innerHTML = tut.run.reviewMode ? '🏆 Ты повторил все темы! Ты молодец!' : '🎉 Урок пройден! Отличная работа!'; $('tutExplain').hidden = false;
+    $('tutExplain').innerHTML = tut.run.reviewMode ? '🏆 Проверка знаний пройдена! Ты молодец!' : '🎉 Урок пройден! Отличная работа!'; $('tutExplain').hidden = false;
     $('tutPrompt').innerHTML = '';
     $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutDone">← В меню обучения</button>`;
     $('tutDone').addEventListener('click', showTutMenu);
