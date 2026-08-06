@@ -50,7 +50,7 @@
         client = mqtt.connect(url, { clientId, clean: true, connectTimeout: 8000, reconnectPeriod: 3000, keepalive: 30 });
       } catch (e) { handlers.onFail && handlers.onFail('err'); return null; }
       client.on('connect', () => { opened = true; client.subscribe(topic, { qos: 0 }); handlers.onOpen && handlers.onOpen(); });
-      client.on('message', (t, payload) => { let o; try { o = JSON.parse(payload.toString()); } catch (e) { return; } handlers.onMessage && handlers.onMessage(o); });
+      client.on('message', (t, payload, packet) => { let o; try { o = JSON.parse(payload.toString()); } catch (e) { return; } handlers.onMessage && handlers.onMessage(o, !!(packet && packet.retain)); });
       client.on('reconnect', () => handlers.onReconnect && handlers.onReconnect());
       client.on('close', () => handlers.onClose && handlers.onClose());
       client.on('error', () => { });
@@ -58,7 +58,7 @@
       setTimeout(() => { if (active && !opened) handlers.onFail && handlers.onFail('timeout'); }, 15000);
       return {
         id: clientId,
-        publish(obj) { try { if (client && client.connected) client.publish(topic, JSON.stringify(obj), { qos: 0 }); } catch (e) { } },
+        publish(obj, retain) { try { if (client && client.connected) client.publish(topic, JSON.stringify(obj), { qos: 0, retain: !!retain }); } catch (e) { } },
         close() { active = false; try { client && client.end(true); } catch (e) { } }
       };
     }
@@ -525,6 +525,7 @@
     const host = app.myColor;
     app.online = { on: true, role: 'host', room, myColor: host, hostColor: host, myId: null, net: null, connected: false, peerReady: false, failed: false, timeMin: setup.timeMin, moveLim: setup.moveLim };
     initClock();
+    saveOnlineGame();
     connectOnline();
     enterGameScreen();
   }
@@ -534,7 +535,6 @@
     if (!params.room) { showSetup(); return; }
     app.theme = localStorage.getItem('chessTheme') || 'classic'; applyTheme(app.theme);
     if (!netAvailable()) {
-      // без библиотеки живьём не подключиться
       app.mode = 'friend'; resetGame();
       alert('Чтобы играть онлайн, откройте ссылку в обычном браузере с интернетом.');
       showSetup(); return;
@@ -542,15 +542,27 @@
     app.mode = 'friend';
     resetGame();
     resetGameStats();
+    const saved = loadOnlineGame(params.room);
     const hostColor = params.h === 'b' ? 'b' : 'w';
-    setup.timeMin = parseInt(params.t || '0', 10) || 0;
-    setup.moveLim = parseInt(params.m || '0', 10) || 0;
-    app.myColor = hostColor === 'w' ? 'b' : 'w';
+    setup.timeMin = saved ? (saved.tm || 0) : (parseInt(params.t || '0', 10) || 0);
+    setup.moveLim = saved ? (saved.mm || 0) : (parseInt(params.m || '0', 10) || 0);
+    // если я уже играл в этой партии на этом устройстве — беру своё прежнее место
+    app.myColor = (saved && saved.seat) ? saved.seat : (hostColor === 'w' ? 'b' : 'w');
     app.orientation = app.myColor;
-    app.online = { on: true, role: 'guest', room: params.room, myColor: app.myColor, hostColor, myId: null, net: null, connected: false, peerReady: false, failed: false, timeMin: setup.timeMin, moveLim: setup.moveLim };
+    const role = (app.myColor === hostColor) ? 'host' : 'guest';
+    app.online = { on: true, role, room: params.room, myColor: app.myColor, hostColor, myId: null, net: null, connected: false, peerReady: false, failed: false, timeMin: setup.timeMin, moveLim: setup.moveLim };
     initClock();
+    // восстановить все сделанные ходы из памяти
+    if (saved && saved.moves && saved.moves.length) {
+      rebuildFrom(saved.moves);
+      if (saved.msW != null) { app.clock.timeMs.w = saved.msW; app.clock.timeMs.b = saved.msB; }
+      if (saved.mvW != null) { app.clock.movesLeft.w = saved.mvW; app.clock.movesLeft.b = saved.mvB; }
+      app.clock.lastTick = Date.now();
+    }
+    saveOnlineGame();
     connectOnline();
     enterGameScreen();
+    checkOver();
   }
 
   function parseHash(h) {
@@ -567,7 +579,15 @@
   function connectOnline() {
     const o = app.online;
     o.net = ChessNet.connect(o.room, {
-      onOpen: () => { o.connected = true; o.failed = false; o.myId = o.net.id; netSend({ t: 'hi', s: o.myId, c: o.myColor }); startPresence(); setOnlineStatus(); },
+      onOpen: () => {
+        o.connected = true; o.failed = false; o.myId = o.net.id;
+        netSend({ t: 'hi', s: o.myId, c: o.myColor });
+        startPresence(); setOnlineStatus();
+        // Обновляем «прилипающее» состояние на сервере, но с задержкой: сначала
+        // даём брокеру прислать своё сохранённое состояние (вдруг оно новее), а
+        // потом публикуем самую длинную известную партию — чтобы не затереть ходы.
+        if (app.history.length) setTimeout(() => { if (app.online.on && app.online.net) publishStateRetained(); }, 1500);
+      },
       onReconnect: () => { o.connected = false; setOnlineStatus(); },
       onClose: () => { o.connected = false; setOnlineStatus(); },
       onFail: () => { o.failed = true; setOnlineStatus(); },
@@ -585,10 +605,14 @@
     app.online = { on: false, role: null, room: null, myColor: 'w', hostColor: 'w', myId: null, net: null, connected: false, peerReady: false, failed: false };
   }
 
-  function handleNetMsg(o) {
+  function handleNetMsg(o, retained) {
     const me = app.online;
     if (!me.on) return;
     if (o.s && o.s === me.myId) return; // свои сообщения игнорируем
+    // Сохранённое (retained) сообщение брокера — это старое состояние партии,
+    // а не признак того, что соперник сейчас на связи. Восстанавливаем ходы, но
+    // НЕ помечаем соперника присутствующим (его покажет только «живой» пинг).
+    if (retained) { if (o.t === 'sync') applySync(o); return; }
     me.lastSeen = Date.now();
     // соперник вышел (закрыл вкладку)
     if (o.t === 'bye') { me.peerReady = false; setOnlineStatus(); return; }
@@ -670,11 +694,33 @@
   function sendSync() {
     netSend(Object.assign({ t: 'sync', s: app.online.myId, moves: app.history.slice(), h: app.online.hostColor, tm: app.online.timeMin || 0, mm: app.online.moveLim || 0 }, clockSnapshot()));
   }
+  // Полное состояние партии — «прилипающим» (retained) сообщением, чтобы оно
+  // сохранялось на сервере и восстанавливалось при заходе по ссылке позже.
+  function publishStateRetained() {
+    const o = app.online; if (!o || !o.on || !o.net) return;
+    o.net.publish(Object.assign({ t: 'sync', s: o.myId, moves: app.history.slice(), h: o.hostColor, tm: o.timeMin || 0, mm: o.moveLim || 0 }, clockSnapshot()), true);
+  }
+
+  // Сохранение партии в память телефона (по комнате из ссылки) — навсегда
+  function gameKey(room) { return 'chessG:' + room; }
+  function saveOnlineGame() {
+    const o = app.online; if (!o || !o.on || !o.room) return;
+    try {
+      localStorage.setItem(gameKey(o.room), JSON.stringify({
+        moves: app.history.slice(), host: o.hostColor, seat: o.myColor,
+        tm: o.timeMin || 0, mm: o.moveLim || 0,
+        msW: app.clock.timeMs.w, msB: app.clock.timeMs.b, mvW: app.clock.movesLeft.w, mvB: app.clock.movesLeft.b,
+        t: Date.now()
+      }));
+    } catch (e) { }
+  }
+  function loadOnlineGame(room) { try { return JSON.parse(localStorage.getItem(gameKey(room)) || 'null'); } catch (e) { return null; } }
 
   function applySync(o) {
-    if (!o.moves || o.moves.length < app.history.length) return; // не откатываем более длинную партию
+    if (!o.moves || o.moves.length <= app.history.length) return; // применяем, только если пришла более длинная партия
     rebuildFrom(o.moves);
     adoptClock(o);
+    saveOnlineGame();
     render();
     checkOver();
   }
@@ -706,6 +752,7 @@
     playMoveSound(!!capType);
     if (hasYou() && capType === 'q') bumpStats(s => { s.queensLost++; });
     adoptClock(o);
+    saveOnlineGame();
     render();
     if (capType) showTaunt(lm.to, capType);
     checkOver();
@@ -1132,7 +1179,7 @@
     app.selected = -1; app.legalFrom = [];
     playMoveSound(!!capType);
     if (hasYou()) trackMyMove(m, me, capType, fromAttacked);
-    if (app.mode === 'friend' && app.online.on) publishMove();
+    if (app.mode === 'friend' && app.online.on) { publishMove(); publishStateRetained(); saveOnlineGame(); }
     // «Играть рядом»: доску НЕ переворачиваем. Игроки сидят по разные стороны
     // телефона лицом друг к другу — чёрные фигуры и так наверху, рядом со вторым
     // игроком, и для него они выглядят правильно (он смотрит с другой стороны).
