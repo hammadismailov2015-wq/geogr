@@ -371,6 +371,31 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 #tutFlash.show.bad { animation: tutflash .65s ease-out; background: radial-gradient(circle at 50% 45%, rgba(255, 70, 70, .5), rgba(255, 70, 70, 0) 70%); }
 @keyframes tutflash { 0% { opacity: .85; } 100% { opacity: 0; } }
 
+/* Игра-повторение (викторина: пешка идёт в ферзи) */
+.ch-start-game { background: linear-gradient(135deg, #7a5cff, #c05cff); margin-top: 10px; }
+.ch-tg-progress { text-align: center; font-weight: 800; color: #ffe08a; font-size: 14px; margin-bottom: 10px; }
+.ch-tg-question {
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 18px; margin-bottom: 14px; text-align: center;
+  font-size: 19px; font-weight: 800; color: #eef1fb; line-height: 1.35;
+}
+.ch-tg-options { display: flex; flex-direction: column; gap: 10px; max-width: 460px; margin: 0 auto 16px; }
+.ch-tg-opt {
+  padding: 14px 16px; border-radius: 12px; cursor: pointer;
+  font-size: 16px; font-weight: 700; color: var(--text);
+  background: var(--panel); border: 1px solid var(--line); transition: .14s;
+}
+.ch-tg-opt:hover { border-color: var(--accent); background: var(--panel2); transform: translateY(-1px); }
+.ch-tg-opt.ok { background: linear-gradient(135deg, #2ea86a, #46c878); border-color: #46c878; color: #fff; }
+.ch-tg-opt.bad { background: linear-gradient(135deg, #d24b4b, #ff6b6b); border-color: #ff6b6b; color: #fff; }
+.ch-tg-board { width: min(78vw, 380px); }
+.ch-tg-board .ch-sq.tg-up::before { content: ""; position: absolute; inset: 0; background: rgba(70, 220, 120, .55); z-index: 1; }
+.ch-tg-board .ch-sq.tg-down::before { content: ""; position: absolute; inset: 0; background: rgba(255, 70, 70, .55); z-index: 1; }
+.ch-tg-board .ch-piece { position: relative; z-index: 2; }
+.ch-tg-board .ch-piece.tg-promote { animation: tgpromote .6s ease-out; }
+@keyframes tgpromote { 0% { transform: scale(.4); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.ch-tg-foot { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+
 .ch-board-wrap { display: flex; justify-content: center; }
 .ch-board {
   width: min(92vw, 560px); aspect-ratio: 1/1;

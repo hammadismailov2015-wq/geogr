@@ -172,6 +172,7 @@
         </div>
         <div id="tutMenu">
           <button class="ch-start" id="tutReview">🔁 Повторение всех тем</button>
+          <button class="ch-start ch-start-game" id="tutGameBtn">🎮 Игра — повторение</button>
           <div id="tutSections"></div>
         </div>
         <div id="tutLesson" hidden>
@@ -179,6 +180,13 @@
           <div class="ch-board-wrap"><div class="ch-board" id="tutBoard"></div></div>
           <div class="ch-tutor-prompt" id="tutPrompt"></div>
           <div class="ch-tutor-actions" id="tutActions"></div>
+        </div>
+        <div id="tutGame" hidden>
+          <div class="ch-tg-progress" id="tgProgress"></div>
+          <div class="ch-tg-question" id="tgQuestion"></div>
+          <div class="ch-tg-options" id="tgOptions"></div>
+          <div class="ch-board-wrap"><div class="ch-board ch-tg-board" id="tgBoard"></div></div>
+          <div class="ch-tg-foot" id="tgFoot"></div>
         </div>
       </section>
       <div id="tutFlash"></div>
@@ -1429,8 +1437,8 @@
   function tutState(step) { return { board: tutParse(step.board), turn: step.turn || 'w', castling: step.castling || { wK: false, wQ: false, bK: false, bQ: false }, ep: -1, half: 0, full: 1 }; }
 
   function openTutorial() { unlockAudio(); $('setupScreen').hidden = true; $('gameScreen').hidden = true; $('tutorScreen').hidden = false; showTutMenu(); }
-  function showTutMenu() { tut.run = null; tut.info = false; tut.locked = true; $('tutTitle').textContent = '📚 Обучение'; $('tutMenu').hidden = false; $('tutLesson').hidden = true; renderTutMenu(); }
-  function tutBackAction() { if (!$('tutLesson').hidden) { showTutMenu(); } else { $('tutorScreen').hidden = true; showSetup(); } }
+  function showTutMenu() { tut.run = null; tut.info = false; tut.locked = true; tg.on = false; $('tutTitle').textContent = '📚 Обучение'; $('tutMenu').hidden = false; $('tutLesson').hidden = true; $('tutGame').hidden = true; renderTutMenu(); }
+  function tutBackAction() { if (!$('tutLesson').hidden || !$('tutGame').hidden) { showTutMenu(); } else { $('tutorScreen').hidden = true; showSetup(); } }
 
   // Пройденные темы (зелёные) хранятся между запусками
   const TUT_DONE_KEY = 'chessTutDone';
@@ -1615,6 +1623,120 @@
     $('tutDone').addEventListener('click', showTutMenu);
   }
 
+  /* ========================================================
+     ИГРА-ПОВТОРЕНИЕ (викторина: пешка идёт в ферзи)
+     ======================================================== */
+  // a — правильный ответ, w — неправильные
+  const TG_QUIZ = [
+    { q: 'Цель игры в шахматы это —', a: 'Мат королю', w: ['Съесть все фигуры', 'Связка'] },
+    { q: 'Как ходит ладья?', a: 'По прямой линии', w: ['Буквой «Г»', 'По диагонали'] },
+    { q: 'Как ходит слон?', a: 'По диагонали', w: ['По прямой', 'Буквой «Г»'] },
+    { q: 'Как ходит конь?', a: 'Буквой «Г»', w: ['По диагонали', 'По прямой'] },
+    { q: 'Самая сильная фигура?', a: 'Ферзь', w: ['Пешка', 'Конь'] },
+    { q: 'Что делает пешка на последней линии?', a: 'Превращается в фигуру', w: ['Исчезает', 'Ходит назад'] },
+    { q: 'Что такое «шах»?', a: 'Королю угрожают', w: ['Ничья', 'Конец игры'] },
+    { q: 'Что такое «мат»?', a: 'Шах и нет спасения', w: ['Просто шах', 'Ничья'] },
+    { q: 'Что такое «пат»?', a: 'Нет ходов, но нет шаха', w: ['Это мат', 'Шах королю'] },
+    { q: 'Сколько клеток на доске?', a: '64', w: ['32', '100'] },
+    { q: 'Ход королём и ладьёй сразу это —', a: 'Рокировка', w: ['Вилка', 'Связка'] },
+    { q: '«Вилка» — это нападение на —', a: 'Две фигуры сразу', w: ['Одну пешку', 'Своего короля'] },
+    { q: 'Король может пойти под бой?', a: 'Нет, нельзя', w: ['Да, можно', 'Только с ферзём'] },
+    { q: 'Сколько пешек у игрока в начале?', a: '8', w: ['16', '4'] },
+    { q: 'Пешка первым ходом идёт на —', a: 'Одну или две клетки', w: ['Только одну', 'Три клетки'] },
+    { q: 'Какая фигура ходит и прямо, и наискосок?', a: 'Ферзь', w: ['Ладья', 'Конь'] },
+    { q: 'Что важно в начале партии?', a: 'Развить фигуры', w: ['Съесть пешку', 'Спрятать короля в угол'] },
+    { q: '«Связка» — это когда фигуре —', a: 'Нельзя уйти (за ней король)', w: ['Дают приз', 'Можно ходить дважды'] }
+  ];
+  const tg = { on: false, order: [], qi: 0, step: 0, opts: [], correct: '', locked: false, delta: 0 };
+  const TG_FILE = 4;   // вертикаль e
+  const TG_GOAL = 8;   // столько верных ответов — и пешка станет ферзём
+
+  function shuffleArr(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function startTutGame() {
+    unlockAudio();
+    tut.run = null; tut.info = false;
+    tg.on = true; tg.step = 0; tg.qi = 0; tg.locked = false; tg.delta = 0;
+    tg.order = shuffleArr(TG_QUIZ.map((_, i) => i));
+    $('tutTitle').textContent = '🎮 Игра — повторение';
+    $('tutMenu').hidden = true; $('tutLesson').hidden = true; $('tutGame').hidden = false;
+    $('tgFoot').innerHTML = '';
+    nextTgQuestion();
+  }
+
+  function nextTgQuestion() {
+    if (tg.step >= TG_GOAL) { tgWin(); return; }
+    const q = TG_QUIZ[tg.order[tg.qi % tg.order.length]];
+    tg.correct = q.a;
+    tg.opts = shuffleArr([q.a].concat(q.w));
+    tg.locked = false; tg.delta = 0;
+    $('tgQuestion').innerHTML = q.q;
+    renderTgBoard(false);
+    renderTgOptions();
+    updateTgProgress();
+  }
+
+  function updateTgProgress() {
+    $('tgProgress').innerHTML = `Ступенька ${Math.min(tg.step, TG_GOAL)} из ${TG_GOAL} · пешка идёт в ферзи ♟&nbsp;→&nbsp;♛`;
+  }
+
+  function renderTgOptions() {
+    const box = $('tgOptions'); if (!box) return; box.innerHTML = '';
+    tg.opts.forEach(val => {
+      const b = document.createElement('button');
+      b.className = 'ch-tg-opt'; b.textContent = val;
+      b.addEventListener('click', () => onTgAnswer(val, b));
+      box.appendChild(b);
+    });
+  }
+
+  function renderTgBoard(promoted) {
+    const el = $('tgBoard'); if (!el) return; el.innerHTML = '';
+    const pRank = promoted ? 7 : Math.min(tg.step, 7);
+    for (let rr = 7; rr >= 0; rr--) for (let ff = 0; ff < 8; ff++) {
+      const cell = document.createElement('div');
+      cell.className = 'ch-sq ' + ((ff + rr) % 2 === 0 ? 'dark' : 'light');
+      if (ff === 0) { const rk = document.createElement('span'); rk.className = 'ch-coord ch-coord-rank'; rk.textContent = rr + 1; cell.appendChild(rk); }
+      if (rr === 0) { const fl = document.createElement('span'); fl.className = 'ch-coord ch-coord-file'; fl.textContent = FILE_LETTER(ff); cell.appendChild(fl); }
+      if (ff === TG_FILE && rr === pRank) {
+        if (tg.delta > 0) cell.classList.add('tg-up');
+        else if (tg.delta < 0) cell.classList.add('tg-down');
+        const pc = document.createElement('span');
+        pc.className = 'ch-piece white' + (promoted ? ' tg-promote' : '');
+        pc.textContent = GLYPH[promoted ? 'q' : 'p'];
+        cell.appendChild(pc);
+      }
+      el.appendChild(cell);
+    }
+  }
+
+  function onTgAnswer(val, btn) {
+    if (tg.locked) return; tg.locked = true; unlockAudio();
+    if (val === tg.correct) {
+      btn.classList.add('ok'); flashTut('good'); playGoodSound();
+      tg.step++; tg.delta = 1;
+      renderTgBoard(false); updateTgProgress();
+      setTimeout(() => { if (tg.on) { tg.qi++; nextTgQuestion(); } }, 800);
+    } else {
+      btn.classList.add('bad'); flashTut('bad'); playBadSound();
+      Array.from($('tgOptions').children).forEach(b => { if (b.textContent === tg.correct) b.classList.add('ok'); });
+      tg.delta = -1; if (tg.step > 0) tg.step--;
+      renderTgBoard(false); updateTgProgress();
+      setTimeout(() => { if (tg.on) { tg.qi++; nextTgQuestion(); } }, 1200);
+    }
+  }
+
+  function tgWin() {
+    tg.locked = true; flashTut('good'); playGoodSound();
+    renderTgBoard(true);
+    $('tgQuestion').innerHTML = '🎉 Пешка дошла до конца и стала ферзём! ♛';
+    $('tgOptions').innerHTML = '';
+    $('tgProgress').innerHTML = '🏆 Победа! Ты ответил на все вопросы!';
+    $('tgFoot').innerHTML = `<button class="ch-btn ch-btn-primary" id="tgAgain">↻ Играть ещё</button><button class="ch-btn" id="tgMenu">← В меню обучения</button>`;
+    $('tgAgain').addEventListener('click', startTutGame);
+    $('tgMenu').addEventListener('click', showTutMenu);
+  }
+
   function copyText(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
     try { return Promise.resolve(document.execCommand('copy')); } catch (e) { return Promise.resolve(false); }
@@ -1672,6 +1794,7 @@
     $('tutBtn').addEventListener('click', openTutorial);
     $('tutBack').addEventListener('click', tutBackAction);
     $('tutReview').addEventListener('click', startReview);
+    $('tutGameBtn').addEventListener('click', startTutGame);
     $('ranksBtn').addEventListener('click', openRanks);
     $('ranksClose').addEventListener('click', () => { $('ranksModal').hidden = true; });
   }
