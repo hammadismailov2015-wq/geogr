@@ -1470,7 +1470,7 @@
     $('tutMenu').hidden = true; $('tutLesson').hidden = false;
     tut.state = tutState({ board: L.demo || ['e1 wk', 'e8 bk'], turn: 'w' });
     tut.sel = -1; tut.legal = []; tut.lastMove = null;
-    $('tutExplain').innerHTML = L.explain;
+    $('tutExplain').innerHTML = L.explain; $('tutExplain').hidden = false;
     $('tutPrompt').innerHTML = L.note || '📖 Тема для понимания.';
     $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutInfoOk">Понятно →</button>`;
     $('tutInfoOk').addEventListener('click', showTutMenu);
@@ -1486,9 +1486,11 @@
   }
 
   function startReview() {
-    const steps = [];
-    for (const sec of TUT_SECTIONS) for (const L of sec.lessons) if (L.steps) for (const s of L.steps) steps.push({ ...s, explain: `<b>${L.icon} ${L.title}.</b> ${L.explain}` });
+    let steps = [];
+    // без объяснения темы — только задание (это проверка, а не урок)
+    for (const sec of TUT_SECTIONS) for (const L of sec.lessons) if (L.steps) for (const s of L.steps) steps.push({ ...s, explain: '' });
     if (!steps.length) return;
+    steps = shuffleArr(steps);   // задания вперемешку
     tut.info = false;
     tut.run = { title: 'Повторение', explain: '', steps, idx: 0, reviewMode: true };
     $('tutTitle').textContent = '🔁 Повторение всех тем';
@@ -1501,7 +1503,8 @@
     step._plies = step.plies || [{ answers: step.answers }];
     run.plyIdx = 0;
     tut.state = tutState(step); tut.sel = -1; tut.legal = []; tut.lastMove = null; tut.locked = false;
-    $('tutExplain').innerHTML = step.explain || run.explain || '';
+    const ex = step.explain || run.explain || '';
+    $('tutExplain').innerHTML = ex; $('tutExplain').hidden = !ex;
     const n = run.steps.length; const prog = n > 1 ? ` (${run.idx + 1}/${n})` : '';
     $('tutPrompt').innerHTML = `<b>Задание${prog}:</b> ${step.prompt}<br><span class="tut-hint">Твой ход белыми — нажми на фигуру, потом на клетку.</span>`;
     renderTutBoard();
@@ -1511,6 +1514,8 @@
   // Кнопка «Подсказка» во время задания
   function renderTaskActions() {
     const run = tut.run; if (!run) return; const step = run.steps[run.idx];
+    // в режиме повторения подсказок нет
+    if (run.reviewMode) { $('tutActions').innerHTML = ''; return; }
     const hints = step._hints || (step._hints = step.hints || [step.hint || '']);
     const h = hints[run.plyIdx] || hints[0] || '';
     $('tutActions').innerHTML = h ? `<button class="ch-btn" id="tutHint">💡 Подсказка</button>` : '';
@@ -1617,7 +1622,7 @@
     flashTut('good'); playGoodSound(); tut.locked = true;
     if (tut.run.reviewMode) { for (const sec of TUT_SECTIONS) for (const L of sec.lessons) markTutDone(L.id); }
     else markTutDone(tut.run.lessonId);
-    $('tutExplain').innerHTML = tut.run.reviewMode ? '🏆 Ты повторил все темы! Ты молодец!' : '🎉 Урок пройден! Отличная работа!';
+    $('tutExplain').innerHTML = tut.run.reviewMode ? '🏆 Ты повторил все темы! Ты молодец!' : '🎉 Урок пройден! Отличная работа!'; $('tutExplain').hidden = false;
     $('tutPrompt').innerHTML = '';
     $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutDone">← В меню обучения</button>`;
     $('tutDone').addEventListener('click', showTutMenu);
