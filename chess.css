@@ -49,9 +49,9 @@ body[data-chess-theme="green"] {
   --pc-black: #22331c;
   --pc-white-edge: #4d6b3a;
   --pc-black-edge: #0d160a;
-  /* слоновая кость + тёмный графит с зеленцой */
-  --pcw0: #fffcf3; --pcw1: #f2e4c8; --pcw2: #cbb083; --pcw3: #7c6a47;
-  --pcb0: #77807a; --pcb1: #283026; --pcb2: #101711; --pcb3: #030503;
+  /* светло-зелёные (белые) + тёмно-зелёные, заметно зелёные (чёрные) */
+  --pcw0: #f4faec; --pcw1: #d7ecc1; --pcw2: #a6cd80; --pcw3: #6c9a4c;
+  --pcb0: #74965a; --pcb1: #37592a; --pcb2: #203c18; --pcb3: #0e2609;
   --last: rgba(245, 246, 130, .5);
 }
 
