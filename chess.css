@@ -521,13 +521,15 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 /* фигуры «встают»: тянем вверх и добавляем падающую тень на доску */
 .ch-3d .ch-board .ch-piece {
-  transform-origin: 50% 96%;
-  transform: translateY(-16%) scaleY(1.34);
+  transform-origin: 50% 50%;
+  transform: translateY(-12%) scaleY(1.32);
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .45)) drop-shadow(0 11px 7px rgba(0, 0, 0, .55));
 }
-/* в режиме «Рядом» перевёрнутые фигуры остаются «стоячими» */
+/* режим «Рядом»: на ход чёрных фигуры перевёрнуты (rotate 180 применяется
+   ПОСЛЕДНИМ, т.е. первым к элементу — тогда сдвиг вверх остаётся вверхом на
+   экране, и фигуры не «вылезают» вниз за доску). */
 .ch-3d .ch-fliparea.flip180 .ch-piece {
-  transform: rotate(180deg) translateY(-16%) scaleY(1.34);
+  transform: translateY(-12%) scaleY(1.32) rotate(180deg);
 }
 .ch-sq.light .ch-dot { background: rgba(30, 30, 40, .28); }
 .ch-dot.cap { width: 88%; height: 88%; background: transparent; border: 6px solid rgba(30, 30, 40, .3); border-radius: 50%; }
