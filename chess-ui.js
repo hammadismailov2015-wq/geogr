@@ -7,6 +7,25 @@
   const C = window.Chess;
 
   const GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+
+  /* ===== Объёмные фигуры (SVG, стиль Стаунтон) ===== */
+  // Градиенты объёма — вставляются в DOM один раз (см. buildLayout)
+  const PIECE_DEFS = `<svg id="pcDefs" width="0" height="0" aria-hidden="true" style="position:absolute;width:0;height:0"><defs>
+    <radialGradient id="pcGW" cx="38%" cy="26%" r="80%"><stop offset="0%" stop-color="#fffcf3"/><stop offset="42%" stop-color="#f2e4c8"/><stop offset="78%" stop-color="#cbb083"/><stop offset="100%" stop-color="#7c6a47"/></radialGradient>
+    <radialGradient id="pcGB" cx="38%" cy="26%" r="82%"><stop offset="0%" stop-color="#777d87"/><stop offset="34%" stop-color="#2c313a"/><stop offset="72%" stop-color="#0f1218"/><stop offset="100%" stop-color="#030405"/></radialGradient>
+  </defs></svg>`;
+  const P_SHAPES = {
+    p: `<ellipse class="pc-sh" cx="22.5" cy="40.5" rx="10.5" ry="2.4"/><path class="pc-body" d="M22.5,9 C20.29,9 18.5,10.79 18.5,13 C18.5,13.89 18.79,14.71 19.28,15.38 C17.33,16.5 16,18.59 16,21 C16,23.03 16.94,24.84 18.41,26.03 C15.41,27.09 12,31.58 12,38.5 L33,38.5 C33,31.58 29.59,27.09 26.59,26.03 C28.06,24.84 29,23.03 29,21 C29,18.59 27.67,16.5 25.72,15.38 C26.21,14.71 26.5,13.89 26.5,13 C26.5,10.79 24.71,9 22.5,9 z"/><ellipse class="pc-hl" cx="19" cy="30" rx="1.4" ry="5" opacity=".5"/>`,
+    r: `<ellipse class="pc-sh" cx="22.5" cy="40.5" rx="11.5" ry="2.4"/><path class="pc-body" d="M11.5,38.5 L33.5,38.5 L33.5,36 L30.5,33 L30.5,23 L32,20.5 L32,14 L28,14 L28,17 L24.5,17 L24.5,14 L20.5,14 L20.5,17 L17,17 L17,14 L13,14 L13,20.5 L14.5,23 L14.5,33 L11.5,36 z"/><ellipse class="pc-hl" cx="16.5" cy="30" rx="1.5" ry="6" opacity=".45"/>`,
+    b: `<ellipse class="pc-sh" cx="22.5" cy="40.5" rx="11" ry="2.4"/><circle class="pc-body" cx="22.5" cy="7.5" r="2.6"/><path class="pc-body" d="M22.5,10 C25,11.5 27.5,14.5 27.5,18.5 C27.5,20.7 26.4,22.4 24.8,23.6 C27,25 28.5,27.5 29.5,31 L15.5,31 C16.5,27.5 18,25 20.2,23.6 C18.6,22.4 17.5,20.7 17.5,18.5 C17.5,14.5 20,11.5 22.5,10 z"/><path class="pc-body" d="M13,38.5 C13,34 15,32 17,31 L28,31 C30,32 32,34 32,38.5 z"/><path class="pc-line" d="M20,16 L25,16 M22.5,13.5 L22.5,18.5"/><ellipse class="pc-hl" cx="19" cy="34" rx="1.5" ry="4" opacity=".5"/>`,
+    q: `<ellipse class="pc-sh" cx="22.5" cy="40.5" rx="12.5" ry="2.5"/><circle class="pc-body" cx="9" cy="12" r="2.2"/><circle class="pc-body" cx="16" cy="9" r="2.2"/><circle class="pc-body" cx="22.5" cy="8" r="2.4"/><circle class="pc-body" cx="29" cy="9" r="2.2"/><circle class="pc-body" cx="36" cy="12" r="2.2"/><path class="pc-body" d="M9,12 L12,27 L33,27 L36,12 L31,20 L28.5,10.5 L25,22 L22.5,9.5 L20,22 L16.5,10.5 L14,20 z"/><path class="pc-body" d="M12,27 C10,30 10,33 12,34 L33,34 C35,33 35,30 33,27 z"/><path class="pc-body" d="M11,34 C10,36 11,37 12,38.5 L33,38.5 C34,37 35,36 34,34 z"/><ellipse class="pc-hl" cx="16.5" cy="31" rx="1.5" ry="4" opacity=".45"/>`,
+    k: `<ellipse class="pc-sh" cx="22.5" cy="40.5" rx="12" ry="2.5"/><path class="pc-line" d="M22.5,4 L22.5,10 M20,6.5 L25,6.5" style="stroke-width:1.6"/><path class="pc-body" d="M22.5,11 C26,11 28,13 28,15.5 C28,17.5 26.5,19 24.5,20 L27.5,22 C30,24 31.5,30 31.5,38.5 L13.5,38.5 C13.5,30 15,24 17.5,22 L20.5,20 C18.5,19 17,17.5 17,15.5 C17,13 19,11 22.5,11 z"/><path class="pc-line" d="M14,29 C19,26 26,26 31,29 M14,33 C19,30 26,30 31,33"/><ellipse class="pc-hl" cx="19" cy="30" rx="1.5" ry="5" opacity=".5"/>`,
+    n: `<ellipse class="pc-sh" cx="23" cy="40.5" rx="11.5" ry="2.4"/><path class="pc-body" d="M22,10 C32.5,11 38.5,18 38,38.5 L15,38.5 C15,30 25,32.5 23,18 C22,20 21.5,22.4 20,22 C18,21.9 18.6,20.3 18,19 C17.5,18 17,17 16,16 C12.5,16 12,17 11,18 C9.5,17.5 9.8,16.2 11,14 C11.6,12.8 14,10.5 15,9.5 L15.5,8 L17,7.5 L17,6.5 L18,6.5 L18.5,7.5 C20,8 21,9 22,10 z"/><circle class="pc-eye" cx="15.3" cy="15" r="1.15"/><ellipse class="pc-hl" cx="27" cy="24" rx="2" ry="7" opacity=".4"/>`
+  };
+  function pieceSVG(color, type) {
+    return `<svg viewBox="0 0 45 45" class="pc-svg pc-${color === 'w' ? 'w' : 'b'}" preserveAspectRatio="xMidYMax meet">${P_SHAPES[type] || ''}</svg>`;
+  }
+
   const VAL = { p: 1, n: 3, b: 3, r: 5, q: 9 };
   const START = { p: 8, n: 2, b: 2, r: 2, q: 1 };
 
@@ -85,6 +104,7 @@
   function buildLayout() {
     const root = $('chessRoot');
     root.innerHTML = `
+      ${PIECE_DEFS}
       <div class="ch-themebar" id="themeBar">
         <button class="ch-sound" id="soundBtn" title="Звук вкл/выкл">🔊</button>
         <button class="ch-sw" data-theme="green" title="Зелёная доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
@@ -863,7 +883,7 @@
       if (app.lastMove && (app.lastMove.from === s || app.lastMove.to === s)) cell.classList.add('last');
       if (app.selected === s) cell.classList.add('sel');
       const p = app.state.board[s];
-      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.textContent = GLYPH[C.typeOf(p)]; cell.appendChild(pc); }
+      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.innerHTML = pieceSVG(C.colorOf(p), C.typeOf(p)); cell.appendChild(pc); }
       const lm = app.legalFrom.find(m => m.to === s);
       if (lm) { const dot = document.createElement('span'); dot.className = 'ch-dot' + (app.state.board[s] || lm.flag === 'ep' ? ' cap' : ''); cell.appendChild(dot); }
       if (p && C.typeOf(p) === 'k' && C.inCheck(app.state, C.colorOf(p)) && (C.colorOf(p) === app.state.turn || app.over)) cell.classList.add('check');
@@ -1108,7 +1128,7 @@
     const size = elBoard.clientWidth / 8;
     const g = drag.ghost;
     g.style.width = size + 'px'; g.style.height = size + 'px';
-    g.innerHTML = `<span class="ch-piece ${C.colorOf(p) === 'w' ? 'white' : 'black'}" style="font-size:${Math.round(size * 0.8)}px">${GLYPH[C.typeOf(p)]}</span>`;
+    g.innerHTML = `<span class="ch-piece ${C.colorOf(p) === 'w' ? 'white' : 'black'}">${pieceSVG(C.colorOf(p), C.typeOf(p))}</span>`;
     g.style.display = 'none';
     try { elBoard.setPointerCapture(e.pointerId); } catch (_) { }
   }
@@ -1548,7 +1568,7 @@
       if (tut.lastMove && (tut.lastMove.from === s || tut.lastMove.to === s)) cell.classList.add('last');
       if (tut.sel === s) cell.classList.add('sel');
       const p = tut.state.board[s];
-      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.textContent = GLYPH[C.typeOf(p)]; cell.appendChild(pc); }
+      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.innerHTML = pieceSVG(C.colorOf(p), C.typeOf(p)); cell.appendChild(pc); }
       if (tut.legal.some(m => m.to === s)) { const dot = document.createElement('span'); dot.className = 'ch-dot' + (tut.state.board[s] ? ' cap' : ''); cell.appendChild(dot); }
       if (p && C.typeOf(p) === 'k' && C.inCheck(tut.state, C.colorOf(p))) cell.classList.add('check');
       cell.addEventListener('pointerdown', () => onTutTap(s));
@@ -1717,7 +1737,7 @@
         else if (tg.delta < 0) cell.classList.add('tg-down');
         const pc = document.createElement('span');
         pc.className = 'ch-piece white' + (promoted ? ' tg-promote' : '');
-        pc.textContent = GLYPH[promoted ? 'q' : 'p'];
+        pc.innerHTML = pieceSVG('w', promoted ? 'q' : 'p');
         cell.appendChild(pc);
       }
       el.appendChild(cell);
