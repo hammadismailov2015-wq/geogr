@@ -84,7 +84,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 
 /* ---------- Переключатель темы (мини-доски) ---------- */
-.ch-themebar { position: sticky; top: 8px; z-index: 6; display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin: 0 2px 6px; }
+.ch-themebar { position: sticky; top: 8px; z-index: 6; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px; margin: 0 2px 6px; }
 .ch-sound {
   width: 40px; height: 40px; border-radius: 11px; cursor: pointer; font-size: 18px; line-height: 1;
   background: rgba(20, 24, 40, .7); border: 2px solid rgba(255, 255, 255, .18); color: #fff;
@@ -104,6 +104,16 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-sw[data-theme="classic"] i.l { background: #eaeaea; } .ch-sw[data-theme="classic"] i.d { background: #5a5f6d; }
 .ch-sw[data-theme="brown"]   i.l { background: #f0d9b5; } .ch-sw[data-theme="brown"]   i.d { background: #b58863; }
 .ch-sw[data-theme="green"]   i.l { background: #eeeed2; } .ch-sw[data-theme="green"]   i.d { background: #6f9d55; }
+/* Переключатель 2D / 3D */
+.ch-vsep { width: 1px; height: 26px; background: rgba(255, 255, 255, .22); }
+.ch-vw {
+  min-width: 42px; height: 40px; padding: 0 10px; border-radius: 11px; cursor: pointer;
+  font-weight: 800; font-size: 15px; color: #fff; line-height: 1;
+  background: rgba(20, 24, 40, .7); border: 2px solid rgba(255, 255, 255, .18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); transition: .16s;
+}
+.ch-vw:hover { transform: translateY(-2px); border-color: var(--accent); }
+.ch-vw.active { border-color: var(--accent); background: rgba(108, 140, 255, .28); box-shadow: 0 0 0 3px rgba(108, 140, 255, .35), 0 4px 12px rgba(0, 0, 0, .35); }
 
 /* ---------- ЭКРАН НАСТРОЙКИ ---------- */
 .ch-hero { text-align: center; margin: 2px 0 20px; }
@@ -491,6 +501,34 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 
 .ch-dot { position: absolute; width: 26%; height: 26%; border-radius: 50%; background: rgba(30, 30, 40, .35); z-index: 1; pointer-events: none; }
+
+/* ===== Объёмный режим 3D: доска наклонена, фигуры «стоят» =====
+   Важно: НЕ используем transform-style: preserve-3d — иначе Chromium
+   доставляет нажатия самой доске, а не клеткам (клики перестают работать).
+   Наклон делаем «плоским» rotateX, а объём фигур создаём тенью и растяжением. */
+.ch-3d .ch-board-wrap { perspective: 1250px; perspective-origin: 50% 30%; padding: 9% 0 3%; }
+.ch-3d .ch-board {
+  transform: rotateX(24deg);
+  overflow: visible;
+  border-width: 5px; border-bottom-width: 15px;          /* толстый нижний торец — «плита» */
+  box-shadow:
+    0 40px 60px rgba(0, 0, 0, .6),
+    0 14px 22px rgba(0, 0, 0, .5),
+    0 0 0 1px rgba(255, 255, 255, .06);
+}
+.ch-3d .ch-sq {
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .16), inset 0 -3px 6px rgba(0, 0, 0, .30);
+}
+/* фигуры «встают»: тянем вверх и добавляем падающую тень на доску */
+.ch-3d .ch-board .ch-piece {
+  transform-origin: 50% 96%;
+  transform: translateY(-16%) scaleY(1.34);
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .45)) drop-shadow(0 11px 7px rgba(0, 0, 0, .55));
+}
+/* в режиме «Рядом» перевёрнутые фигуры остаются «стоячими» */
+.ch-3d .ch-fliparea.flip180 .ch-piece {
+  transform: rotate(180deg) translateY(-16%) scaleY(1.34);
+}
 .ch-sq.light .ch-dot { background: rgba(30, 30, 40, .28); }
 .ch-dot.cap { width: 88%; height: 88%; background: transparent; border: 6px solid rgba(30, 30, 40, .3); border-radius: 50%; }
 
