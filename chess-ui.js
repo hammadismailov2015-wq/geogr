@@ -11,8 +11,8 @@
   /* ===== Объёмные фигуры (SVG, стиль Стаунтон) ===== */
   // Градиенты объёма — вставляются в DOM один раз (см. buildLayout)
   const PIECE_DEFS = `<svg id="pcDefs" width="0" height="0" aria-hidden="true" style="position:absolute;width:0;height:0"><defs>
-    <radialGradient id="pcGW" cx="38%" cy="26%" r="80%"><stop offset="0%" stop-color="#fffcf3"/><stop offset="42%" stop-color="#f2e4c8"/><stop offset="78%" stop-color="#cbb083"/><stop offset="100%" stop-color="#7c6a47"/></radialGradient>
-    <radialGradient id="pcGB" cx="38%" cy="26%" r="82%"><stop offset="0%" stop-color="#777d87"/><stop offset="34%" stop-color="#2c313a"/><stop offset="72%" stop-color="#0f1218"/><stop offset="100%" stop-color="#030405"/></radialGradient>
+    <radialGradient id="pcGW" cx="38%" cy="26%" r="80%"><stop offset="0%" stop-color="var(--pcw0)"/><stop offset="42%" stop-color="var(--pcw1)"/><stop offset="78%" stop-color="var(--pcw2)"/><stop offset="100%" stop-color="var(--pcw3)"/></radialGradient>
+    <radialGradient id="pcGB" cx="38%" cy="26%" r="82%"><stop offset="0%" stop-color="var(--pcb0)"/><stop offset="34%" stop-color="var(--pcb1)"/><stop offset="72%" stop-color="var(--pcb2)"/><stop offset="100%" stop-color="var(--pcb3)"/></radialGradient>
   </defs></svg>`;
   const P_SHAPES = {
     p: `<ellipse class="pc-sh" cx="22.5" cy="40.5" rx="10.5" ry="2.4"/><path class="pc-body" d="M22.5,9 C20.29,9 18.5,10.79 18.5,13 C18.5,13.89 18.79,14.71 19.28,15.38 C17.33,16.5 16,18.59 16,21 C16,23.03 16.94,24.84 18.41,26.03 C15.41,27.09 12,31.58 12,38.5 L33,38.5 C33,31.58 29.59,27.09 26.59,26.03 C28.06,24.84 29,23.03 29,21 C29,18.59 27.67,16.5 25.72,15.38 C26.21,14.71 26.5,13.89 26.5,13 C26.5,10.79 24.71,9 22.5,9 z"/><ellipse class="pc-hl" cx="19" cy="30" rx="1.4" ry="5" opacity=".5"/>`,

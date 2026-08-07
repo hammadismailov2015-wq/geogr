@@ -23,6 +23,9 @@
   --pc-black: #191c24;
   --pc-white-edge: #6b7280;
   --pc-black-edge: #000000;
+  /* Цвета объёмных фигур (меняются вместе с темой доски). Classic: белые/чёрные */
+  --pcw0: #ffffff; --pcw1: #f1f1f2; --pcw2: #cfd0d3; --pcw3: #9a9ca2;
+  --pcb0: #6c7079; --pcb1: #2a2d33; --pcb2: #101216; --pcb3: #000000;
   --last: rgba(255, 214, 102, .45);
   --sel: rgba(108, 140, 255, .55);
 }
@@ -34,6 +37,9 @@ body[data-chess-theme="brown"] {
   --pc-black: #4a2f18;
   --pc-white-edge: #8a6b45;
   --pc-black-edge: #241205;
+  /* дерево: светлый самшит + тёмный орех */
+  --pcw0: #fff4dd; --pcw1: #f0dcb4; --pcw2: #cea86e; --pcw3: #8a6a3e;
+  --pcb0: #8a6a4a; --pcb1: #5a3d22; --pcb2: #38240f; --pcb3: #190f05;
   --last: rgba(205, 210, 106, .5);
 }
 body[data-chess-theme="green"] {
@@ -43,6 +49,9 @@ body[data-chess-theme="green"] {
   --pc-black: #22331c;
   --pc-white-edge: #4d6b3a;
   --pc-black-edge: #0d160a;
+  /* слоновая кость + тёмный графит с зеленцой */
+  --pcw0: #fffcf3; --pcw1: #f2e4c8; --pcw2: #cbb083; --pcw3: #7c6a47;
+  --pcb0: #77807a; --pcb1: #283026; --pcb2: #101711; --pcb3: #030503;
   --last: rgba(245, 246, 130, .5);
 }
 
@@ -474,14 +483,14 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-piece.black { filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .5)); }
 /* Объёмные фигуры (SVG, стиль Стаунтон) */
 .pc-svg { width: 90%; height: 96%; display: block; overflow: visible; }
-.pc-w .pc-body { fill: url(#pcGW); stroke: #6f6043; stroke-width: .8; stroke-linejoin: round; stroke-linecap: round; }
-.pc-w .pc-line { fill: none; stroke: #6f6043; stroke-width: .8; stroke-linejoin: round; stroke-linecap: round; }
+.pc-w .pc-body { fill: url(#pcGW); stroke: var(--pc-white-edge); stroke-width: .8; stroke-linejoin: round; stroke-linecap: round; }
+.pc-w .pc-line { fill: none; stroke: var(--pc-white-edge); stroke-width: .8; stroke-linejoin: round; stroke-linecap: round; }
 .pc-w .pc-hl { fill: #fffdf5; }
-.pc-w .pc-eye { fill: #6b5f45; }
-.pc-b .pc-body { fill: url(#pcGB); stroke: #000; stroke-width: .8; stroke-linejoin: round; stroke-linecap: round; }
-.pc-b .pc-line { fill: none; stroke: #000; stroke-width: .8; stroke-linejoin: round; stroke-linecap: round; }
+.pc-w .pc-eye { fill: var(--pc-white-edge); }
+.pc-b .pc-body { fill: url(#pcGB); stroke: var(--pc-black-edge); stroke-width: .8; stroke-linejoin: round; stroke-linecap: round; }
+.pc-b .pc-line { fill: none; stroke: var(--pc-black-edge); stroke-width: .8; stroke-linejoin: round; stroke-linecap: round; }
 .pc-b .pc-hl { fill: #c2c7cf; }
-.pc-b .pc-eye { fill: #cfd3da; }
+.pc-b .pc-eye { fill: #d7dbe1; }
 .pc-sh { fill: rgba(0, 0, 0, .28); }
 
 .ch-dot { position: absolute; width: 26%; height: 26%; border-radius: 50%; background: rgba(30, 30, 40, .35); z-index: 1; pointer-events: none; }
