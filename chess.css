@@ -340,11 +340,11 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   text-align: center; font-size: 17px; font-weight: 600; padding: 10px;
   margin-bottom: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line);
 }
-/* Режим «Рядом»: на ходу чёрных поворачиваются НА 180° сами фигуры (лицом к тому,
-   чей ход), а доска, клетки и надписи остаются на месте. Игрок напротив видит
-   фигуры ровно, не вверх ногами. */
-.ch-fliparea .ch-piece { transition: transform .3s ease; }
-.ch-fliparea.flip180 .ch-piece { transform: rotate(180deg); }
+/* Режим «Рядом»: на ходу чёрных поворачиваем ВСЮ доску на 180° (клетки,
+   координаты и фигуры), чтобы игрок напротив видел всё правильно — и буквы/цифры
+   с наклоном тоже. Плоский режим 2D. */
+.ch-fliparea .ch-board { transition: transform .35s ease; }
+.ch-fliparea.flip180 .ch-board { transform: rotate(180deg); }
 
 .ch-gametime { text-align: center; margin: 0 auto 8px; font-size: 13px; font-weight: 700; color: #cdd5f0; font-variant-numeric: tabular-nums; opacity: .85; }
 
@@ -500,20 +500,17 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
     0 14px 22px rgba(0, 0, 0, .5),
     0 0 0 1px rgba(255, 255, 255, .06);
 }
+/* режим «Рядом» в 3D: разворачиваем наклонённую доску на 180° к тому, чей ход */
+.ch-3d .ch-fliparea.flip180 .ch-board { transform: rotate(180deg) rotateX(24deg); }
 .ch-3d .ch-sq {
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, .16), inset 0 -3px 6px rgba(0, 0, 0, .30);
 }
-/* фигуры «встают»: слегка приподнимаем и вытягиваем + падающая тень на доску */
+/* фигуры «встают»: вытягиваем по вертикали (симметрично, чтобы корректно
+   переворачивалось вместе с доской) + падающая тень на доску */
 .ch-3d .ch-board .ch-piece {
   transform-origin: 50% 50%;
-  transform: translateY(-9%) scaleY(1.12);
+  transform: scaleY(1.13);
   filter: drop-shadow(0 12px 7px rgba(0, 0, 0, .5));
-}
-/* режим «Рядом»: на ход чёрных фигуры перевёрнуты (rotate 180 применяется
-   ПОСЛЕДНИМ, т.е. первым к элементу — тогда сдвиг вверх остаётся вверхом на
-   экране, и фигуры не «вылезают» вниз за доску). */
-.ch-3d .ch-fliparea.flip180 .ch-piece {
-  transform: translateY(-9%) scaleY(1.12) rotate(180deg);
 }
 .ch-sq.light .ch-dot { background: rgba(30, 30, 40, .28); }
 .ch-dot.cap { width: 88%; height: 88%; background: transparent; border: 6px solid rgba(30, 30, 40, .3); border-radius: 50%; }

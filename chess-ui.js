@@ -859,8 +859,8 @@
   function render() { renderBoard(); renderStatus(); renderHistory(); renderPlayerBars(); applyScreenFlip(); }
 
   // «Играть рядом»: игроки сидят по разные стороны телефона лицом друг к другу.
-  // На ходу чёрных поворачиваем на 180° сами фигуры (лицом к тому, чей ход),
-  // а доску и надписи оставляем на месте.
+  // На ходу чёрных поворачиваем ВСЮ доску на 180° (клетки, координаты и фигуры),
+  // чтобы игрок напротив видел всё правильно — и буквы/цифры, и наклон в 3D.
   function applyScreenFlip() {
     const fa = $('flipArea'); if (!fa) return;
     const flip = app.mode === 'local' && !app.over && app.state && app.state.turn === 'b';

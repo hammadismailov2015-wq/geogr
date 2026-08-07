@@ -1,6 +1,6 @@
 /* Сервис-воркер шахмат: установка как приложение + работа офлайн.
    Стратегия «сначала сеть» — онлайн всегда свежая версия, офлайн — из кэша. */
-const CACHE = 'chess-app-v16';
+const CACHE = 'chess-app-v17';
 const CORE = [
   'chess.html', 'chess.css', 'chess.js', 'chess-ui.js', 'mqtt.min.js',
   'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-180.png'
