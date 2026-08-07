@@ -90,6 +90,9 @@
         <button class="ch-sw" data-theme="green" title="Зелёная доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="classic" title="Чёрно-белая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="brown" title="Коричневая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
+        <span class="ch-vsep" aria-hidden="true"></span>
+        <button class="ch-vw" data-view="2d" title="Плоская доска (2D)">2D</button>
+        <button class="ch-vw" data-view="3d" title="Объёмная доска (3D)">3D</button>
       </div>
 
       <section id="setupScreen" class="ch-screen">
@@ -415,9 +418,13 @@
       $('soundBtn').textContent = app.soundOn ? '🔊' : '🔇';
       if (app.soundOn) playMoveSound(false); // короткий пример
     });
+    app.view = localStorage.getItem('chessView') || '2d';
+    applyView(app.view);
     $('themeBar').addEventListener('click', (e) => {
-      const b = e.target.closest('.ch-sw'); if (!b) return;
-      app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b);
+      const b = e.target.closest('.ch-sw');
+      if (b) { app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b); return; }
+      const v = e.target.closest('.ch-vw');
+      if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v); }
     });
     $('modeCards').addEventListener('click', (e) => {
       const c = e.target.closest('.ch-big'); if (!c) return;
@@ -437,6 +444,7 @@
     selectDefault('#timeChips .ch-chip', `[data-min="${setup.timeMin}"]`);
     selectDefault('#moveChips .ch-chip', `[data-mv="${setup.moveLim}"]`);
     selectDefault('#themeBar .ch-sw', `[data-theme="${app.theme}"]`);
+    selectDefault('#themeBar .ch-vw', `[data-view="${app.view}"]`);
     updateSummaries(); updateSetupVisibility();
   }
 
@@ -1275,6 +1283,7 @@
      ТЕМЫ
      ======================================================== */
   function applyTheme(name) { document.body.setAttribute('data-chess-theme', name); if (bg.ctx) { readBgColors(); if (bg.reduce) drawBg(0); } }
+  function applyView(v) { document.body.classList.toggle('ch-3d', v === '3d'); }
 
   /* ========================================================
      КНОПКИ + МОДАЛКИ
