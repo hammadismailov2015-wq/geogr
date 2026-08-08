@@ -506,12 +506,13 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
    + слой стоящих фигур (#pieceLayer, preserve-3d, клики сквозь него). Так фигуры
    стоят вертикально (видны верхушки), а нажатия по клеткам надёжно работают. */
 .ch-board-stack { position: relative; width: min(92vw, 560px); aspect-ratio: 1/1; margin: 0 auto; }
+.ch-3d .ch-board-stack { width: min(94vw, 640px); }
 .ch-board-stack > .ch-board { position: absolute; inset: 0; width: auto; height: auto; }
 .ch-piecelayer { display: none; position: absolute; inset: 0; border: 5px solid transparent;
   grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); pointer-events: none; }
 
 .ch-3d .ch-board-wrap { perspective: 1150px; perspective-origin: 50% 42%; }
-.ch-3d .ch-board-wrap:has(.ch-board-stack) { padding: 26% 0 7%; }
+.ch-3d .ch-board-wrap:has(.ch-board-stack) { padding: 16% 0 4%; }
 .ch-3d #chBoard {
   transform: rotateX(48deg);
   overflow: visible;
