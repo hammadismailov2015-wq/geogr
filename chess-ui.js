@@ -56,7 +56,7 @@
   };
 
   const $ = (id) => document.getElementById(id);
-  let elBoard, elStatus, elHistory;
+  let elBoard, elStatus, elHistory, elPieceLayer;
 
   const netAvailable = () => typeof mqtt !== 'undefined';
 
@@ -239,7 +239,7 @@
           <div class="pb-clock" id="topClock" hidden>—</div>
         </div>
 
-        <div class="ch-board-wrap"><div class="ch-board" id="chBoard"></div></div>
+        <div class="ch-board-wrap"><div class="ch-board-stack"><div class="ch-board" id="chBoard"></div><div class="ch-piecelayer" id="pieceLayer"></div></div></div>
 
         <div class="ch-playerbar" id="barBot">
           <div class="pb-info"><span class="pb-name" id="botName">Белые</span><span class="pb-adv" id="botAdv"></span></div>
@@ -351,6 +351,7 @@
     `;
 
     elBoard = $('chBoard');
+    elPieceLayer = $('pieceLayer');
     elStatus = $('chStatus');
     elHistory = $('chHistory');
 
@@ -877,6 +878,7 @@
 
   function renderBoard() {
     elBoard.innerHTML = '';
+    if (elPieceLayer) elPieceLayer.innerHTML = '';
     const flip = app.orientation === 'b';
     for (let rr = 7; rr >= 0; rr--) for (let ff = 0; ff < 8; ff++) {
       const r = flip ? 7 - rr : rr, f = flip ? 7 - ff : ff, s = C.sq(f, r);
@@ -894,6 +896,12 @@
       if (p && C.typeOf(p) === 'k' && C.inCheck(app.state, C.colorOf(p)) && (C.colorOf(p) === app.state.turn || app.over)) cell.classList.add('check');
       cell.addEventListener('pointerdown', (e) => onPointerDown(e, s));
       elBoard.appendChild(cell);
+      // Слой «стоящих» фигур для 3D (виден только в 3D, клики сквозь него)
+      if (elPieceLayer) {
+        const pcell = document.createElement('div'); pcell.className = 'pl-cell';
+        if (p) { const pi = document.createElement('div'); pi.className = 'pl-piece pi-' + (C.colorOf(p) === 'w' ? 'w' : 'b') + C.typeOf(p); if (app.lastMove && app.lastMove.to === s) pi.classList.add('lastto'); pcell.appendChild(pi); }
+        elPieceLayer.appendChild(pcell);
+      }
     }
   }
 
