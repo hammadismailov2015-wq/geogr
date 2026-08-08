@@ -25,6 +25,11 @@
   function pieceSVG(color, type) {
     return `<svg viewBox="0 0 45 45" class="pc-svg pc-${color === 'w' ? 'w' : 'b'}" preserveAspectRatio="xMidYMax meet">${P_SHAPES[type] || ''}</svg>`;
   }
+  // Разметка фигуры: SVG (виден в 2D) + фотодеревянная картинка (видна в 3D)
+  function pieceHTML(color, type) {
+    const c = color === 'w' ? 'w' : 'b';
+    return pieceSVG(c, type) + `<span class="pc-img pi-${c}${type}"></span>`;
+  }
 
   const VAL = { p: 1, n: 3, b: 3, r: 5, q: 9 };
   const START = { p: 8, n: 2, b: 2, r: 2, q: 1 };
@@ -883,7 +888,7 @@
       if (app.lastMove && (app.lastMove.from === s || app.lastMove.to === s)) cell.classList.add('last');
       if (app.selected === s) cell.classList.add('sel');
       const p = app.state.board[s];
-      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.innerHTML = pieceSVG(C.colorOf(p), C.typeOf(p)); cell.appendChild(pc); }
+      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.innerHTML = pieceHTML(C.colorOf(p), C.typeOf(p)); cell.appendChild(pc); }
       const lm = app.legalFrom.find(m => m.to === s);
       if (lm) { const dot = document.createElement('span'); dot.className = 'ch-dot' + (app.state.board[s] || lm.flag === 'ep' ? ' cap' : ''); cell.appendChild(dot); }
       if (p && C.typeOf(p) === 'k' && C.inCheck(app.state, C.colorOf(p)) && (C.colorOf(p) === app.state.turn || app.over)) cell.classList.add('check');
@@ -1128,7 +1133,7 @@
     const size = elBoard.clientWidth / 8;
     const g = drag.ghost;
     g.style.width = size + 'px'; g.style.height = size + 'px';
-    g.innerHTML = `<span class="ch-piece ${C.colorOf(p) === 'w' ? 'white' : 'black'}">${pieceSVG(C.colorOf(p), C.typeOf(p))}</span>`;
+    g.innerHTML = `<span class="ch-piece ${C.colorOf(p) === 'w' ? 'white' : 'black'}">${pieceHTML(C.colorOf(p), C.typeOf(p))}</span>`;
     g.style.display = 'none';
     try { elBoard.setPointerCapture(e.pointerId); } catch (_) { }
   }
@@ -1568,7 +1573,7 @@
       if (tut.lastMove && (tut.lastMove.from === s || tut.lastMove.to === s)) cell.classList.add('last');
       if (tut.sel === s) cell.classList.add('sel');
       const p = tut.state.board[s];
-      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.innerHTML = pieceSVG(C.colorOf(p), C.typeOf(p)); cell.appendChild(pc); }
+      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.innerHTML = pieceHTML(C.colorOf(p), C.typeOf(p)); cell.appendChild(pc); }
       if (tut.legal.some(m => m.to === s)) { const dot = document.createElement('span'); dot.className = 'ch-dot' + (tut.state.board[s] ? ' cap' : ''); cell.appendChild(dot); }
       if (p && C.typeOf(p) === 'k' && C.inCheck(tut.state, C.colorOf(p))) cell.classList.add('check');
       cell.addEventListener('pointerdown', () => onTutTap(s));
@@ -1737,7 +1742,7 @@
         else if (tg.delta < 0) cell.classList.add('tg-down');
         const pc = document.createElement('span');
         pc.className = 'ch-piece white' + (promoted ? ' tg-promote' : '');
-        pc.innerHTML = pieceSVG('w', promoted ? 'q' : 'p');
+        pc.innerHTML = pieceHTML('w', promoted ? 'q' : 'p');
         cell.appendChild(pc);
       }
       el.appendChild(cell);
