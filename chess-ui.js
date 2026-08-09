@@ -22,14 +22,10 @@
     k: `<ellipse class="pc-sh" cx="22.5" cy="40.5" rx="12" ry="2.5"/><path class="pc-line" d="M22.5,4 L22.5,10 M20,6.5 L25,6.5" style="stroke-width:1.6"/><path class="pc-body" d="M22.5,11 C26,11 28,13 28,15.5 C28,17.5 26.5,19 24.5,20 L27.5,22 C30,24 31.5,30 31.5,38.5 L13.5,38.5 C13.5,30 15,24 17.5,22 L20.5,20 C18.5,19 17,17.5 17,15.5 C17,13 19,11 22.5,11 z"/><path class="pc-line" d="M14,29 C19,26 26,26 31,29 M14,33 C19,30 26,30 31,33"/><ellipse class="pc-hl" cx="19" cy="30" rx="1.5" ry="5" opacity=".5"/>`,
     n: `<ellipse class="pc-sh" cx="22.5" cy="40" rx="11.5" ry="2.3"/><path class="pc-body" d="M12.5,38.5 L32.5,38.5 L32.5,36.2 C32.5,34.9 31.2,34 29.8,34 L15.2,34 C13.8,34 12.5,34.9 12.5,36.2 Z"/><path class="pc-body" d="M15.5,34.5 C15.5,29.8 17.4,26.6 20.6,24.7 C16.8,23.4 14,20.1 14,16.4 C14,14.8 14.7,13.4 15.9,12.4 C14.8,13.1 13.9,13.9 13.1,14.2 C11.9,14.6 10.8,13.7 11.3,12.3 C11.9,10.3 14.4,8.6 17.1,7.9 L17.9,5.9 C18.3,4.9 19.6,4.9 20.1,6 L19.7,7.8 C22.5,7.2 25.5,8.2 27.7,10.5 C31,13.9 31.5,19.2 30,25.2 C31.3,27.5 31.9,30.5 31.9,34.5 Z"/><circle class="pc-eye" cx="15.5" cy="12.4" r="1.05"/><ellipse class="pc-hl" cx="25" cy="19" rx="1.7" ry="5.5" opacity=".33"/>`
   };
-  function pieceSVG(color, type) {
-    return `<svg viewBox="0 0 45 45" class="pc-svg pc-${color === 'w' ? 'w' : 'b'}" preserveAspectRatio="xMidYMax meet">${P_SHAPES[type] || ''}</svg>`;
+  function pieceSVG(color, type, par) {
+    return `<svg viewBox="0 0 45 45" class="pc-svg pc-${color === 'w' ? 'w' : 'b'}" preserveAspectRatio="${par || 'xMidYMax meet'}">${P_SHAPES[type] || ''}</svg>`;
   }
-  // Разметка фигуры: SVG (виден в 2D) + фотодеревянная картинка (видна в 3D)
-  function pieceHTML(color, type) {
-    const c = color === 'w' ? 'w' : 'b';
-    return pieceSVG(c, type) + `<span class="pc-img i${c} pi-${c}${type}"></span>`;
-  }
+  function pieceHTML(color, type) { return pieceSVG(color, type); }
 
   const VAL = { p: 1, n: 3, b: 3, r: 5, q: 9 };
   const START = { p: 8, n: 2, b: 2, r: 2, q: 1 };
@@ -899,7 +895,7 @@
       // Слой «стоящих» фигур для 3D (виден только в 3D, клики сквозь него)
       if (elPieceLayer) {
         const pcell = document.createElement('div'); pcell.className = 'pl-cell';
-        if (p) { const col = C.colorOf(p) === 'w' ? 'w' : 'b'; const pi = document.createElement('div'); pi.className = 'pl-piece pl-' + col + ' pi-' + col + C.typeOf(p); if (app.lastMove && app.lastMove.to === s) pi.classList.add('lastto'); pcell.appendChild(pi); }
+        if (p) { const col = C.colorOf(p) === 'w' ? 'w' : 'b'; const pi = document.createElement('div'); pi.className = 'pl-piece pl-' + col; pi.innerHTML = pieceSVG(col, C.typeOf(p), 'none'); pcell.appendChild(pi); }
         elPieceLayer.appendChild(pcell);
       }
     }
