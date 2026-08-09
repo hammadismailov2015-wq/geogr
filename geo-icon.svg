@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f4c9c"/>
+      <stop offset="1" stop-color="#1fa9a0"/>
+    </linearGradient>
+    <radialGradient id="ocean" cx="0.4" cy="0.34" r="0.8">
+      <stop offset="0" stop-color="#d3edff"/>
+      <stop offset="0.55" stop-color="#8ccaf1"/>
+      <stop offset="1" stop-color="#4f9fd6"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.68" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.18"/>
+    </radialGradient>
+    <clipPath id="globe"><circle cx="256" cy="256" r="150"/></clipPath>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="172" fill="#ffffff" opacity="0.10"/>
+  <circle cx="256" cy="256" r="150" fill="url(#ocean)"/>
+
+  <g clip-path="url(#globe)">
+    <!-- материки -->
+    <g fill="#41b061">
+      <path d="M168,168 q46,-26 82,-8 q26,14 12,42 q-16,30 -54,30 q-36,0 -52,-24 q-12,-28 12,-40 Z"/>
+      <path d="M300,196 q46,2 52,42 q6,34 -28,50 q-34,16 -56,-8 q-16,-24 4,-50 q14,-32 28,-34 Z"/>
+      <path d="M150,296 q34,-12 58,8 q22,20 4,50 q-20,30 -54,22 q-32,-8 -32,-46 q0,-26 24,-34 Z"/>
+      <path d="M300,318 q40,-8 52,26 q10,32 -22,50 q-30,16 -50,-8 q-14,-22 2,-46 q8,-18 18,-22 Z"/>
+    </g>
+    <!-- сетка меридианов и параллелей -->
+    <g fill="none" stroke="#ffffff" stroke-opacity="0.30" stroke-width="3.5">
+      <ellipse cx="256" cy="256" rx="72" ry="150"/>
+      <ellipse cx="256" cy="256" rx="132" ry="150"/>
+      <line x1="106" y1="256" x2="406" y2="256"/>
+      <line x1="106" y1="196" x2="406" y2="196"/>
+      <line x1="106" y1="316" x2="406" y2="316"/>
+    </g>
+  </g>
+
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="4"/>
+  <circle cx="256" cy="256" r="150" fill="url(#glow)"/>
+
+  <!-- маленькая метка-локация для «географии» -->
+  <g transform="translate(356,150)">
+    <path d="M0,-30 C22,-30 34,-14 34,6 C34,30 8,52 0,64 C-8,52 -34,30 -34,6 C-34,-14 -22,-30 0,-30 Z" fill="#ff5a5f"/>
+    <circle cx="0" cy="4" r="13" fill="#ffffff"/>
+  </g>
+</svg>

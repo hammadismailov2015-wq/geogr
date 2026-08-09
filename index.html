@@ -2,9 +2,27 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Гео-Тренажёр · 6 класс</title>
   <meta name="description" content="Интерактивный тренажёр по географии: океаны, моря, реки и атмосфера." />
+
+  <!-- Установка как приложение (PWA) -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="apple-touch-icon" href="geo-apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Гео-Тренажёр" />
+  <script>
+    // Регистрируем service worker (только на http/https, не на file://)
+    if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("geo-sw.js").catch(function () {});
+      });
+    }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <script>
     // Подключаем стили со свежей версией, чтобы после обновлений не оставался
