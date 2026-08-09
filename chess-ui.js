@@ -52,7 +52,7 @@
   };
 
   const $ = (id) => document.getElementById(id);
-  let elBoard, elStatus, elHistory, elPieceLayer;
+  let elBoard, elStatus, elHistory, elPieceLayer, plSig = '';
 
   const netAvailable = () => typeof mqtt !== 'undefined';
 
@@ -874,8 +874,12 @@
 
   function renderBoard() {
     elBoard.innerHTML = '';
-    if (elPieceLayer) elPieceLayer.innerHTML = '';
     const flip = app.orientation === 'b';
+    // Слой стоящих фигур (3D) перестраиваем ТОЛЬКО когда позиция изменилась —
+    // иначе при каждом выборе/тапе пересоздаются 32 картинки и телефон тормозит.
+    let sig = flip ? 'F' : 'N'; for (let i = 0; i < 64; i++) sig += app.state.board[i] || '.';
+    const rebuildPL = !!elPieceLayer && sig !== plSig;
+    if (rebuildPL) { elPieceLayer.innerHTML = ''; plSig = sig; }
     for (let rr = 7; rr >= 0; rr--) for (let ff = 0; ff < 8; ff++) {
       const r = flip ? 7 - rr : rr, f = flip ? 7 - ff : ff, s = C.sq(f, r);
       const cell = document.createElement('div');
@@ -893,7 +897,7 @@
       cell.addEventListener('pointerdown', (e) => onPointerDown(e, s));
       elBoard.appendChild(cell);
       // Слой «стоящих» фигур для 3D (виден только в 3D, клики сквозь него)
-      if (elPieceLayer) {
+      if (rebuildPL) {
         const pcell = document.createElement('div'); pcell.className = 'pl-cell';
         if (p) { const col = C.colorOf(p) === 'w' ? 'w' : 'b'; const pi = document.createElement('div'); pi.className = 'pl-piece pt-' + col + C.typeOf(p); pcell.appendChild(pi); }
         elPieceLayer.appendChild(pcell);
