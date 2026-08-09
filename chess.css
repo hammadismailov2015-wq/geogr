@@ -507,8 +507,8 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
    стоят вертикально (видны верхушки), а нажатия по клеткам надёжно работают. */
 body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-доски (меньше = крупнее) */
 .ch-board-stack { position: relative; width: min(92vw, 560px); aspect-ratio: 1/1; margin: 0 auto; }
-.ch-3d .ch-board-stack { width: min(100vw, 760px); }
-.ch-board-stack > .ch-board { position: absolute; inset: 0; width: auto; height: auto; }
+.ch-3d .ch-board-stack { width: min(100vw, 760px); aspect-ratio: 1 / 1.32; }  /* вытянута в длину */
+.ch-board-stack > .ch-board { position: absolute; inset: 0; width: auto; height: auto; aspect-ratio: auto; }
 .ch-piecelayer { display: none; position: absolute; inset: 0; border: 5px solid transparent;
   grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); pointer-events: none; }
 
