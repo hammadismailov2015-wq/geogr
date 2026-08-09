@@ -895,7 +895,7 @@
       // Слой «стоящих» фигур для 3D (виден только в 3D, клики сквозь него)
       if (elPieceLayer) {
         const pcell = document.createElement('div'); pcell.className = 'pl-cell';
-        if (p) { const col = C.colorOf(p) === 'w' ? 'w' : 'b'; const pi = document.createElement('div'); pi.className = 'pl-piece pl-' + col; pi.innerHTML = pieceSVG(col, C.typeOf(p), 'none'); pcell.appendChild(pi); }
+        if (p) { const col = C.colorOf(p) === 'w' ? 'w' : 'b'; const pi = document.createElement('div'); pi.className = 'pl-piece pt-' + col + C.typeOf(p); pcell.appendChild(pi); }
         elPieceLayer.appendChild(pcell);
       }
     }
