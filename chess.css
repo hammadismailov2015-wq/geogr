@@ -527,9 +527,11 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
   filter: drop-shadow(0 6px 4px rgba(0, 0, 0, .4));
 }
 .ch-piecelayer .pl-img { position: absolute; inset: 0; background-position: center bottom; background-repeat: no-repeat; background-size: contain; }
-/* режим «Рядом» в 3D: объёмные фигуры видны правильно с обеих сторон стола —
-   их НЕ переворачиваем вверх ногами (это выглядит сломано). Для соперника
-   разворачиваем только подписи-координаты (это делает правило для .ch-coord). */
+/* режим «Рядом» в 3D: на ход чёрных доску НАКЛОНЯЕМ в другую сторону — к сопернику,
+   а фигуры оставляем стоять ровно (не вверх ногами). Получается «поворот к сопернику». */
+.ch-3d .ch-fliparea.flip180 #chBoard { transform: rotateX(calc(-1 * var(--t3d))); }
+.ch-3d .ch-fliparea.flip180 .ch-piecelayer { transform: rotateX(calc(-1 * var(--t3d))); }
+.ch-3d .ch-fliparea.flip180 .pl-piece { transform: rotateX(var(--t3d)); }
 /* режим «Рядом» в 3D: стоящие объёмные фигуры видны верно с обеих сторон,
    поэтому их не переворачиваем — разворачиваем только подписи-координаты. */
 
