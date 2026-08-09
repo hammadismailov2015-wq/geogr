@@ -28,7 +28,7 @@
   // Разметка фигуры: SVG (виден в 2D) + фотодеревянная картинка (видна в 3D)
   function pieceHTML(color, type) {
     const c = color === 'w' ? 'w' : 'b';
-    return pieceSVG(c, type) + `<span class="pc-img pi-${c}${type}"></span>`;
+    return pieceSVG(c, type) + `<span class="pc-img i${c} pi-${c}${type}"></span>`;
   }
 
   const VAL = { p: 1, n: 3, b: 3, r: 5, q: 9 };
@@ -899,7 +899,7 @@
       // Слой «стоящих» фигур для 3D (виден только в 3D, клики сквозь него)
       if (elPieceLayer) {
         const pcell = document.createElement('div'); pcell.className = 'pl-cell';
-        if (p) { const pi = document.createElement('div'); pi.className = 'pl-piece pi-' + (C.colorOf(p) === 'w' ? 'w' : 'b') + C.typeOf(p); if (app.lastMove && app.lastMove.to === s) pi.classList.add('lastto'); pcell.appendChild(pi); }
+        if (p) { const col = C.colorOf(p) === 'w' ? 'w' : 'b'; const pi = document.createElement('div'); pi.className = 'pl-piece pl-' + col + ' pi-' + col + C.typeOf(p); if (app.lastMove && app.lastMove.to === s) pi.classList.add('lastto'); pcell.appendChild(pi); }
         elPieceLayer.appendChild(pcell);
       }
     }
