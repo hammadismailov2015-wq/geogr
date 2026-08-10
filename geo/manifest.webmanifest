@@ -5,7 +5,7 @@
   "description": "Интерактивный тренажёр по географии для 6 класса: темы, карта, режим на время и картинки-схемы.",
   "lang": "ru",
   "dir": "ltr",
-  "start_url": "./?app=geo",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
