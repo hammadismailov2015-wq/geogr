@@ -1,10 +1,11 @@
 {
+  "id": "geogr-geo",
   "name": "Гео-Тренажёр · 6 класс",
   "short_name": "Гео-Тренажёр",
   "description": "Интерактивный тренажёр по географии для 6 класса: темы, карта, режим на время и картинки-схемы.",
   "lang": "ru",
   "dir": "ltr",
-  "start_url": "./",
+  "start_url": "./?app=geo",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
