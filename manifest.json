@@ -4,7 +4,7 @@
   "description": "Шахматы: с ботом, с другом онлайн или рядом друг с другом.",
   "id": "geogr-chess",
   "start_url": "chess.html",
-  "scope": "./",
+  "scope": "chess",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0f1220",
