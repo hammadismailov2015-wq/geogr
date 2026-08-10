@@ -649,6 +649,16 @@ function init() {
   const sortBtn = $("#sortProgressBtn");
   if (sortBtn) sortBtn.addEventListener("click", sortTopicsByProgress);
 
+  const installBtn = $("#installBtn");
+  if (installBtn) installBtn.addEventListener("click", async () => {
+    const dp = window.__deferredPrompt;
+    if (!dp) return;
+    dp.prompt();
+    try { await dp.userChoice; } catch (e) { /* ignore */ }
+    window.__deferredPrompt = null;
+    installBtn.hidden = true;
+  });
+
   const search = $("#topicSearch");
   if (search) search.addEventListener("input", filterTopics);
 

@@ -21,6 +21,19 @@
         navigator.serviceWorker.register("geo-sw.js").catch(function () {});
       });
     }
+    // Ловим момент, когда приложение можно установить, и показываем кнопку
+    window.__deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      window.__deferredPrompt = e;
+      var b = document.getElementById("installBtn");
+      if (b) b.hidden = false;
+    });
+    window.addEventListener("appinstalled", function () {
+      window.__deferredPrompt = null;
+      var b = document.getElementById("installBtn");
+      if (b) b.hidden = true;
+    });
   </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -69,6 +82,8 @@
         <h2>Выберите тему и проверьте знания</h2>
         <p class="hero-sub">Тренажёр по географии для 6 класса — с уровнем посложнее. Отвечайте на вопросы, набирайте очки и повышайте уровень знатока планеты.</p>
       </div>
+
+      <button class="install-btn" id="installBtn" hidden>📲 Установить приложение на телефон</button>
 
       <button class="time-toggle" id="timeToggle" aria-pressed="false" title="Отвечать на время">
         <span class="tt-ico">⏱</span>
