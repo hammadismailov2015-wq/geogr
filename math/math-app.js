@@ -1033,6 +1033,5 @@
   initPalette();
   initTimeControls();
   initSound();
-  initMascot();
   renderTopics("");
 })();
