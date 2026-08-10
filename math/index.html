@@ -5,7 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Математика · 6 класс</title>
   <meta name="description" content="Программа по математике для 6 класса: объяснение тем и тренажёры." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#6366f1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Математика" />
+  <link rel="apple-touch-icon" href="math-apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-math-192.png" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>" />
+  <script>
+    // Регистрируем service worker — чтобы приложение можно было установить и открывать без интернета.
+    if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("math-sw.js").catch(function () {});
+      });
+    }
+  </script>
   <script>
     // Подключаем стили со свежей версией, чтобы после обновлений не оставался
     // старый кэшированный math.css. На file:// query не добавляем.
@@ -48,6 +63,8 @@
         <h2>Выберите тему</h2>
         <p class="hero-sub">По каждой теме можно прочитать объяснение или пройти тренажёр с проверкой ответов.</p>
       </div>
+
+      <button class="install-btn" id="installBtn" hidden>📲 Установить как приложение</button>
 
       <button class="exam-btn" id="examBtn">
         <span class="exam-ico">🎓</span>

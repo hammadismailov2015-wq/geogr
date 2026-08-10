@@ -985,6 +985,23 @@
   if (soundBtn) soundBtn.addEventListener("click", toggleSound);
   var resetBtn = $("resetOrderBtn");
   if (resetBtn) resetBtn.addEventListener("click", resetOrder);
+
+  // Кнопка «Установить приложение»
+  var deferredPrompt = null;
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    var ib = $("installBtn"); if (ib) ib.hidden = false;
+  });
+  var installBtn = $("installBtn");
+  if (installBtn) installBtn.addEventListener("click", function () {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function () { deferredPrompt = null; installBtn.hidden = true; });
+  });
+  window.addEventListener("appinstalled", function () {
+    var ib = $("installBtn"); if (ib) ib.hidden = true;
+  });
   var sortBtn = $("sortProgressBtn");
   if (sortBtn) sortBtn.addEventListener("click", sortByProgress);
   // На время перетаскивания глушим прокрутку страницы касанием
