@@ -84,7 +84,10 @@ body {
 }
 
 .brand { display: flex; align-items: center; gap: 12px; }
-.brand-ico { font-size: 34px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.3)); }
+.brand-ico {
+  width: 40px; height: 40px; border-radius: 11px; display: block;
+  object-fit: cover; box-shadow: 0 4px 8px rgba(0,0,0,.3);
+}
 .brand h1 { font-size: clamp(18px, 4vw, 24px); margin: 0; letter-spacing: -.02em; }
 .brand-sub { margin: 0; font-size: 12px; color: var(--muted); }
 
