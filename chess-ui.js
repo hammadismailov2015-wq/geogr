@@ -448,7 +448,7 @@
       if (b) { app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b); return; }
       const v = e.target.closest('.ch-vw');
       if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v);
-        if (app.state && !$('gameScreen').hidden) { renderBoard(); renderPlayerBars(); updateClocks(); } }
+        if (app.state && !$('gameScreen').hidden) { syncViewOrientation(); renderBoard(); renderPlayerBars(); updateClocks(); applyScreenFlip(); } }
     });
     $('modeCards').addEventListener('click', (e) => {
       const c = e.target.closest('.ch-big'); if (!c) return;
@@ -866,14 +866,22 @@
   /* ========================================================
      ОТРИСОВКА
      ======================================================== */
-  function render() { renderBoard(); renderStatus(); renderHistory(); renderPlayerBars(); applyScreenFlip(); }
+  function render() { syncViewOrientation(); renderBoard(); renderStatus(); renderHistory(); renderPlayerBars(); applyScreenFlip(); }
 
   // «Играть рядом»: игроки сидят по разные стороны телефона лицом друг к другу.
-  // На ходу чёрных поворачиваем на 180° сами фигуры и координаты (буквы/цифры) —
-  // лицом к тому, чей ход. Саму доску (клетки, наклон) не трогаем.
+  // В 3D фигуры СТОЯТ (у них есть высота), поэтому перевернуть их «вверх ногами»
+  // нельзя — они торчат за край доски. Вместо этого разворачиваем ВСЮ доску на
+  // 180° к тому, чей ход (как разворачивают настоящую доску): фигуры стоят прямо
+  // на своих клетках. В 2D фигуры плоские — там просто крутим экран на 180°.
+  function syncViewOrientation() {
+    if (app.mode !== 'local') return;
+    const blackTurn = app.state && app.state.turn === 'b' && !app.over;
+    app.orientation = (app.view === '3d' && blackTurn) ? 'b' : 'w';
+  }
   function applyScreenFlip() {
     const fa = $('flipArea'); if (!fa) return;
-    const flip = app.mode === 'local' && !app.over && app.state && app.state.turn === 'b';
+    // экран крутим на 180° только в 2D; в 3D доску разворачиваем данными (orientation)
+    const flip = app.mode === 'local' && app.view !== '3d' && !app.over && app.state && app.state.turn === 'b';
     fa.classList.toggle('flip180', !!flip);
     app.screenFlipped = !!flip;
   }
