@@ -530,21 +530,15 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-3d .ch-piecelayer { display: grid; border-bottom-width: 14px; transform: rotateX(var(--t3d)); transform-style: preserve-3d; }
 .ch-piecelayer .pl-cell { position: relative; transform-style: preserve-3d; }
 .ch-piecelayer .pl-piece {
-  position: absolute; left: 15%; bottom: 42%; width: 70%; height: 150%;
+  position: absolute; left: 10%; bottom: 38%; width: 80%; height: 170%;
   transform-origin: center bottom; transform: rotateX(calc(-1 * var(--t3d)));
   filter: drop-shadow(0 6px 4px rgba(0, 0, 0, .4));
 }
 .ch-piecelayer .pl-img { position: absolute; inset: 0; background-position: center bottom; background-repeat: no-repeat; background-size: contain; }
 /* режим «Рядом» в 3D: на ход чёрных ВСЯ доска разворачивается на 180° к сопернику
    (как будто передал телефон другу) — клетки, фигуры и координаты как одно целое. */
-/* «Рядом» в 3D: как в 2D — фигура и подписи поворачиваются на 180° и стоят ПО ЦЕНТРУ
-   клетки. Размер фигуры прежний, меняется только положение (по центру) и поворот. */
-.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-piece {
-  bottom: -25%; top: auto; height: 150%;
-  transform-origin: center center; transform: rotate(180deg);
-}
-.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-img { background-position: center center; }
-.ch-3d .ch-fliparea.flip180 .ch-coord { transform: rotate(180deg); }
+/* «Рядом» в 3D: доска разворачивается к сопернику перестроением (renderBoard) —
+   фигуры остаются большими, стоят прямо и полностью в клетке. */
 /* режим «Рядом» в 3D: стоящие объёмные фигуры видны верно с обеих сторон,
    поэтому их не переворачиваем — разворачиваем только подписи-координаты. */
 
