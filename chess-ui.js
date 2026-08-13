@@ -909,7 +909,7 @@
       // Слой «стоящих» фигур для 3D (виден только в 3D, клики сквозь него)
       if (rebuildPL) {
         const pcell = document.createElement('div'); pcell.className = 'pl-cell';
-        if (p) { const col = C.colorOf(p) === 'w' ? 'w' : 'b'; const pi = document.createElement('div'); pi.className = 'pl-piece'; const im = document.createElement('div'); im.className = 'pl-img pt-' + col + C.typeOf(p); pi.appendChild(im); pcell.appendChild(pi); }
+        if (p) { const col = C.colorOf(p) === 'w' ? 'w' : 'b'; if (C.typeOf(p) === 'p') pcell.classList.add('pl-pawn'); const pi = document.createElement('div'); pi.className = 'pl-piece'; const im = document.createElement('div'); im.className = 'pl-img pt-' + col + C.typeOf(p); pi.appendChild(im); pcell.appendChild(pi); }
         elPieceLayer.appendChild(pcell);
       }
     }
@@ -1614,7 +1614,7 @@
       // слой стоящих фигур для 3D (клики проходят сквозь него)
       if (rebuildPL) {
         const pcell = document.createElement('div'); pcell.className = 'pl-cell';
-        if (p) { const col = tutDispColor(C.colorOf(p)); const pi = document.createElement('div'); pi.className = 'pl-piece'; const im = document.createElement('div'); im.className = 'pl-img pt-' + col + C.typeOf(p); pi.appendChild(im); pcell.appendChild(pi); }
+        if (p) { const col = tutDispColor(C.colorOf(p)); if (C.typeOf(p) === 'p') pcell.classList.add('pl-pawn'); const pi = document.createElement('div'); pi.className = 'pl-piece'; const im = document.createElement('div'); im.className = 'pl-img pt-' + col + C.typeOf(p); pi.appendChild(im); pcell.appendChild(pi); }
         elTPL.appendChild(pcell);
       }
     }
