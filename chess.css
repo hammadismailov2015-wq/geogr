@@ -530,20 +530,16 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-3d .ch-piecelayer { display: grid; border-bottom-width: 14px; transform: rotateX(var(--t3d)); transform-style: preserve-3d; }
 .ch-piecelayer .pl-cell { position: relative; transform-style: preserve-3d; }
 .ch-piecelayer .pl-piece {
-  position: absolute; left: 10%; bottom: 14%; width: 80%; height: 72%;
-  transform-origin: center center; transform: rotateX(calc(-1 * var(--t3d)));
+  position: absolute; left: 10%; bottom: 38%; width: 80%; height: 135%;
+  transform-origin: center bottom; transform: rotateX(calc(-1 * var(--t3d)));
   filter: drop-shadow(0 6px 4px rgba(0, 0, 0, .4));
 }
 .ch-piecelayer .pl-img { position: absolute; inset: 0; background-position: center bottom; background-repeat: no-repeat; background-size: contain; }
 /* пешки рисуем ПОВЕРХ фигур, чтобы стоящая позади фигура их не закрывала */
 .ch-3d .ch-piecelayer .pl-pawn { z-index: 20; }
-/* режим «Рядом» в 3D: на ход чёрных переворачиваем на 180° САМУ картинку фигуры
-   (вокруг центра — как в 2D, буквы a–h остаются на месте, НЕ зеркально).
-   Фигуры высотой в клетку (height:100%) — полностью помещаются на доске,
-   ничего не висит над доской и не свисает вниз. */
-.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-img {
-  transform: rotate(180deg); transform-origin: center center;
-}
+/* режим «Рядом» в 3D: доску разворачиваем на 180° данными (orientation) — фигуры
+   стоят ПРЯМО (не вверх ногами), крупные, по середине клеток. Картинку фигуры НЕ
+   переворачиваем. flip180 остаётся только для 2D (плоские фигуры). */
 .ch-3d .ch-fliparea.flip180 .ch-coord { transform: rotate(180deg); }
 
 /* Игра-повторение в 3D: доску-дорожку не наклоняем (одна пешка идёт вверх) */
