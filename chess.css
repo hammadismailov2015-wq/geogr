@@ -530,7 +530,7 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-3d .ch-piecelayer { display: grid; border-bottom-width: 14px; transform: rotateX(var(--t3d)); transform-style: preserve-3d; }
 .ch-piecelayer .pl-cell { position: relative; transform-style: preserve-3d; }
 .ch-piecelayer .pl-piece {
-  position: absolute; left: 10%; bottom: 38%; width: 80%; height: 135%;
+  position: absolute; left: 10%; bottom: 0; width: 80%; height: 100%;
   transform-origin: center bottom; transform: rotateX(calc(-1 * var(--t3d)));
   filter: drop-shadow(0 6px 4px rgba(0, 0, 0, .4));
 }
@@ -539,11 +539,8 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-3d .ch-piecelayer .pl-pawn { z-index: 20; }
 /* режим «Рядом» в 3D: на ход чёрных переворачиваем на 180° САМУ картинку фигуры
    (вокруг центра — как в 2D, буквы a–h остаются на месте, НЕ зеркально).
-   pl-piece слегка опускаем (translateY), чтобы перевёрнутое основание верхнего
-   ряда меньше выходило за верхний край доски. */
-.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-piece {
-  transform: rotateX(calc(-1 * var(--t3d))) translateY(14%);
-}
+   Фигуры высотой в клетку (height:100%) — полностью помещаются на доске,
+   ничего не висит над доской и не свисает вниз. */
 .ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-img {
   transform: rotate(180deg); transform-origin: center center;
 }
