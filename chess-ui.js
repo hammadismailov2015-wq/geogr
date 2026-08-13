@@ -1467,12 +1467,16 @@
   function playGoodSound() {
     if (!app.soundOn) return; const ctx = getAudio(); if (!ctx) return; if (ctx.state === 'suspended') ctx.resume();
     const t = ctx.currentTime;
-    const note = (f, s, d) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.3, s + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, s + d); o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + d + 0.02); };
-    note(523, t, 0.12); note(659, t + 0.1, 0.12); note(784, t + 0.2, 0.2);
+    // весёлый восходящий перезвон «правильно!» — средние/высокие частоты, слышно и на телефоне
+    const note = (f, s, d, vol) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(vol || 0.45, s + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, s + d); o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + d + 0.02); };
+    note(659, t, 0.12); note(880, t + 0.10, 0.12); note(1319, t + 0.20, 0.24, 0.5);
   }
   function playBadSound() {
     if (!app.soundOn) return; const ctx = getAudio(); if (!ctx) return; if (ctx.state === 'suspended') ctx.resume();
-    const t = ctx.currentTime; thump(ctx, t, 200, 80, 0.32, 0.28, 'sawtooth'); noiseBurst(ctx, t, 0.14, 'lowpass', 480, 0.14);
+    const t = ctx.currentTime;
+    // ясный нисходящий «зуммер» ошибки — квадратная волна в среднем диапазоне (хорошо слышно на телефоне)
+    const buzz = (f, s, d) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(f, s); g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.32, s + 0.012); g.gain.setValueAtTime(0.32, s + d - 0.02); g.gain.exponentialRampToValueAtTime(0.0001, s + d); o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + d + 0.02); };
+    buzz(392, t, 0.16); buzz(294, t + 0.16, 0.30);
   }
 
   // Разделы и уроки. steps: массив задач-позиций; info:true — тема «для понимания».
