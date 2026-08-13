@@ -47,7 +47,7 @@
     paused: false,
     theme: 'classic',
     soundOn: true,
-    tutSide: 'w',
+    tutSideResolved: 'w',
     clock: { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 },
     online: { on: false, role: null, room: null, myColor: 'w', hostColor: 'w', myId: null, net: null, connected: false, peerReady: false, failed: false }
   };
@@ -90,7 +90,6 @@
      ======================================================== */
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
-    app.tutSide = localStorage.getItem('chessTutSide') === 'b' ? 'b' : 'w';
     applyTheme(app.theme);
     buildLayout();
     initBackground();
@@ -116,11 +115,6 @@
         <span class="ch-vsep" aria-hidden="true"></span>
         <button class="ch-vw" data-view="2d" title="Плоская доска (2D)">2D</button>
         <button class="ch-vw" data-view="3d" title="Объёмная доска (3D)">3D</button>
-        <span class="ch-vsep" id="pcolorSep" aria-hidden="true" hidden></span>
-        <span id="pcolorGroup" hidden>
-          <button class="ch-pc" data-pcolor="w" title="Играть белыми фигурами">♔</button>
-          <button class="ch-pc" data-pcolor="b" title="Играть чёрными фигурами">♚</button>
-        </span>
       </div>
 
       <section id="setupScreen" class="ch-screen">
@@ -453,9 +447,7 @@
       const b = e.target.closest('.ch-sw');
       if (b) { app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b); return; }
       const v = e.target.closest('.ch-vw');
-      if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v); return; }
-      const pc = e.target.closest('.ch-pc');
-      if (pc) { app.tutSide = pc.dataset.pcolor; localStorage.setItem('chessTutSide', app.tutSide); markActive('#pcolorGroup .ch-pc', pc); refreshTutSide(); }
+      if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v); }
     });
     $('modeCards').addEventListener('click', (e) => {
       const c = e.target.closest('.ch-big'); if (!c) return;
@@ -476,24 +468,14 @@
     selectDefault('#moveChips .ch-chip', `[data-mv="${setup.moveLim}"]`);
     selectDefault('#themeBar .ch-sw', `[data-theme="${app.theme}"]`);
     selectDefault('#themeBar .ch-vw', `[data-view="${app.view}"]`);
-    selectDefault('#pcolorGroup .ch-pc', `[data-pcolor="${app.tutSide}"]`);
     updateSummaries(); updateSetupVisibility();
   }
 
-  // отображаемый цвет фигуры для обучения/проверки/игры-повторения (косметический обмен)
-  function tutDispColor(actual) { return app.tutSide === 'b' ? (actual === 'w' ? 'b' : 'w') : actual; }
-  // показывать переключатель ♔/♚ только в разделе обучения
-  function updatePcolorVisibility() {
-    const inTutor = !$('tutorScreen').hidden;
-    const g = $('pcolorGroup'), sep = $('pcolorSep');
-    if (g) g.hidden = !inTutor;
-    if (sep) sep.hidden = !inTutor;
-  }
-  // перерисовать текущий экран обучения после смены цвета
-  function refreshTutSide() {
-    if (tut.run) { renderTutBoard(); if (tut.run.steps && tut.run.steps[tut.run.idx]) { const step = tut.run.steps[tut.run.idx]; const side = app.tutSide === 'b' ? 'чёрными' : 'белыми'; const prm = $('tutPrompt'); if (prm && prm.innerHTML.indexOf('Задание') >= 0) { const n = tut.run.steps.length; const prog = n > 1 ? ` (${tut.run.idx + 1}/${n})` : ''; prm.innerHTML = `<b>Задание${prog}:</b> ${step.prompt}<br><span class="tut-hint">Твой ход ${side} — нажми на фигуру, потом на клетку.</span>`; } } }
-    if (tg.on) renderTgBoard(false);
-  }
+  // Цвет своих фигур в обучении/проверке/игре-повторении берётся из настройки «Играть за».
+  // 'r' (Рандом) выбирается заново при старте каждого урока/проверки/игры.
+  function resolveTutSide() { app.tutSideResolved = setup.side === 'r' ? (Math.random() < 0.5 ? 'w' : 'b') : setup.side; return app.tutSideResolved; }
+  // отображаемый цвет фигуры (косметический обмен, если играем чёрными)
+  function tutDispColor(actual) { return app.tutSideResolved === 'b' ? (actual === 'w' ? 'b' : 'w') : actual; }
 
   function updateSummaries() {
     $('valSide').textContent = { w: '♔ Белые', b: '♚ Чёрные', r: '🎲 Рандом' }[setup.side];
@@ -517,7 +499,6 @@
     $('setupScreen').hidden = false;
     $('gameScreen').hidden = true;
     $('tutorScreen').hidden = true;
-    updatePcolorVisibility();
     updateSetupVisibility();
     renderRank();
   }
@@ -565,7 +546,6 @@
   function enterGameScreen() {
     $('setupScreen').hidden = true;
     $('gameScreen').hidden = false;
-    updatePcolorVisibility();
     const onl = app.mode === 'friend' && app.online.on;
     $('onlineBar').hidden = !onl;
     $('chatBox').hidden = !onl;
@@ -1515,7 +1495,7 @@
   function tutParse(list) { const b = new Array(64).fill(null); for (const it of list) { const sp = it.split(' '); b[C.nameToSq(sp[0])] = sp[1]; } return b; }
   function tutState(step) { return { board: tutParse(step.board), turn: step.turn || 'w', castling: step.castling || { wK: false, wQ: false, bK: false, bQ: false }, ep: -1, half: 0, full: 1 }; }
 
-  function openTutorial() { unlockAudio(); $('setupScreen').hidden = true; $('gameScreen').hidden = true; $('tutorScreen').hidden = false; updatePcolorVisibility(); showTutMenu(); }
+  function openTutorial() { unlockAudio(); $('setupScreen').hidden = true; $('gameScreen').hidden = true; $('tutorScreen').hidden = false; showTutMenu(); }
   function showTutMenu() { tut.run = null; tut.info = false; tut.locked = true; tg.on = false; $('tutTitle').textContent = '📚 Обучение'; $('tutMenu').hidden = false; $('tutLesson').hidden = true; $('tutGame').hidden = true; renderTutMenu(); }
   function tutBackAction() { if (!$('tutLesson').hidden || !$('tutGame').hidden) { showTutMenu(); } else { $('tutorScreen').hidden = true; showSetup(); } }
 
@@ -1557,7 +1537,7 @@
   }
 
   function startLesson(L) {
-    tut.info = false;
+    tut.info = false; resolveTutSide();
     tut.run = { title: L.title, icon: L.icon, explain: L.explain, lessonId: L.id, steps: L.steps.map(s => ({ ...s })), idx: 0, reviewMode: false };
     $('tutTitle').textContent = L.icon + ' ' + L.title;
     $('tutMenu').hidden = true; $('tutLesson').hidden = false;
@@ -1570,7 +1550,7 @@
     for (const sec of TUT_SECTIONS) for (const L of sec.lessons) if (L.steps) for (const s of L.steps) steps.push({ ...s, explain: '' });
     if (!steps.length) return;
     steps = shuffleArr(steps).slice(0, 30);   // 30 заданий вперемешку
-    tut.info = false;
+    tut.info = false; resolveTutSide();
     tut.run = { title: 'Проверка знаний', explain: '', steps, idx: 0, reviewMode: true };
     $('tutTitle').textContent = '📝 Проверка знаний';
     $('tutMenu').hidden = true; $('tutLesson').hidden = false;
@@ -1585,7 +1565,7 @@
     const ex = step.explain || run.explain || '';
     $('tutExplain').innerHTML = ex; $('tutExplain').hidden = !ex;
     const n = run.steps.length; const prog = n > 1 ? ` (${run.idx + 1}/${n})` : '';
-    $('tutPrompt').innerHTML = `<b>Задание${prog}:</b> ${step.prompt}<br><span class="tut-hint">Твой ход ${app.tutSide === 'b' ? 'чёрными' : 'белыми'} — нажми на фигуру, потом на клетку.</span>`;
+    $('tutPrompt').innerHTML = `<b>Задание${prog}:</b> ${step.prompt}<br><span class="tut-hint">Твой ход ${app.tutSideResolved === 'b' ? 'чёрными' : 'белыми'} — нажми на фигуру, потом на клетку.</span>`;
     renderTutBoard();
     renderTaskActions();
   }
@@ -1780,7 +1760,7 @@
   function shuffleArr(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 
   function startTutGame() {
-    unlockAudio();
+    unlockAudio(); resolveTutSide();
     tut.run = null; tut.info = false;
     tg.on = true; tg.step = 0; tg.qi = 0; tg.locked = false; tg.delta = 0;
     tg.order = shuffleArr(TG_QUIZ.map((_, i) => i));
