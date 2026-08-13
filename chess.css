@@ -537,10 +537,16 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-piecelayer .pl-img { position: absolute; inset: 0; background-position: center bottom; background-repeat: no-repeat; background-size: contain; }
 /* пешки рисуем ПОВЕРХ фигур, чтобы стоящая позади фигура их не закрывала */
 .ch-3d .ch-piecelayer .pl-pawn { z-index: 20; }
-/* режим «Рядом» в 3D: фигуры СТОЯТ (имеют высоту), поэтому «вверх ногами» их не
-   переворачиваем (иначе торчат за край доски). Вместо этого разворачиваем всю
-   доску на 180° данными (orientation) — фигуры стоят прямо на своих клетках.
-   Переворот картинок остаётся только для 2D (там доска плоская, flip180). */
+/* режим «Рядом» в 3D: на ход чёрных переворачиваем на 180° САМУ картинку фигуры
+   (вокруг центра — как в 2D, буквы a–h остаются на месте, НЕ зеркально).
+   pl-piece слегка опускаем (translateY), чтобы перевёрнутое основание верхнего
+   ряда меньше выходило за верхний край доски. */
+.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-piece {
+  transform: rotateX(calc(-1 * var(--t3d))) translateY(14%);
+}
+.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-img {
+  transform: rotate(180deg); transform-origin: center center;
+}
 .ch-3d .ch-fliparea.flip180 .ch-coord { transform: rotate(180deg); }
 
 /* Игра-повторение в 3D: доску-дорожку не наклоняем (одна пешка идёт вверх) */
