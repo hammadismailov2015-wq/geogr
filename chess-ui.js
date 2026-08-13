@@ -447,7 +447,8 @@
       const b = e.target.closest('.ch-sw');
       if (b) { app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b); return; }
       const v = e.target.closest('.ch-vw');
-      if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v); }
+      if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v);
+        if (app.state && !$('gameScreen').hidden) { renderBoard(); renderPlayerBars(); updateClocks(); } }
     });
     $('modeCards').addEventListener('click', (e) => {
       const c = e.target.closest('.ch-big'); if (!c) return;
@@ -879,9 +880,16 @@
   function colorName(c) { return c === 'w' ? 'Белые' : 'Чёрные'; }
   function FILE_LETTER(f) { return 'abcdefgh'[f]; }
 
+  // Цвет игрока внизу доски. «Рядом» в 3D: доску разворачиваем к тому, чей ход
+  // (перестроением, фигуры стоят ровно). В 2D переворот делает CSS — там низ не меняем.
+  function viewBottomColor() {
+    if (app.mode === 'local' && app.view === '3d' && !app.over && app.state && app.state.turn === 'b') return 'b';
+    return app.orientation;
+  }
+
   function renderBoard() {
     elBoard.innerHTML = '';
-    const flip = app.orientation === 'b';
+    const flip = viewBottomColor() === 'b';
     // Слой стоящих фигур (3D) перестраиваем ТОЛЬКО когда позиция изменилась —
     // иначе при каждом выборе/тапе пересоздаются 32 картинки и телефон тормозит.
     let sig = flip ? 'F' : 'N'; for (let i = 0; i < 64; i++) sig += app.state.board[i] || '.';
@@ -946,7 +954,7 @@
 
   function renderPlayerBars() {
     const missing = computeMissing();
-    const bottomColor = app.orientation, topColor = bottomColor === 'w' ? 'b' : 'w';
+    const bottomColor = viewBottomColor(), topColor = bottomColor === 'w' ? 'b' : 'w';
     const advBottom = capturedValue(missing[topColor]) - capturedValue(missing[bottomColor]);
     fillBar('bot', bottomColor, missing[topColor], topColor, advBottom);
     fillBar('top', topColor, missing[bottomColor], bottomColor, -advBottom);
@@ -996,7 +1004,7 @@
     const ms = app.over ? (app.gameDurMs || 0) : (Date.now() - app.gs.start);
     gt.textContent = (app.over ? '⏱ Партия длилась: ' : '⏱ Идёт: ') + fmtDur(ms);
   }
-  function updateClocks() { const cl = app.clock, bottomColor = app.orientation, topColor = bottomColor === 'w' ? 'b' : 'w'; setClock('bot', bottomColor, cl); setClock('top', topColor, cl); }
+  function updateClocks() { const cl = app.clock, bottomColor = viewBottomColor(), topColor = bottomColor === 'w' ? 'b' : 'w'; setClock('bot', bottomColor, cl); setClock('top', topColor, cl); }
   function setClock(which, color, cl) {
     const el = $(which + 'Clock');
     if (!cl.timeOn && !cl.movesOn) { el.hidden = true; return; }

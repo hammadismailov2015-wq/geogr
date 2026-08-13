@@ -537,8 +537,8 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-piecelayer .pl-img { position: absolute; inset: 0; background-position: center bottom; background-repeat: no-repeat; background-size: contain; }
 /* режим «Рядом» в 3D: на ход чёрных ВСЯ доска разворачивается на 180° к сопернику
    (как будто передал телефон другу) — клетки, фигуры и координаты как одно целое. */
-.ch-3d .ch-fliparea.flip180 #chBoard { transform: rotate(180deg) rotateX(var(--t3d)); }
-.ch-3d .ch-fliparea.flip180 .ch-piecelayer { transform: rotate(180deg) rotateX(var(--t3d)); }
+/* «Рядом» в 3D: доска рисуется со стороны соперника (перестроением), фигуры стоят
+   ровно и повёрнуты к сопернику — переворот делается в renderBoard, не через CSS. */
 /* режим «Рядом» в 3D: стоящие объёмные фигуры видны верно с обеих сторон,
    поэтому их не переворачиваем — разворачиваем только подписи-координаты. */
 
