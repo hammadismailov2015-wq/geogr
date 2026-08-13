@@ -880,15 +880,11 @@
   function colorName(c) { return c === 'w' ? 'Белые' : 'Чёрные'; }
   function FILE_LETTER(f) { return 'abcdefgh'[f]; }
 
-  // «Рядом» в 3D: доску разворачиваем к тому, чей ход (фигуры стоят прямо, большие).
-  function viewBottomColor() {
-    if (app.mode === 'local' && app.view === '3d' && !app.over && app.state && app.state.turn === 'b') return 'b';
-    return app.orientation;
-  }
+  function viewBottomColor() { return app.orientation; }
 
   function renderBoard() {
     elBoard.innerHTML = '';
-    const flip = viewBottomColor() === 'b';
+    const flip = app.orientation === 'b';
     // Слой стоящих фигур (3D) перестраиваем ТОЛЬКО когда позиция изменилась —
     // иначе при каждом выборе/тапе пересоздаются 32 картинки и телефон тормозит.
     let sig = flip ? 'F' : 'N'; for (let i = 0; i < 64; i++) sig += app.state.board[i] || '.';
