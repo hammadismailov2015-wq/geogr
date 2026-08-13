@@ -202,7 +202,7 @@
         </div>
         <div id="tutLesson" hidden>
           <div class="ch-tutor-explain" id="tutExplain"></div>
-          <div class="ch-board-wrap"><div class="ch-board-stack"><div class="ch-board" id="tutBoard"></div><div class="ch-piecelayer" id="tutPieceLayer"></div></div></div>
+          <div class="ch-board-wrap"><div class="ch-board-stack"><div class="ch-board" id="tutBoard"></div><div class="ch-piecelayer" id="tutPieceLayer"></div><div class="ch-tut-arrowlayer" id="tutArrowLayer"></div></div></div>
           <div class="ch-tutor-prompt" id="tutPrompt"></div>
           <div class="ch-tutor-actions" id="tutActions"></div>
         </div>
@@ -1621,7 +1621,8 @@
 
   // Стрелка-подсказка «куда ходить» — в ПЕРВОМ задании урока (до первого хода) и когда нажали «Подсказку».
   function maybeDrawTutArrow(el) {
-    const run = tut.run; if (!run || run.reviewMode) return;
+    const al = $('tutArrowLayer'); if (al) al.innerHTML = '';   // отдельный слой стрелки (поверх фигур в 3D)
+    const run = tut.run; if (!run || run.reviewMode || !al) return;
     const firstAuto = run.idx === 0 && run.plyIdx === 0 && !tut.lastMove;
     if (!firstAuto && !tut.hintArrow) return;
     const step = run.steps[run.idx]; if (!step) return;
@@ -1648,7 +1649,7 @@
     head.setAttribute('points', `${tipx},${tipy} ${hbx + px * hw},${hby + py * hw} ${hbx - px * hw},${hby - py * hw}`);
     head.setAttribute('class', 'tut-arrow-head');
     svg.appendChild(line); svg.appendChild(head);
-    el.appendChild(svg);
+    al.appendChild(svg);
   }
 
   function onTutTap(s) {
