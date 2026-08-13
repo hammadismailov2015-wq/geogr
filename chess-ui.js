@@ -1593,6 +1593,37 @@
       cell.addEventListener('pointerdown', () => onTutTap(s));
       el.appendChild(cell);
     }
+    maybeDrawTutArrow(el);
+  }
+
+  // Стрелка-подсказка «куда ходить» — только в ПЕРВОМ задании каждого урока, до первого хода.
+  function maybeDrawTutArrow(el) {
+    const run = tut.run; if (!run || run.reviewMode) return;
+    if (run.idx !== 0 || run.plyIdx !== 0 || tut.lastMove) return;
+    const step = run.steps[run.idx]; if (!step) return;
+    const plies = step._plies || (step.plies) || [{ answers: step.answers }];
+    const code = plies[0] && plies[0].answers && plies[0].answers[0];
+    if (!code || code.length < 4) return;
+    const from = C.nameToSq(code.substr(0, 2)), to = C.nameToSq(code.substr(2, 2));
+    if (from == null || to == null) return;
+    const fx = (from % 8) + 0.5, fy = (7 - ((from / 8) | 0)) + 0.5;
+    const tx = (to % 8) + 0.5, ty = (7 - ((to / 8) | 0)) + 0.5;
+    let dx = tx - fx, dy = ty - fy; const len = Math.hypot(dx, dy) || 1; const ux = dx / len, uy = dy / len;
+    const sx = fx + ux * 0.30, sy = fy + uy * 0.30;          // старт чуть в стороне от фигуры
+    const hbx = tx - ux * 0.34, hby = ty - uy * 0.34;         // основание наконечника
+    const tipx = tx - ux * 0.06, tipy = ty - uy * 0.06;       // остриё у центра клетки
+    const px = -uy, py = ux, hw = 0.24;                       // половина ширины наконечника
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('class', 'tut-arrow'); svg.setAttribute('viewBox', '0 0 8 8'); svg.setAttribute('preserveAspectRatio', 'none');
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', sx); line.setAttribute('y1', sy); line.setAttribute('x2', hbx); line.setAttribute('y2', hby);
+    line.setAttribute('class', 'tut-arrow-line');
+    const head = document.createElementNS(ns, 'polygon');
+    head.setAttribute('points', `${tipx},${tipy} ${hbx + px * hw},${hby + py * hw} ${hbx - px * hw},${hby - py * hw}`);
+    head.setAttribute('class', 'tut-arrow-head');
+    svg.appendChild(line); svg.appendChild(head);
+    el.appendChild(svg);
   }
 
   function onTutTap(s) {
