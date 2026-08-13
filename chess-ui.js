@@ -869,13 +869,15 @@
   function render() { syncViewOrientation(); renderBoard(); renderStatus(); renderHistory(); renderPlayerBars(); applyScreenFlip(); }
 
   // «Играть рядом»: игроки сидят по разные стороны телефона лицом друг к другу.
-  // В 3D разворачиваем ВСЮ доску на 180° к тому, чей ход (как разворачивают
-  // настоящую доску): фигуры стоят прямо, крупные, по середине своих клеток.
+  // В 3D на ход чёрных отражаем доску ТОЛЬКО по вертикали (rankFlip): чёрные фигуры
+  // оказываются снизу (лицом к игроку), а буквы a–b–c остаются на своих местах
+  // слева направо (без «зеркала» букв). Фигуры стоят прямо, крупные, по центру.
   // В 2D фигуры плоские — там просто крутим экран на 180° (flip180).
   function syncViewOrientation() {
-    if (app.mode !== 'local') return;
+    if (app.mode !== 'local') { app.rankFlip = false; return; }
     const blackTurn = app.state && app.state.turn === 'b' && !app.over;
-    app.orientation = (app.view === '3d' && blackTurn) ? 'b' : 'w';
+    app.rankFlip = !!(app.view === '3d' && blackTurn);
+    app.orientation = 'w';
   }
   function applyScreenFlip() {
     const fa = $('flipArea'); if (!fa) return;
@@ -891,14 +893,15 @@
 
   function renderBoard() {
     elBoard.innerHTML = '';
-    const flip = app.orientation === 'b';
+    const flip = app.orientation === 'b';       // полный разворот на 180° (бот/друг за чёрных)
+    const rmir = !!app.rankFlip;                 // «Рядом» 3D: отражение по вертикали (буквы a–h на месте)
     // Слой стоящих фигур (3D) перестраиваем ТОЛЬКО когда позиция изменилась —
     // иначе при каждом выборе/тапе пересоздаются 32 картинки и телефон тормозит.
-    let sig = flip ? 'F' : 'N'; for (let i = 0; i < 64; i++) sig += app.state.board[i] || '.';
+    let sig = (rmir ? 'M' : flip ? 'F' : 'N'); for (let i = 0; i < 64; i++) sig += app.state.board[i] || '.';
     const rebuildPL = !!elPieceLayer && sig !== plSig;
     if (rebuildPL) { elPieceLayer.innerHTML = ''; plSig = sig; }
     for (let rr = 7; rr >= 0; rr--) for (let ff = 0; ff < 8; ff++) {
-      const r = flip ? 7 - rr : rr, f = flip ? 7 - ff : ff, s = C.sq(f, r);
+      const r = (rmir || flip) ? 7 - rr : rr, f = flip ? 7 - ff : ff, s = C.sq(f, r);
       const cell = document.createElement('div');
       cell.className = 'ch-sq ' + ((f + r) % 2 === 0 ? 'dark' : 'light');
       cell.dataset.sq = s;
