@@ -1342,7 +1342,6 @@
     $('btnUndoDeny').addEventListener('click', () => answerUndo(false));
     $('btnResign').addEventListener('click', () => {
       if (app.over) return;
-      if (!confirm('Сдаться?')) return;
       const loser = app.online.on ? app.online.myColor : (app.mode === 'bot' ? app.myColor : app.state.turn);
       if (app.online.on) netSend({ t: 'end', s: app.online.myId, kind: 'resign', loser });
       finishGame({ type: 'resign', loser });
