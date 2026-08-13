@@ -540,7 +540,7 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 /* «Рядом» в 3D: доска НЕ зеркалится — переворачиваются сами фигуры на 180° (как в 2D),
    остаются большими и по центру клетки. Подписи тоже переворачиваем. */
 .ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-piece {
-  left: 10%; width: 80%; bottom: -35%; top: auto; height: 170%;
+  left: 6%; width: 88%; bottom: 0; top: auto; height: 100%;
   transform-origin: center center; transform: rotate(180deg);
 }
 .ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-img { background-position: center center; }
