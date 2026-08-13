@@ -1476,7 +1476,7 @@
     const t = ctx.currentTime;
     // ясный нисходящий «зуммер» ошибки — квадратная волна в среднем диапазоне (хорошо слышно на телефоне)
     const buzz = (f, s, d) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(f, s); g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.32, s + 0.012); g.gain.setValueAtTime(0.32, s + d - 0.02); g.gain.exponentialRampToValueAtTime(0.0001, s + d); o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + d + 0.02); };
-    buzz(392, t, 0.16); buzz(294, t + 0.16, 0.30);
+    buzz(392, t, 0.09); buzz(294, t + 0.085, 0.14);
   }
 
   // Разделы и уроки. steps: массив задач-позиций; info:true — тема «для понимания».
