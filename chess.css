@@ -537,13 +537,14 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-piecelayer .pl-img { position: absolute; inset: 0; background-position: center bottom; background-repeat: no-repeat; background-size: contain; }
 /* режим «Рядом» в 3D: на ход чёрных ВСЯ доска разворачивается на 180° к сопернику
    (как будто передал телефон другу) — клетки, фигуры и координаты как одно целое. */
-/* «Рядом» в 3D: доска НЕ зеркалится — переворачиваются сами фигуры на 180° (как в 2D),
-   остаются большими и по центру клетки. Подписи тоже переворачиваем. */
-.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-piece {
-  left: 10%; width: 80%; bottom: -35%; top: auto; height: 170%;
-  transform-origin: center center; transform: rotateX(calc(-1 * var(--t3d))) rotate(180deg);
+/* «Рядом» в 3D: доска НЕ зеркалится и НЕ наклоняется в другую сторону —
+   фигуры остаются стоять как обычно (pl-piece: тот же rotateX, тот же размер),
+   а переворачивается на 180° только САМА картинка фигуры (pl-img) вокруг своего
+   видимого центра — фигура становится «вверх ногами» на том же месте, большая и
+   по центру клетки, не свисает вниз. */
+.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-img {
+  transform: rotate(180deg); transform-origin: center center;
 }
-.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-img { background-position: center center; }
 .ch-3d .ch-fliparea.flip180 .ch-coord { transform: rotate(180deg); }
 /* режим «Рядом» в 3D: стоящие объёмные фигуры видны верно с обеих сторон,
    поэтому их не переворачиваем — разворачиваем только подписи-координаты. */
