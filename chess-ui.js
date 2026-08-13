@@ -1335,7 +1335,7 @@
      КНОПКИ + МОДАЛКИ
      ======================================================== */
   function bindGame() {
-    $('btnMenu').addEventListener('click', () => { if (confirm('Выйти в меню? Текущая партия будет прекращена.')) { location.hash = ''; showSetup(); } });
+    $('btnMenu').addEventListener('click', () => { location.hash = ''; showSetup(); });
     $('btnFlip').addEventListener('click', () => { app.orientation = app.orientation === 'w' ? 'b' : 'w'; renderBoard(); renderPlayerBars(); });
     $('btnUndo').addEventListener('click', () => { if (app.online && app.online.on) requestUndo(); else undoLast(); });
     $('btnUndoAllow').addEventListener('click', () => answerUndo(true));
