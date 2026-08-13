@@ -47,6 +47,7 @@
     paused: false,
     theme: 'classic',
     soundOn: true,
+    tutSide: 'w',
     clock: { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 },
     online: { on: false, role: null, room: null, myColor: 'w', hostColor: 'w', myId: null, net: null, connected: false, peerReady: false, failed: false }
   };
@@ -89,6 +90,7 @@
      ======================================================== */
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
+    app.tutSide = localStorage.getItem('chessTutSide') === 'b' ? 'b' : 'w';
     applyTheme(app.theme);
     buildLayout();
     initBackground();
@@ -114,6 +116,11 @@
         <span class="ch-vsep" aria-hidden="true"></span>
         <button class="ch-vw" data-view="2d" title="Плоская доска (2D)">2D</button>
         <button class="ch-vw" data-view="3d" title="Объёмная доска (3D)">3D</button>
+        <span class="ch-vsep" id="pcolorSep" aria-hidden="true" hidden></span>
+        <span id="pcolorGroup" hidden>
+          <button class="ch-pc" data-pcolor="w" title="Играть белыми фигурами">♔</button>
+          <button class="ch-pc" data-pcolor="b" title="Играть чёрными фигурами">♚</button>
+        </span>
       </div>
 
       <section id="setupScreen" class="ch-screen">
@@ -446,7 +453,9 @@
       const b = e.target.closest('.ch-sw');
       if (b) { app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b); return; }
       const v = e.target.closest('.ch-vw');
-      if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v); }
+      if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v); return; }
+      const pc = e.target.closest('.ch-pc');
+      if (pc) { app.tutSide = pc.dataset.pcolor; localStorage.setItem('chessTutSide', app.tutSide); markActive('#pcolorGroup .ch-pc', pc); refreshTutSide(); }
     });
     $('modeCards').addEventListener('click', (e) => {
       const c = e.target.closest('.ch-big'); if (!c) return;
@@ -467,7 +476,23 @@
     selectDefault('#moveChips .ch-chip', `[data-mv="${setup.moveLim}"]`);
     selectDefault('#themeBar .ch-sw', `[data-theme="${app.theme}"]`);
     selectDefault('#themeBar .ch-vw', `[data-view="${app.view}"]`);
+    selectDefault('#pcolorGroup .ch-pc', `[data-pcolor="${app.tutSide}"]`);
     updateSummaries(); updateSetupVisibility();
+  }
+
+  // отображаемый цвет фигуры для обучения/проверки/игры-повторения (косметический обмен)
+  function tutDispColor(actual) { return app.tutSide === 'b' ? (actual === 'w' ? 'b' : 'w') : actual; }
+  // показывать переключатель ♔/♚ только в разделе обучения
+  function updatePcolorVisibility() {
+    const inTutor = !$('tutorScreen').hidden;
+    const g = $('pcolorGroup'), sep = $('pcolorSep');
+    if (g) g.hidden = !inTutor;
+    if (sep) sep.hidden = !inTutor;
+  }
+  // перерисовать текущий экран обучения после смены цвета
+  function refreshTutSide() {
+    if (tut.run) { renderTutBoard(); if (tut.run.steps && tut.run.steps[tut.run.idx]) { const step = tut.run.steps[tut.run.idx]; const side = app.tutSide === 'b' ? 'чёрными' : 'белыми'; const prm = $('tutPrompt'); if (prm && prm.innerHTML.indexOf('Задание') >= 0) { const n = tut.run.steps.length; const prog = n > 1 ? ` (${tut.run.idx + 1}/${n})` : ''; prm.innerHTML = `<b>Задание${prog}:</b> ${step.prompt}<br><span class="tut-hint">Твой ход ${side} — нажми на фигуру, потом на клетку.</span>`; } } }
+    if (tg.on) renderTgBoard(false);
   }
 
   function updateSummaries() {
@@ -492,6 +517,7 @@
     $('setupScreen').hidden = false;
     $('gameScreen').hidden = true;
     $('tutorScreen').hidden = true;
+    updatePcolorVisibility();
     updateSetupVisibility();
     renderRank();
   }
@@ -539,6 +565,7 @@
   function enterGameScreen() {
     $('setupScreen').hidden = true;
     $('gameScreen').hidden = false;
+    updatePcolorVisibility();
     const onl = app.mode === 'friend' && app.online.on;
     $('onlineBar').hidden = !onl;
     $('chatBox').hidden = !onl;
@@ -1488,7 +1515,7 @@
   function tutParse(list) { const b = new Array(64).fill(null); for (const it of list) { const sp = it.split(' '); b[C.nameToSq(sp[0])] = sp[1]; } return b; }
   function tutState(step) { return { board: tutParse(step.board), turn: step.turn || 'w', castling: step.castling || { wK: false, wQ: false, bK: false, bQ: false }, ep: -1, half: 0, full: 1 }; }
 
-  function openTutorial() { unlockAudio(); $('setupScreen').hidden = true; $('gameScreen').hidden = true; $('tutorScreen').hidden = false; showTutMenu(); }
+  function openTutorial() { unlockAudio(); $('setupScreen').hidden = true; $('gameScreen').hidden = true; $('tutorScreen').hidden = false; updatePcolorVisibility(); showTutMenu(); }
   function showTutMenu() { tut.run = null; tut.info = false; tut.locked = true; tg.on = false; $('tutTitle').textContent = '📚 Обучение'; $('tutMenu').hidden = false; $('tutLesson').hidden = true; $('tutGame').hidden = true; renderTutMenu(); }
   function tutBackAction() { if (!$('tutLesson').hidden || !$('tutGame').hidden) { showTutMenu(); } else { $('tutorScreen').hidden = true; showSetup(); } }
 
@@ -1558,7 +1585,7 @@
     const ex = step.explain || run.explain || '';
     $('tutExplain').innerHTML = ex; $('tutExplain').hidden = !ex;
     const n = run.steps.length; const prog = n > 1 ? ` (${run.idx + 1}/${n})` : '';
-    $('tutPrompt').innerHTML = `<b>Задание${prog}:</b> ${step.prompt}<br><span class="tut-hint">Твой ход белыми — нажми на фигуру, потом на клетку.</span>`;
+    $('tutPrompt').innerHTML = `<b>Задание${prog}:</b> ${step.prompt}<br><span class="tut-hint">Твой ход ${app.tutSide === 'b' ? 'чёрными' : 'белыми'} — нажми на фигуру, потом на клетку.</span>`;
     renderTutBoard();
     renderTaskActions();
   }
@@ -1592,7 +1619,7 @@
       if (tut.lastMove && (tut.lastMove.from === s || tut.lastMove.to === s)) cell.classList.add('last');
       if (tut.sel === s) cell.classList.add('sel');
       const p = tut.state.board[s];
-      if (p) { const pc = document.createElement('span'); pc.className = 'ch-piece ' + (C.colorOf(p) === 'w' ? 'white' : 'black'); pc.innerHTML = pieceHTML(C.colorOf(p), C.typeOf(p)); cell.appendChild(pc); }
+      if (p) { const dc = tutDispColor(C.colorOf(p)); const pc = document.createElement('span'); pc.className = 'ch-piece ' + (dc === 'w' ? 'white' : 'black'); pc.innerHTML = pieceHTML(dc, C.typeOf(p)); cell.appendChild(pc); }
       if (tut.legal.some(m => m.to === s)) { const dot = document.createElement('span'); dot.className = 'ch-dot' + (tut.state.board[s] ? ' cap' : ''); cell.appendChild(dot); }
       if (p && C.typeOf(p) === 'k' && C.inCheck(tut.state, C.colorOf(p))) cell.classList.add('check');
       cell.addEventListener('pointerdown', () => onTutTap(s));
@@ -1801,8 +1828,9 @@
         if (tg.delta > 0) cell.classList.add('tg-up');
         else if (tg.delta < 0) cell.classList.add('tg-down');
         const pc = document.createElement('span');
-        pc.className = 'ch-piece white' + (promoted ? ' tg-promote' : '');
-        pc.innerHTML = pieceHTML('w', promoted ? 'q' : 'p');
+        const dc = tutDispColor('w');
+        pc.className = 'ch-piece ' + (dc === 'w' ? 'white' : 'black') + (promoted ? ' tg-promote' : '');
+        pc.innerHTML = pieceHTML(dc, promoted ? 'q' : 'p');
         cell.appendChild(pc);
       }
       el.appendChild(cell);
