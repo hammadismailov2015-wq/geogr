@@ -495,7 +495,7 @@ body:not(.ch-3d) .ch-fliparea.flip180 .ch-coord { transform: rotate(180deg); }
 .pc-sh { fill: rgba(0, 0, 0, .28); }
 
 
-.ch-dot { position: absolute; width: 26%; height: 26%; border-radius: 50%; background: rgba(30, 30, 40, .35); z-index: 1; pointer-events: none; }
+.ch-dot { position: absolute; width: 28%; height: 28%; border-radius: 50%; background: rgba(24, 24, 32, .42); box-shadow: 0 0 0 2px rgba(255, 255, 255, .45); z-index: 1; pointer-events: none; }
 
 /* ===== Объёмный режим 3D =====
    Игровая доска = ДВА слоя: плоский приёмник кликов (#chBoard, без preserve-3d)
@@ -540,8 +540,7 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-3d #tutBoard .ch-piece, .ch-3d #tgBoard .ch-piece { transform: none; }
 
 
-.ch-sq.light .ch-dot { background: rgba(30, 30, 40, .28); }
-.ch-dot.cap { width: 88%; height: 88%; background: transparent; border: 6px solid rgba(30, 30, 40, .3); border-radius: 50%; }
+.ch-dot.cap { width: 88%; height: 88%; background: transparent; border: 5px solid rgba(24, 24, 32, .45); box-shadow: 0 0 0 2px rgba(255, 255, 255, .4), inset 0 0 0 2px rgba(255, 255, 255, .4); border-radius: 50%; }
 
 .ch-coord { position: absolute; font-size: 10px; font-weight: 700; opacity: .55; z-index: 1; pointer-events: none; color: #2a2a2a; }
 .ch-sq.dark .ch-coord { color: var(--sq-light); }

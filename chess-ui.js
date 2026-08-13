@@ -1034,6 +1034,12 @@
     if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
     if (!canMoveNow()) return;
     const p = app.state.board[s];
+    // рокировка тапом по своей ладье, когда выбран король
+    if (app.selected >= 0 && isMyPiece(p) && C.typeOf(p) === 'r' && app.state.board[app.selected] && C.typeOf(app.state.board[app.selected]) === 'k') {
+      const want = (s % 8) === 7 ? 'cK' : ((s % 8) === 0 ? 'cQ' : null);
+      const cm = want && app.legalFrom.find(m => m.flag === want);
+      if (cm) { e.preventDefault(); doMove(cm); return; }
+    }
     if (isMyPiece(p)) {
       // выбор + начало перетаскивания
       e.preventDefault();
@@ -1593,6 +1599,12 @@
     if (tut.locked) return; unlockAudio();
     const st = tut.state; const p = st.board[s];
     if (tut.sel >= 0 && tut.legal.some(m => m.to === s)) { doTutMove(tut.sel, s); return; }
+    // рокировка тапом по своей ладье, когда выбран король
+    if (tut.sel >= 0 && p && C.typeOf(p) === 'r' && C.colorOf(p) === st.turn && st.board[tut.sel] && C.typeOf(st.board[tut.sel]) === 'k') {
+      const want = (s % 8) === 7 ? 'cK' : ((s % 8) === 0 ? 'cQ' : null);
+      const cm = want && tut.legal.find(m => m.flag === want);
+      if (cm) { doTutMove(tut.sel, cm.to); return; }
+    }
     if (p && C.colorOf(p) === st.turn) { tut.sel = s; tut.legal = C.legalMovesFrom(st, s); renderTutBoard(); return; }
     tut.sel = -1; tut.legal = []; renderTutBoard();
   }
