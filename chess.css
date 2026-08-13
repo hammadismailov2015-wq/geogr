@@ -538,9 +538,9 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 /* режим «Рядом» в 3D: на ход чёрных ВСЯ доска разворачивается на 180° к сопернику
    (как будто передал телефон другу) — клетки, фигуры и координаты как одно целое. */
 /* «Рядом» в 3D: как в 2D — фигура и подписи поворачиваются на 180° и стоят ПО ЦЕНТРУ
-   клетки (перевёрнутая фигура сидит внутри клетки, а не свисает вниз). */
+   клетки. Размер фигуры прежний, меняется только положение (по центру) и поворот. */
 .ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-piece {
-  left: 16%; width: 68%; bottom: 12%; height: 76%;
+  bottom: -25%; top: auto; height: 150%;
   transform-origin: center center; transform: rotate(180deg);
 }
 .ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-img { background-position: center center; }
