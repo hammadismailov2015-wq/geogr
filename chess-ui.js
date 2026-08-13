@@ -1550,7 +1550,7 @@
     const run = tut.run; const step = run.steps[run.idx];
     step._plies = step.plies || [{ answers: step.answers }];
     run.plyIdx = 0;
-    tut.state = tutState(step); tut.sel = -1; tut.legal = []; tut.lastMove = null; tut.locked = false;
+    tut.state = tutState(step); tut.sel = -1; tut.legal = []; tut.lastMove = null; tut.locked = false; tut.hintArrow = false;
     const ex = step.explain || run.explain || '';
     $('tutExplain').innerHTML = ex; $('tutExplain').hidden = !ex;
     const n = run.steps.length; const prog = n > 1 ? ` (${run.idx + 1}/${n})` : '';
@@ -1572,6 +1572,7 @@
       const old = $('tutActions').querySelector('.tut-hintbox'); if (old) old.remove();
       const box = document.createElement('div'); box.className = 'tut-hintbox'; box.innerHTML = '💡 ' + h;
       $('tutActions').appendChild(box);
+      tut.hintArrow = true; renderTutBoard();   // показать стрелку «куда ходить»
     });
   }
 
@@ -1596,13 +1597,15 @@
     maybeDrawTutArrow(el);
   }
 
-  // Стрелка-подсказка «куда ходить» — только в ПЕРВОМ задании каждого урока, до первого хода.
+  // Стрелка-подсказка «куда ходить» — в ПЕРВОМ задании урока (до первого хода) и когда нажали «Подсказку».
   function maybeDrawTutArrow(el) {
     const run = tut.run; if (!run || run.reviewMode) return;
-    if (run.idx !== 0 || run.plyIdx !== 0 || tut.lastMove) return;
+    const firstAuto = run.idx === 0 && run.plyIdx === 0 && !tut.lastMove;
+    if (!firstAuto && !tut.hintArrow) return;
     const step = run.steps[run.idx]; if (!step) return;
     const plies = step._plies || (step.plies) || [{ answers: step.answers }];
-    const code = plies[0] && plies[0].answers && plies[0].answers[0];
+    const ply = plies[run.plyIdx] || plies[0];
+    const code = ply && ply.answers && ply.answers[0];
     if (!code || code.length < 4) return;
     const from = C.nameToSq(code.substr(0, 2)), to = C.nameToSq(code.substr(2, 2));
     if (from == null || to == null) return;
@@ -1641,7 +1644,7 @@
   }
 
   function doTutMove(from, to) {
-    const st = tut.state;
+    const st = tut.state; tut.hintArrow = false;
     let mv = C.legalMovesFrom(st, from).find(m => m.to === to && (!m.promo || m.promo === 'q'));
     if (!mv) mv = C.legalMovesFrom(st, from).find(m => m.to === to);
     if (!mv) return;
