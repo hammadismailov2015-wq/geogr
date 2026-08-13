@@ -518,14 +518,14 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-3d .ch-board-wrap { perspective: 1500px; perspective-origin: 50% 46%; }
 /* верхний отступ, чтобы стоящим фигурам было куда «выситься» над доской */
 .ch-3d .ch-board-wrap:has(.ch-board-stack) { padding: 15% 0 3%; }
-.ch-3d #chBoard {
+.ch-3d #chBoard, .ch-3d #tutBoard {
   transform: rotateX(var(--t3d));
   overflow: visible;
   border-width: 5px; border-bottom-width: 14px;
   box-shadow: 0 40px 60px rgba(0, 0, 0, .6), 0 14px 22px rgba(0, 0, 0, .5), 0 0 0 1px rgba(255, 255, 255, .06);
 }
-.ch-3d #chBoard .ch-sq { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .14), inset 0 -3px 6px rgba(0, 0, 0, .28); }
-.ch-3d #chBoard .ch-piece { display: none; }        /* плоские фигуры прячем — их заменяет слой */
+.ch-3d #chBoard .ch-sq, .ch-3d #tutBoard .ch-sq { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .14), inset 0 -3px 6px rgba(0, 0, 0, .28); }
+.ch-3d #chBoard .ch-piece, .ch-3d #tutBoard .ch-piece { display: none; }        /* плоские фигуры прячем — их заменяет слой */
 
 .ch-3d .ch-piecelayer { display: grid; border-bottom-width: 14px; transform: rotateX(var(--t3d)); transform-style: preserve-3d; }
 .ch-piecelayer .pl-cell { position: relative; transform-style: preserve-3d; }
@@ -542,9 +542,11 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 /* режим «Рядом» в 3D: стоящие объёмные фигуры видны верно с обеих сторон,
    поэтому их не переворачиваем — разворачиваем только подписи-координаты. */
 
-/* Обучение и игра-повторение в 3D: доску не наклоняем (фото-фигуры стоят ровно) */
-.ch-3d #tutBoard, .ch-3d #tgBoard { transform: none; overflow: visible; }
-.ch-3d #tutBoard .ch-piece, .ch-3d #tgBoard .ch-piece { transform: none; }
+/* Игра-повторение в 3D: доску-дорожку не наклоняем (одна пешка идёт вверх) */
+.ch-3d #tgBoard { transform: none; overflow: visible; }
+.ch-3d #tgBoard .ch-piece { transform: none; }
+/* стрелка-подсказка лежит в плоскости наклонённой доски */
+.ch-3d #tutBoard .tut-arrow { transform: none; }
 
 
 .ch-dot.cap { width: 88%; height: 88%; background: transparent; border: 5px solid rgba(24, 24, 32, .45); box-shadow: 0 0 0 2px rgba(255, 255, 255, .4), inset 0 0 0 2px rgba(255, 255, 255, .4); border-radius: 50%; }
