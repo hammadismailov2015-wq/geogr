@@ -53,7 +53,7 @@
   };
 
   const $ = (id) => document.getElementById(id);
-  let elBoard, elStatus, elHistory, elPieceLayer, plSig = '';
+  let elBoard, elStatus, elHistory, elPieceLayer, plSig = '', tutPlSig = '';
 
   const netAvailable = () => typeof mqtt !== 'undefined';
 
@@ -202,7 +202,7 @@
         </div>
         <div id="tutLesson" hidden>
           <div class="ch-tutor-explain" id="tutExplain"></div>
-          <div class="ch-board-wrap"><div class="ch-board" id="tutBoard"></div></div>
+          <div class="ch-board-wrap"><div class="ch-board-stack"><div class="ch-board" id="tutBoard"></div><div class="ch-piecelayer" id="tutPieceLayer"></div></div></div>
           <div class="ch-tutor-prompt" id="tutPrompt"></div>
           <div class="ch-tutor-actions" id="tutActions"></div>
         </div>
@@ -1589,6 +1589,11 @@
 
   function renderTutBoard() {
     const el = $('tutBoard'); if (!el) return; el.innerHTML = '';
+    // слой стоящих фигур (3D) — перестраиваем только при смене позиции/цвета (иначе тормозит)
+    const elTPL = $('tutPieceLayer');
+    let sig = (app.tutSideResolved || 'w'); for (let i = 0; i < 64; i++) sig += tut.state.board[i] || '.';
+    const rebuildPL = !!elTPL && sig !== tutPlSig;
+    if (rebuildPL) { elTPL.innerHTML = ''; tutPlSig = sig; }
     for (let rr = 7; rr >= 0; rr--) for (let ff = 0; ff < 8; ff++) {
       const f = ff, r = rr, s = C.sq(f, r);
       const cell = document.createElement('div');
@@ -1604,6 +1609,12 @@
       if (p && C.typeOf(p) === 'k' && C.inCheck(tut.state, C.colorOf(p))) cell.classList.add('check');
       cell.addEventListener('pointerdown', () => onTutTap(s));
       el.appendChild(cell);
+      // слой стоящих фигур для 3D (клики проходят сквозь него)
+      if (rebuildPL) {
+        const pcell = document.createElement('div'); pcell.className = 'pl-cell';
+        if (p) { const col = tutDispColor(C.colorOf(p)); const pi = document.createElement('div'); pi.className = 'pl-piece'; const im = document.createElement('div'); im.className = 'pl-img pt-' + col + C.typeOf(p); pi.appendChild(im); pcell.appendChild(pi); }
+        elTPL.appendChild(pcell);
+      }
     }
     maybeDrawTutArrow(el);
   }
