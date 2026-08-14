@@ -57,7 +57,12 @@
     // Регистрируем сервис-воркер — чтобы приложение можно было установить
     // и открывать без браузера (на http/https, не на file://).
     if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
-      window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+      window.addEventListener('load', function () {
+        // updateViaCache:'none' — браузер всегда берёт свежий sw.js (не из кэша),
+        // поэтому обновления доходят до телефона надёжно.
+        navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+          .then(function (reg) { reg.update(); }).catch(function () {});
+      });
     }
   </script>
 </body>

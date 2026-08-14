@@ -1,6 +1,6 @@
 /* Сервис-воркер шахмат: установка как приложение + работа офлайн.
    Стратегия «сначала сеть» — онлайн всегда свежая версия, офлайн — из кэша. */
-const CACHE = 'chess-app-v82';
+const CACHE = 'chess-app-v83';
 const CORE = [
   'chess.html', 'chess.css', 'chess.js', 'chess-ui.js', 'mqtt.min.js',
   'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-180.png'
@@ -21,7 +21,9 @@ self.addEventListener('fetch', (e) => {
   let url; try { url = new URL(req.url); } catch (_) { return; }
   if (url.origin !== location.origin) return; // сторонние (брокер и т.п.) не трогаем
   e.respondWith(
-    fetch(req)
+    // cache:'reload' — тянем свежее из сети мимо HTTP-кэша браузера, чтобы после
+    // обновления телефон не показывал старую версию. Офлайн — берём из кэша.
+    fetch(req, { cache: 'reload' })
       .then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); return res; })
       .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match('chess.html')))
   );
