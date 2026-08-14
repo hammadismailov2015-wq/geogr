@@ -88,9 +88,13 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
+  const APP_VERSION = 'v83';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
+    // номер версии в шапке — чтобы было видно, свежая версия загрузилась или старая из кэша
+    const subP = document.querySelector('.ch-brand p');
+    if (subP) subP.textContent = 'С ботом · С другом · Рядом · ' + APP_VERSION;
     buildLayout();
     initBackground();
     startClockLoop();
