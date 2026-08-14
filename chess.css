@@ -530,7 +530,7 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-3d .ch-piecelayer { display: grid; border-bottom-width: 14px; transform: rotateX(var(--t3d)); transform-style: preserve-3d; }
 .ch-piecelayer .pl-cell { position: relative; transform-style: preserve-3d; }
 .ch-piecelayer .pl-piece {
-  position: absolute; left: 5%; bottom: -2.5%; width: 90%; height: 105%;
+  position: absolute; left: 5%; bottom: -11%; width: 90%; height: 122%;
   transform-origin: center center; transform: rotateX(calc(-1 * var(--t3d)));
   filter: drop-shadow(0 6px 4px rgba(0, 0, 0, .4));
 }
@@ -538,10 +538,14 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 /* пешки рисуем ПОВЕРХ фигур, чтобы стоящая позади фигура их не закрывала */
 .ch-3d .ch-piecelayer .pl-pawn { z-index: 20; }
 /* режим «Рядом» в 3D: доску и буквы a–h НЕ трогаем (не зеркалим). На ход чёрных
-   переворачиваем на 180° только САМУ картинку фигуры (вокруг центра клетки) — как
-   в 2D. Фигура компактная и по центру клетки, поэтому вверх ногами не вылезает. */
+   переворачиваем на 180° только САМУ картинку фигуры (вокруг центра). */
 .ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-img {
   transform: rotate(180deg); transform-origin: center center;
+}
+/* перевёрнутые фигуры опускаем чуть ниже, чтобы их ОСНОВАНИЕ было по СЕРЕДИНЕ
+   клетки (а не у дальнего края) */
+.ch-3d .ch-fliparea.flip180 .ch-piecelayer .pl-piece {
+  transform: rotateX(calc(-1 * var(--t3d))) translateY(24%);
 }
 
 /* Игра-повторение в 3D: доску-дорожку не наклоняем (одна пешка идёт вверх) */
