@@ -28,7 +28,48 @@
     trophy: _svg(`<path d="M7 4.5h10v4a5 5 0 0 1-10 0z" ${_F}/><path d="M7 6H4.7a2.6 2.6 0 0 0 2.9 3.5"/><path d="M17 6h2.3a2.6 2.6 0 0 1-2.9 3.5"/><path d="M12 13.4v3"/><path d="M8.7 20.4h6.6l-1-2.7H9.7z" ${_F}/>`),
     cap: _svg(`<path d="M12 5 21.6 9 12 13 2.4 9z" ${_F}/><path d="M6.4 10.6v4.2c0 1.6 2.5 2.9 5.6 2.9s5.6-1.3 5.6-2.9v-4.2"/><path d="M21.6 9v4.3"/>`),
     medal: _svg(`<path d="M8.4 3.4 10.6 9M15.6 3.4 13.4 9"/><circle cx="12" cy="14.6" r="5.5" ${_F}/><path d="M12 11.7l.92 1.86 2.05.3-1.48 1.44.35 2.04L12 16.87l-1.84.97.35-2.04-1.48-1.44 2.05-.3z" fill="currentColor" stroke="none"/>`),
+    // --- Достижения и уроки (тот же стиль) ---
+    swords: _svg(`<path d="M4 4l10.5 10.5"/><path d="M4 4h3v3" ${_F}/><path d="M20 4L9.5 14.5"/><path d="M20 4h-3v3" ${_F}/><path d="M12.5 15l3 3 1.5-1.5M11.5 15l-3 3-1.5-1.5"/>`),
+    fork: _svg(`<path d="M9.5 3.5v4.5M12 3.5v4.5M14.5 3.5v4.5"/><path d="M9 8h6v.5a3 3 0 0 1-2.2 2.9V20.5" ${_F}/><path d="M12 11.4V20.5"/>`),
+    crown: _svg(`<path d="M4 8.5l3.2 8h9.6l3.2-8-4.8 3.6L12 5 6.8 12.1z" ${_F}/><path d="M6.5 19.5h11"/>`),
+    bolt: _svg(`<path d="M13 3 5.5 13H10l-1 8 8.5-11H13z" ${_F}/>`),
+    queen: _svg(`<path d="M5.5 9l1.7 7.5h9.6L18.5 9l-3.3 3.2L12 7.8 8.8 12.2z" ${_F}/><path d="M7.2 19.5h9.6M6.8 16.5h10.4"/><circle cx="5.2" cy="7.7" r="1.1"/><circle cx="12" cy="6" r="1.1"/><circle cx="18.8" cy="7.7" r="1.1"/>`),
+    hat: _svg(`<path d="M3.5 15.5c2.2-1.2 5-1.8 8.5-1.8s6.3.6 8.5 1.8"/><path d="M6.8 14.4C6.8 9.6 8 6.5 12 6.5s5.2 3.1 5.2 7.9" ${_F}/>`),
+    axe: _svg(`<path d="M13.5 4c3.2 0 5.5 2.3 5.5 5.5L12.5 11 10 8z" ${_F}/><path d="M11.2 8.8 5 19.5"/>`),
+    repeat: _svg(`<path d="M4.5 10a6 6 0 0 1 10.2-2.5L16.5 9"/><path d="M16.5 5v4h-4"/><path d="M19.5 14a6 6 0 0 1-10.2 2.5L7.5 15"/><path d="M7.5 19v-4h4"/>`),
+    abc: _svg(`<path d="M3.5 16l2-6 2 6M4.1 14.2h2.8"/><path d="M10.5 10v6h1.7a1.5 1.5 0 0 0 0-3h-1.7m0 0h1.5a1.3 1.3 0 0 0 0-3h-1.5"/><path d="M20.5 11.6a2.6 2.6 0 0 0-4.2 2.1 2.6 2.6 0 0 0 4.2 2.1"/>`),
+    dove: _svg(`<path d="M3.5 13.8c4.2 0 6.4-2 8.5-5.3 1 3.1 3.1 4.3 6.3 4.3-1.1 3.2-4.1 5.2-7.3 5.2-3.2 0-5.4-1.8-7.5-4.2z" ${_F}/><path d="M9.5 8.8 8 5.6"/>`),
+    sparkle: _svg(`<path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z" ${_F}/>`),
+    knight: _svg(`<path d="M7 20.5h10c.6-6.4-1.4-10.6-6.2-12.2L12 6l-2.2 1-.6-2.6C7.5 6 6.6 8.2 7.2 10.4L9 11.4 6.7 12.6z" ${_F}/><path d="M6 20.5h12"/>`),
+    eye: _svg(`<path d="M2.5 12S6 6.2 12 6.2 21.5 12 21.5 12 18 17.8 12 17.8 2.5 12 2.5 12z" ${_F}/><circle cx="12" cy="12" r="2.6"/>`),
+    circle: _svg(`<circle cx="12" cy="12" r="7" fill="currentColor" stroke="none"/>`),
+    zzz: _svg(`<path d="M6 8h5l-5 6.5h5"/><path d="M13.5 12.5h4l-4 5h4"/>`),
+    flag: _svg(`<path d="M6 4v16.5"/><path d="M6 5h11l-2.2 3.2L17 11.5H6z" ${_F}/>`),
+    handshake: _svg(`<path d="M3.5 10.5 7 7.3l4 2.8 2-1 3 1 3.5 3.1"/><path d="M11 10.1l2.1 2.1 1.9.9 2-2"/><path d="M3.5 10.5v3.6l3 3M20.5 10.5v3.6l-3 3"/>`),
+    skull: _svg(`<path d="M6 11.5a6 6 0 0 1 12 0v3l-1.5 1.5v2.2h-9V16L6 14.5z" ${_F}/><circle cx="9.4" cy="11.8" r="1.35" fill="currentColor" stroke="none"/><circle cx="14.6" cy="11.8" r="1.35" fill="currentColor" stroke="none"/><path d="M11 15.6h2"/>`),
+    elephant: _svg(`<path d="M4 18.5v-4.2a7 7 0 0 1 13.5-2.6" ${_F}/><path d="M17 11.5c1.6 0 2.8 1.2 2.8 2.9S18.6 18 17 18v-2"/><path d="M7 18.5v-2.2M12.5 18.5v-2.2"/><path d="M4 18.5v-2"/>`),
+    undo: _svg(`<path d="M4.5 9.5h9a5 5 0 0 1 0 10H8.5"/><path d="M4.5 9.5l4-3.8M4.5 9.5l4 3.8"/>`),
+    chain: _svg(`<path d="M9.6 14.4a3.5 3.5 0 0 0 5 0l2.8-2.8a3.5 3.5 0 0 0-5-5l-1.2 1.2"/><path d="M14.4 9.6a3.5 3.5 0 0 0-5 0L6.6 12.4a3.5 3.5 0 0 0 5 5l1.2-1.2"/>`),
+    question: _svg(`<circle cx="12" cy="12" r="8.5" ${_F}/><path d="M9.4 9.6a2.6 2.6 0 0 1 4.2 2c0 1.6-1.6 1.9-1.6 3.2"/><circle cx="12" cy="16.8" r="1.05" fill="currentColor" stroke="none"/>`),
+    check: _svg(`<path d="M5 12.5l4.4 4.4L19 7.3"/>`),
+    lock: _svg(`<rect x="5" y="11" width="14" height="9.2" rx="2.2" ${_F}/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.4" r="1.3" fill="currentColor" stroke="none"/>`),
+    shield: _svg(`<path d="M12 3l7 2.4v5.1c0 5-3 8.1-7 10-4-1.9-7-5-7-10V5.4z" ${_F}/><path d="M9.2 12l2 2 3.6-4.2"/>`),
+    rocket: _svg(`<path d="M12 3c3 2.1 4.6 5.1 4.6 9.1L12 16.3l-4.6-4.2C7.4 8.1 9 5.1 12 3z" ${_F}/><circle cx="12" cy="9.2" r="1.6"/><path d="M8.8 16l-2 4.2 3.1-1.6M15.2 16l2 4.2-3.1-1.6"/>`),
+    face: _svg(`<circle cx="12" cy="12" r="8.5" ${_F}/><circle cx="9" cy="10.5" r="1.05" fill="currentColor" stroke="none"/><circle cx="15" cy="10.5" r="1.05" fill="currentColor" stroke="none"/><path d="M9 15.2h6"/>`),
+    pin: _svg(`<path d="M12 3l3 3-1.2 1.2v4L17 18H7l3.2-6.8v-4L9 6z" ${_F}/><path d="M12 18v3.2"/>`),
+    target: _svg(`<circle cx="12" cy="12" r="8.5" ${_F}/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>`),
+    hook: _svg(`<path d="M14 4.5a4.2 4.2 0 0 1 4.2 4.2v5.6a4.2 4.2 0 0 1-8.4 0v-1"/><circle cx="14" cy="4.5" r="1.3"/><path d="M7.8 13l2 2 2-2"/>`),
+    warning: _svg(`<path d="M12 4.2 21 19.2H3z" ${_F}/><path d="M12 10v4"/><circle cx="12" cy="16.6" r="1.05" fill="currentColor" stroke="none"/>`),
+    rook: _svg(`<path d="M6 8.5V5.5h2v1.6h2V5.5h4v1.6h2V5.5h2v3l-1.4 2v5H7.4v-5z" ${_F}/><path d="M6 19.5h12M7.5 15.5h9"/>`),
+    bishop: _svg(`<path d="M12 4c2.1 1.6 3.2 3.6 3.2 5.2a3.2 3.2 0 0 1-6.4 0C8.8 7.6 9.9 5.6 12 4z" ${_F}/><path d="M8.8 16.5c0-2.1 1.3-3.7 3.2-4.2 1.9.5 3.2 2.1 3.2 4.2M7.5 19.5h9M12 8v3.2"/>`),
+    king: _svg(`<path d="M12 3v4.2M9.8 5.1h4.4"/><path d="M8 12.4c0-2.3 1.8-4.1 4-4.1s4 1.8 4 4.1c0 1.6-1 2.7-2.1 3.7H10.1C9 15.1 8 14 8 12.4z" ${_F}/><path d="M7.5 19.5h9M9.2 16.1h5.6"/>`),
   };
+  ICON.quiz = _svg(`<rect x="5" y="4.5" width="14" height="16" rx="2.5" ${_F}/><path d="M9 4.5V3.7a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v.8"/><path d="M8.5 12l2 2 4-4.4"/>`);
+  ICON.play = _svg(`<path d="M8 8h8a5 5 0 0 1 5 5 3 3 0 0 1-5.4 1.8l-.6-.8H8.9l-.6.8A3 3 0 0 1 3 13a5 5 0 0 1 5-5z" ${_F}/><path d="M6.8 11.6v2M5.8 12.6h2"/><circle cx="16" cy="11.8" r=".95" fill="currentColor" stroke="none"/><circle cx="17.6" cy="13.4" r=".95" fill="currentColor" stroke="none"/>`);
+  const tutTitleHTML = (svg, txt) => `<span class="tt-ico">${svg}</span>${txt}`;
+  // Уроки хранят символ (эмодзи/шахматный знак) — переводим в иконку того же стиля
+  const LESSON_ICON = { '♟': ICON.side, '♞': ICON.knight, '♝': ICON.bishop, '♜': ICON.rook, '♛': ICON.queen, '♚': ICON.king, '🤝': ICON.handshake, '🛡️': ICON.shield, '🚀': ICON.rocket, '😐': ICON.face, '📌': ICON.pin, '👑': ICON.crown, '🏰': ICON.rook, '🎯': ICON.target, '🎣': ICON.hook, '🍴': ICON.fork, '✨': ICON.sparkle, '⛓️': ICON.chain, '⚠️': ICON.warning };
+  const lessonIco = (g) => LESSON_ICON[g] || g || '';
 
   /* ===== Объёмные фигуры (SVG, стиль Стаунтон) ===== */
   // Градиенты объёма — вставляются в DOM один раз (см. buildLayout)
@@ -110,7 +151,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v88';
+  const APP_VERSION = 'v89';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -219,11 +260,11 @@
       <section id="tutorScreen" class="ch-screen" hidden>
         <div class="ch-tutor-head">
           <button class="ch-btn" id="tutBack">← Назад</button>
-          <h2 id="tutTitle">📚 Обучение</h2>
+          <h2 id="tutTitle"><span class="tt-ico">${ICON.cap}</span>Обучение</h2>
         </div>
         <div id="tutMenu">
-          <button class="ch-start" id="tutReview">📝 Проверка знаний</button>
-          <button class="ch-start ch-start-game" id="tutGameBtn">🎮 Игра — повторение</button>
+          <button class="ch-start" id="tutReview"><span class="ch-btn-ico">${ICON.quiz}</span>Проверка знаний</button>
+          <button class="ch-start ch-start-game" id="tutGameBtn"><span class="ch-btn-ico">${ICON.play}</span>Игра — повторение</button>
           <div id="tutSections"></div>
         </div>
         <div id="tutLesson" hidden>
@@ -357,7 +398,7 @@
 
       <div id="achModal" class="ch-modal" hidden>
         <div class="ch-modal-box ch-ach-box">
-          <div class="ch-modal-title">🏆 Достижения</div>
+          <div class="ch-modal-title"><span class="tt-ico">${ICON.trophy}</span>Достижения</div>
           <div class="ch-ach-sub" id="achCount"></div>
           <div class="ch-ach-list" id="achList"></div>
           <div class="ch-modal-actions"><button class="ch-btn ch-btn-primary" id="achClose">Закрыть</button></div>
@@ -1524,7 +1565,7 @@
   function tutState(step) { return { board: tutParse(step.board), turn: step.turn || 'w', castling: step.castling || { wK: false, wQ: false, bK: false, bQ: false }, ep: -1, half: 0, full: 1 }; }
 
   function openTutorial() { unlockAudio(); $('setupScreen').hidden = true; $('gameScreen').hidden = true; $('tutorScreen').hidden = false; showTutMenu(); }
-  function showTutMenu() { tut.run = null; tut.info = false; tut.locked = true; tg.on = false; $('tutTitle').textContent = '📚 Обучение'; $('tutMenu').hidden = false; $('tutLesson').hidden = true; $('tutGame').hidden = true; renderTutMenu(); }
+  function showTutMenu() { tut.run = null; tut.info = false; tut.locked = true; tg.on = false; $('tutTitle').innerHTML = tutTitleHTML(ICON.cap, 'Обучение'); $('tutMenu').hidden = false; $('tutLesson').hidden = true; $('tutGame').hidden = true; renderTutMenu(); }
   function tutBackAction() { if (!$('tutLesson').hidden || !$('tutGame').hidden) { showTutMenu(); } else { $('tutorScreen').hidden = true; showSetup(); } }
 
   // Пройденные темы (зелёные) хранятся между запусками
@@ -1541,7 +1582,7 @@
       html += `<div class="ch-ach-head">${sec.name}</div><div class="ch-tut-grid">`;
       for (const L of sec.lessons) {
         const ok = done.indexOf(L.id) >= 0;
-        html += `<button class="ch-tut-card${ok ? ' done' : ''}" data-lid="${L.id}"><span class="tc-ico">${L.icon}</span><span class="tc-t">${L.title}</span><span class="tc-status">${ok ? '✅' : ''}</span></button>`;
+        html += `<button class="ch-tut-card${ok ? ' done' : ''}" data-lid="${L.id}"><span class="tc-ico">${lessonIco(L.icon)}</span><span class="tc-t">${L.title}</span><span class="tc-status">${ok ? ICON.check : ''}</span></button>`;
       }
       html += '</div>';
     }
@@ -1553,7 +1594,7 @@
 
   function showTutInfo(L) {
     tut.info = true; tut.run = null; tut.locked = true;
-    $('tutTitle').textContent = L.icon + ' ' + L.title;
+    $('tutTitle').innerHTML = tutTitleHTML(lessonIco(L.icon), L.title);
     $('tutMenu').hidden = true; $('tutLesson').hidden = false;
     tut.state = tutState({ board: L.demo || ['e1 wk', 'e8 bk'], turn: 'w' });
     tut.sel = -1; tut.legal = []; tut.lastMove = null;
@@ -1567,7 +1608,7 @@
   function startLesson(L) {
     tut.info = false; resolveTutSide();
     tut.run = { title: L.title, icon: L.icon, explain: L.explain, lessonId: L.id, steps: L.steps.map(s => ({ ...s })), idx: 0, reviewMode: false };
-    $('tutTitle').textContent = L.icon + ' ' + L.title;
+    $('tutTitle').innerHTML = tutTitleHTML(lessonIco(L.icon), L.title);
     $('tutMenu').hidden = true; $('tutLesson').hidden = false;
     loadRunStep();
   }
@@ -1580,7 +1621,7 @@
     steps = shuffleArr(steps).slice(0, 30);   // 30 заданий вперемешку
     tut.info = false; resolveTutSide();
     tut.run = { title: 'Проверка знаний', explain: '', steps, idx: 0, reviewMode: true };
-    $('tutTitle').textContent = '📝 Проверка знаний';
+    $('tutTitle').innerHTML = tutTitleHTML(ICON.quiz, 'Проверка знаний');
     $('tutMenu').hidden = true; $('tutLesson').hidden = false;
     loadRunStep();
   }
@@ -1804,7 +1845,7 @@
     tut.run = null; tut.info = false;
     tg.on = true; tg.step = 0; tg.qi = 0; tg.locked = false; tg.delta = 0;
     tg.order = shuffleArr(TG_QUIZ.map((_, i) => i));
-    $('tutTitle').textContent = '🎮 Игра — повторение';
+    $('tutTitle').innerHTML = tutTitleHTML(ICON.play, 'Игра — повторение');
     $('tutMenu').hidden = true; $('tutLesson').hidden = true; $('tutGame').hidden = false;
     $('tgFoot').innerHTML = '';
     nextTgQuestion();
@@ -2058,42 +2099,42 @@
 
   // Каждое достижение: ico — значок, goal — цель, cur(s) — прогресс, secret — секретное
   const ACHIEVEMENTS = [
-    { t: 'Шахматист', d: 'Поставь 15 шахов в одной партии', ico: '⚔️', goal: 15, cur: s => s.maxChecksInGame },
-    { t: 'Вилка', d: 'Сделай вилку 3 раза', ico: '🍴', goal: 3, cur: s => s.forks },
-    { t: 'Выиграл ИИ', d: 'Выиграй со сложным ботом', ico: '🤖', goal: 1, cur: s => s.wonHardBot ? 1 : 0 },
-    { t: 'Любитель шахмат', d: 'Сыграй 100 и более партий', ico: '♟️', goal: 100, cur: s => s.games },
-    { t: 'Можно без матов?', d: 'Поставь 100 и более матов', ico: '👑', goal: 100, cur: s => s.checkmatesBy },
-    { t: 'Мгновенный мат', d: 'Поставь мат за 10 ходов', ico: '⚡', goal: 1, cur: s => s.fastMate ? 1 : 0 },
-    { t: 'Убит ферзь', d: 'Съешь у соперника 5 ферзей', ico: '👸', goal: 5, cur: s => s.queensCaptured },
-    { t: 'Мафия', d: 'Съешь у соперника 50 фигур', ico: '🕵️', goal: 50, cur: s => s.captures },
-    { t: 'Казнить!', d: 'Съешь 20 пешек', ico: '🪓', goal: 20, cur: s => s.pawnsCaptured },
-    { t: 'Туда-сюда', d: 'Повтори ход 3 раза', ico: '🔄', goal: 3, cur: s => s.repeats },
-    { t: 'Заложник', d: 'Свяжи 3 фигуры соперника', ico: '🔗', goal: 3, cur: s => s.pins },
-    { t: 'Алфавитный порядок', d: 'Сходи на клетки a-b-c-d-e-f подряд', ico: '🔤', goal: 1, cur: s => s.alphabet ? 1 : 0 },
-    { t: 'Свобода!', d: 'Сыграй 30 партий без ограничений', ico: '🕊️', goal: 30, cur: s => s.freeGames },
-    { t: 'В укрытие!', d: 'Сделай рокировку 3 раза', ico: '🏰', goal: 3, cur: s => s.castles },
+    { t: 'Шахматист', d: 'Поставь 15 шахов в одной партии', ico: ICON.swords, goal: 15, cur: s => s.maxChecksInGame },
+    { t: 'Вилка', d: 'Сделай вилку 3 раза', ico: ICON.fork, goal: 3, cur: s => s.forks },
+    { t: 'Выиграл ИИ', d: 'Выиграй со сложным ботом', ico: ICON.bot, goal: 1, cur: s => s.wonHardBot ? 1 : 0 },
+    { t: 'Любитель шахмат', d: 'Сыграй 100 и более партий', ico: ICON.side, goal: 100, cur: s => s.games },
+    { t: 'Можно без матов?', d: 'Поставь 100 и более матов', ico: ICON.crown, goal: 100, cur: s => s.checkmatesBy },
+    { t: 'Мгновенный мат', d: 'Поставь мат за 10 ходов', ico: ICON.bolt, goal: 1, cur: s => s.fastMate ? 1 : 0 },
+    { t: 'Убит ферзь', d: 'Съешь у соперника 5 ферзей', ico: ICON.queen, goal: 5, cur: s => s.queensCaptured },
+    { t: 'Мафия', d: 'Съешь у соперника 50 фигур', ico: ICON.hat, goal: 50, cur: s => s.captures },
+    { t: 'Казнить!', d: 'Съешь 20 пешек', ico: ICON.axe, goal: 20, cur: s => s.pawnsCaptured },
+    { t: 'Туда-сюда', d: 'Повтори ход 3 раза', ico: ICON.repeat, goal: 3, cur: s => s.repeats },
+    { t: 'Заложник', d: 'Свяжи 3 фигуры соперника', ico: ICON.friend, goal: 3, cur: s => s.pins },
+    { t: 'Алфавитный порядок', d: 'Сходи на клетки a-b-c-d-e-f подряд', ico: ICON.abc, goal: 1, cur: s => s.alphabet ? 1 : 0 },
+    { t: 'Свобода!', d: 'Сыграй 30 партий без ограничений', ico: ICON.dove, goal: 30, cur: s => s.freeGames },
+    { t: 'В укрытие!', d: 'Сделай рокировку 3 раза', ico: ICON.rook, goal: 3, cur: s => s.castles },
     // секретные
-    { t: 'Превращение', d: 'Преврати пешку 5 раз', ico: '✨', goal: 5, cur: s => s.promotions, secret: true },
-    { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', ico: '🐴', goal: 1, cur: s => Math.min(s.knightThenPawn, 1), secret: true },
-    { t: 'Большой брат', d: 'Уйди от преследования фигуры', ico: '👁️', goal: 1, cur: s => Math.min(s.escapes, 1), secret: true },
-    { t: 'За чёрных', d: 'Сыграй за чёрных 10 партий', ico: '⚫', goal: 10, cur: s => s.blackGames, secret: true },
-    { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', ico: '🥱', goal: 3, cur: s => s.queensLost, secret: true },
-    { t: 'Не спи!', d: 'Сыграй партию целый час', ico: '⏰', goal: 1, cur: s => s.hourGame ? 1 : 0, secret: true },
-    { t: 'Братство', d: 'Сдайся 3 раза', ico: '🏳️', goal: 3, cur: s => s.resigns, secret: true },
-    { t: 'Равенство', d: 'Сыграй вничью 5 раз', ico: '🤝', goal: 5, cur: s => s.draws, secret: true },
-    { t: 'Убийство племя', d: 'Съешь все фигуры соперника за одну партию', ico: '💀', goal: 1, cur: s => s.wipeout ? 1 : 0, secret: true },
-    { t: 'Бедные животные!', d: 'Съешь 30 коней или слонов', ico: '🐘', goal: 30, cur: s => s.minorsCaptured, secret: true },
-    { t: 'Ой, не туда', d: 'Отмени ход 5 раз', ico: '🙈', goal: 5, cur: s => s.undos, secret: true },
-    { t: 'Нет прав у чёрных!', d: 'Свяжи 5 чёрных фигур', ico: '⛓️', goal: 5, cur: s => s.blackPins, secret: true }
+    { t: 'Превращение', d: 'Преврати пешку 5 раз', ico: ICON.sparkle, goal: 5, cur: s => s.promotions, secret: true },
+    { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', ico: ICON.knight, goal: 1, cur: s => Math.min(s.knightThenPawn, 1), secret: true },
+    { t: 'Большой брат', d: 'Уйди от преследования фигуры', ico: ICON.eye, goal: 1, cur: s => Math.min(s.escapes, 1), secret: true },
+    { t: 'За чёрных', d: 'Сыграй за чёрных 10 партий', ico: ICON.circle, goal: 10, cur: s => s.blackGames, secret: true },
+    { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', ico: ICON.zzz, goal: 3, cur: s => s.queensLost, secret: true },
+    { t: 'Не спи!', d: 'Сыграй партию целый час', ico: ICON.clock, goal: 1, cur: s => s.hourGame ? 1 : 0, secret: true },
+    { t: 'Братство', d: 'Сдайся 3 раза', ico: ICON.flag, goal: 3, cur: s => s.resigns, secret: true },
+    { t: 'Равенство', d: 'Сыграй вничью 5 раз', ico: ICON.handshake, goal: 5, cur: s => s.draws, secret: true },
+    { t: 'Убийство племя', d: 'Съешь все фигуры соперника за одну партию', ico: ICON.skull, goal: 1, cur: s => s.wipeout ? 1 : 0, secret: true },
+    { t: 'Бедные животные!', d: 'Съешь 30 коней или слонов', ico: ICON.elephant, goal: 30, cur: s => s.minorsCaptured, secret: true },
+    { t: 'Ой, не туда', d: 'Отмени ход 5 раз', ico: ICON.undo, goal: 5, cur: s => s.undos, secret: true },
+    { t: 'Нет прав у чёрных!', d: 'Свяжи 5 чёрных фигур', ico: ICON.chain, goal: 5, cur: s => s.blackPins, secret: true }
   ];
 
   function achCard(a, s) {
     const cur = a.cur(s), ok = cur >= a.goal;
     const locked = a.secret && !ok;
-    const ico = locked ? '❓' : a.ico;
+    const ico = locked ? ICON.question : a.ico;
     const desc = locked ? '?' : a.d;
     const prog = locked ? '?' : (Math.min(cur, a.goal) + '/' + a.goal);
-    return `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-ico">${ico}</span><div class="ach-txt"><span class="ach-t">${ok ? '✅ ' : '🔒 '}${a.t}</span><span class="ach-d">${desc}</span></div><span class="ach-prog">${prog}</span></div>`;
+    return `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-ico">${ico}</span><div class="ach-txt"><span class="ach-t"><span class="ach-mark">${ok ? ICON.check : ICON.lock}</span>${a.t}</span><span class="ach-d">${desc}</span></div><span class="ach-prog">${prog}</span></div>`;
   }
 
   function openAch() {
