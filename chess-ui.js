@@ -88,7 +88,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v83';
+  const APP_VERSION = 'v84';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -452,7 +452,7 @@
       if (b) { app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b); return; }
       const v = e.target.closest('.ch-vw');
       if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v);
-        if (app.state && !$('gameScreen').hidden) { syncViewOrientation(); renderBoard(); renderPlayerBars(); updateClocks(); applyScreenFlip(); } }
+        if (app.state && !$('gameScreen').hidden) { renderBoard(); renderPlayerBars(); updateClocks(); applyScreenFlip(); } }
     });
     $('modeCards').addEventListener('click', (e) => {
       const c = e.target.closest('.ch-big'); if (!c) return;
@@ -870,23 +870,14 @@
   /* ========================================================
      ОТРИСОВКА
      ======================================================== */
-  function render() { syncViewOrientation(); renderBoard(); renderStatus(); renderHistory(); renderPlayerBars(); applyScreenFlip(); }
+  function render() { renderBoard(); renderStatus(); renderHistory(); renderPlayerBars(); applyScreenFlip(); }
 
-  // «Играть рядом»: игроки сидят по разные стороны телефона лицом друг к другу.
-  // В 3D на ход чёрных отражаем доску ТОЛЬКО по вертикали (rankFlip): чёрные фигуры
-  // оказываются снизу (лицом к игроку), а буквы a–b–c остаются на своих местах
-  // слева направо (без «зеркала» букв). Фигуры стоят прямо, крупные, по центру.
-  // В 2D фигуры плоские — там просто крутим экран на 180° (flip180).
-  function syncViewOrientation() {
-    if (app.mode !== 'local') { app.rankFlip = false; return; }
-    const blackTurn = app.state && app.state.turn === 'b' && !app.over;
-    app.rankFlip = !!(app.view === '3d' && blackTurn);
-    app.orientation = 'w';
-  }
+  // «Играть рядом»: на ход чёрных переворачиваем на 180° САМИ ФИГУРЫ (как в 2D),
+  // а доску и буквы a–h НЕ трогаем — поэтому не выглядит зеркально. В 3D фигуры
+  // переворачиваются вверх ногами прямо на месте, по центру своей клетки.
   function applyScreenFlip() {
     const fa = $('flipArea'); if (!fa) return;
-    // экран крутим на 180° только в 2D; в 3D доску разворачиваем данными (orientation)
-    const flip = app.mode === 'local' && app.view !== '3d' && !app.over && app.state && app.state.turn === 'b';
+    const flip = app.mode === 'local' && !app.over && app.state && app.state.turn === 'b';
     fa.classList.toggle('flip180', !!flip);
     app.screenFlipped = !!flip;
   }
@@ -898,14 +889,13 @@
   function renderBoard() {
     elBoard.innerHTML = '';
     const flip = app.orientation === 'b';       // полный разворот на 180° (бот/друг за чёрных)
-    const rmir = !!app.rankFlip;                 // «Рядом» 3D: отражение по вертикали (буквы a–h на месте)
     // Слой стоящих фигур (3D) перестраиваем ТОЛЬКО когда позиция изменилась —
     // иначе при каждом выборе/тапе пересоздаются 32 картинки и телефон тормозит.
-    let sig = (rmir ? 'M' : flip ? 'F' : 'N'); for (let i = 0; i < 64; i++) sig += app.state.board[i] || '.';
+    let sig = flip ? 'F' : 'N'; for (let i = 0; i < 64; i++) sig += app.state.board[i] || '.';
     const rebuildPL = !!elPieceLayer && sig !== plSig;
     if (rebuildPL) { elPieceLayer.innerHTML = ''; plSig = sig; }
     for (let rr = 7; rr >= 0; rr--) for (let ff = 0; ff < 8; ff++) {
-      const r = (rmir || flip) ? 7 - rr : rr, f = flip ? 7 - ff : ff, s = C.sq(f, r);
+      const r = flip ? 7 - rr : rr, f = flip ? 7 - ff : ff, s = C.sq(f, r);
       const cell = document.createElement('div');
       cell.className = 'ch-sq ' + ((f + r) % 2 === 0 ? 'dark' : 'light');
       cell.dataset.sq = s;
