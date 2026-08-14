@@ -84,6 +84,40 @@
   const LESSON_ICON = { '♟': ICON.side, '♞': ICON.knight, '♝': ICON.bishop, '♜': ICON.rook, '♛': ICON.queen, '♚': ICON.king, '🤝': ICON.handshake, '🛡️': ICON.shield, '🚀': ICON.rocket, '😐': ICON.face, '📌': ICON.pin, '👑': ICON.crown, '🏰': ICON.rook, '🎯': ICON.target, '🎣': ICON.hook, '🍴': ICON.fork, '✨': ICON.sparkle, '⛓️': ICON.chain, '⚠️': ICON.warning };
   const lessonIco = (g) => LESSON_ICON[g] || g || '';
 
+  /* ===== Цветные нарисованные иконки достижений (единый плоский стиль) ===== */
+  const _c = (inner) => `<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  const ACH = {
+    swords: _c(`<path d="M4.5 5.4l9 9M19.5 5.4l-9 9" stroke="#c9cfdb" stroke-width="2.5"/><path d="M4.5 5.4l2.5.2M4.5 5.4l.2 2.5M19.5 5.4l-2.5.2M19.5 5.4l-.2 2.5" stroke="#c9cfdb" stroke-width="2"/><path d="M12.9 13.7l4.3 4.3M12.7 17.2l3.3-3.3M11.1 13.7l-4.3 4.3M11.3 17.2l-3.3-3.3" stroke="#e0a12c" stroke-width="2.1"/>`),
+    fork: _c(`<path d="M9 3.6v4.6M12 3.6v4.6M15 3.6v4.6" stroke="#c2c8d4" stroke-width="1.9"/><path d="M8.6 8.2h6.8v.4c0 2-1.3 3.4-3 3.8V20.6" stroke="#c2c8d4" stroke-width="2.1"/>`),
+    bot: _c(`<rect x="5" y="8" width="14" height="10.2" rx="3" fill="#8a93a6"/><path d="M12 4.4v3.6" stroke="#6a7385" stroke-width="1.8"/><circle cx="12" cy="3.9" r="1.5" fill="#e85c52"/><circle cx="9.5" cy="13" r="1.7" fill="#5b8def"/><circle cx="14.5" cy="13" r="1.7" fill="#5b8def"/><path d="M9.6 16.2h4.8" stroke="#4a5262" stroke-width="1.5"/><path d="M2.8 12v3M21.2 12v3" stroke="#6a7385" stroke-width="1.8"/>`),
+    pawn: _c(`<circle cx="12" cy="6.6" r="3" fill="#4a5162"/><path d="M9.6 11.4c.7.6 1.5 1 2.4 1s1.7-.4 2.4-1l1.1 5.4H8.5z" fill="#4a5162"/><path d="M7.6 20.4h8.8l-1-3.2H8.6z" fill="#39404f"/>`),
+    crown: _c(`<path d="M4 8.6l3.1 8h9.8l3.1-8-4.8 3.4L12 5.3 6.9 12z" fill="#f4c04e" stroke="#d99a2a" stroke-width="1"/><path d="M6.7 19h10.6" stroke="#d99a2a" stroke-width="2.2"/><circle cx="12" cy="10.6" r="1" fill="#e85c52"/>`),
+    bolt: _c(`<path d="M13 3l-7.4 10H10l-1 8 8.4-11H13z" fill="#f4c04e" stroke="#e0a12c" stroke-width="1"/>`),
+    queen: _c(`<path d="M5.5 9l1.8 7.4h9.4L18.5 9l-3.2 3-3.3-4.1L8.7 12z" fill="#a06ff2"/><circle cx="5.2" cy="7.8" r="1.2" fill="#f4c04e"/><circle cx="12" cy="6" r="1.2" fill="#f4c04e"/><circle cx="18.8" cy="7.8" r="1.2" fill="#f4c04e"/><path d="M6.7 19.4h10.6M6.4 16.6h11.2" stroke="#7d4fd0" stroke-width="1.8"/>`),
+    detective: _c(`<path d="M3.4 12.6c2.3-1.2 5.1-1.8 8.6-1.8s6.3.6 8.6 1.8" stroke="#39404f" stroke-width="2.3"/><path d="M6.3 11.6c0-4.7 1.5-7.4 5.7-7.4s5.7 2.7 5.7 7.4z" fill="#39404f"/><path d="M7 9.4h9.4" stroke="#e85c52" stroke-width="1.7"/><circle cx="9.8" cy="16.4" r="3" fill="none" stroke="#9aa4b6" stroke-width="1.9"/><path d="M12 18.6l2.8 2.8" stroke="#9aa4b6" stroke-width="2.1"/>`),
+    axe: _c(`<path d="M12.6 3.9c3.6-.4 6.6 2.1 6.9 5.6-2.4 1.6-5.4 2-7.9.9z" fill="#c9cfdb" stroke="#9aa4b6" stroke-width="1"/><path d="M12.6 3.9l1.3 6.1" stroke="#9aa4b6" stroke-width="1"/><path d="M13.2 9L5.6 20" stroke="#8a5632" stroke-width="2.6"/>`),
+    repeat: _c(`<path d="M4.6 10a7 7 0 0 1 11.4-3.1M16.6 4.4V8h-3.6" stroke="#5b8def" stroke-width="2.2"/><path d="M19.4 14a7 7 0 0 1-11.4 3.1M7.4 19.6V16h3.6" stroke="#46c47c" stroke-width="2.2"/>`),
+    chain: _c(`<rect x="3.4" y="8.6" width="9.2" height="6.8" rx="3.4" stroke="#9aa4b6" stroke-width="2.3"/><rect x="11.4" y="8.6" width="9.2" height="6.8" rx="3.4" stroke="#6a7385" stroke-width="2.3"/>`),
+    abc: _c(`<path d="M3.6 16l2-6 2 6M4.2 14h2.8" stroke="#e85c52" stroke-width="1.8"/><path d="M10.4 10v6h1.7a1.4 1.4 0 0 0 0-2.9h-1.7m0 0h1.5a1.3 1.3 0 0 0 0-2.6h-1.5" stroke="#5b8def" stroke-width="1.7"/><path d="M20.4 11.6a2.6 2.6 0 0 0-4.2 2 2.6 2.6 0 0 0 4.2 2" stroke="#46c47c" stroke-width="1.8"/>`),
+    dove: _c(`<path d="M3.5 13c4 1 7-1 9.2-4.8 1 4 3.2 5.6 7.3 4.8-1.8 3.8-4.8 5.6-8.5 5.2-2.8-.3-5.2-2-6.8-4.6z" fill="#eef1f7" stroke="#c9cfdb" stroke-width=".8"/><circle cx="18.3" cy="9" r="0.9" fill="#39404f"/><path d="M20 8.4l1.6-.6" stroke="#f4c04e" stroke-width="1.7"/>`),
+    rook: _c(`<path d="M6 8.6V5.6h2v1.6h2V5.6h4v1.6h2V5.6h2v3l-1.4 2v5H7.4v-5z" fill="#9aa4b6"/><path d="M6 19.4h12M7.5 15.4h9" stroke="#6a7385" stroke-width="1.8"/>`),
+    sparkle: _c(`<path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z" fill="#f4c04e"/><circle cx="18.5" cy="6" r="1.2" fill="#f4c04e"/><circle cx="5.5" cy="17.5" r="1" fill="#f4c04e"/>`),
+    horse: _c(`<path d="M8 20.5h9c.6-6.6-1.3-11.2-6-13.2l1-2.8-2.6 1-1-2.2C6.8 4.5 5.5 7 6.3 9.6l2 1.1-3 1.8c-.3 2 1 3.4 2.7 4z" fill="#b9784a"/><path d="M6.5 20.5h11" stroke="#8a5632" stroke-width="2.2"/><circle cx="10.8" cy="9.2" r="0.8" fill="#2a2f3c"/>`),
+    eye: _c(`<path d="M2.5 12S6 6.2 12 6.2 21.5 12 21.5 12 18 17.8 12 17.8 2.5 12 2.5 12z" fill="#eef1f7" stroke="#9aa4b6" stroke-width="1.3"/><circle cx="12" cy="12" r="3" fill="#5b8def"/><circle cx="12" cy="12" r="1.3" fill="#232838"/>`),
+    black: _c(`<circle cx="12" cy="12" r="8" fill="#eef1f7" stroke="#9aa4b6" stroke-width="1.4"/><path d="M12 4a8 8 0 0 1 0 16z" fill="#2a2f3c"/>`),
+    yawn: _c(`<circle cx="12" cy="12" r="8.5" fill="#f4c04e"/><path d="M8 10.6c.6-.8 1.9-.8 2.5 0M13.5 10.6c.6-.8 1.9-.8 2.5 0" stroke="#8a5a10" stroke-width="1.4"/><ellipse cx="12" cy="15.4" rx="2.1" ry="2.6" fill="#8a5a10"/>`),
+    alarm: _c(`<circle cx="12" cy="13.6" r="7" fill="#eef1f7" stroke="#e85c52" stroke-width="2"/><path d="M12 9.8v3.8l2.6 1.6" stroke="#39404f" stroke-width="1.8"/><path d="M6 5.2L3.4 7.8M18 5.2l2.6 2.6" stroke="#e85c52" stroke-width="2.2"/>`),
+    flag: _c(`<path d="M6.5 3.6v17" stroke="#8a93a6" stroke-width="2.2"/><path d="M6.5 5h11l-2.2 3.2L17.5 11.4H6.5z" fill="#eef1f7" stroke="#c9cfdb" stroke-width=".8"/>`),
+    equal: _c(`<circle cx="12" cy="12" r="8.5" fill="#5b8def"/><path d="M8 10.2h8M8 13.8h8" stroke="#fff" stroke-width="2.2"/>`),
+    skull: _c(`<path d="M6 11.5a6 6 0 0 1 12 0v3l-1.5 1.5v2.2h-9V16L6 14.5z" fill="#eef1f7"/><circle cx="9.4" cy="11.9" r="1.5" fill="#39404f"/><circle cx="14.6" cy="11.9" r="1.5" fill="#39404f"/><path d="M12 14.2v1.8" stroke="#39404f" stroke-width="1.2"/>`),
+    paw: _c(`<ellipse cx="12" cy="15.5" rx="3.7" ry="3.1" fill="#b9784a"/><ellipse cx="6.7" cy="11.6" rx="1.6" ry="2" fill="#b9784a"/><ellipse cx="10.2" cy="8.7" rx="1.6" ry="2" fill="#b9784a"/><ellipse cx="13.8" cy="8.7" rx="1.6" ry="2" fill="#b9784a"/><ellipse cx="17.3" cy="11.6" rx="1.6" ry="2" fill="#b9784a"/>`),
+    undo: _c(`<path d="M5 9.5h8.5a5 5 0 0 1 0 10H9" stroke="#5b8def" stroke-width="2.4"/><path d="M5 9.5l4-3.8M5 9.5l4 3.8" stroke="#5b8def" stroke-width="2.4"/>`),
+    chains: _c(`<rect x="3.4" y="8.6" width="9.2" height="6.8" rx="3.4" stroke="#6a7385" stroke-width="2.4"/><rect x="11.4" y="8.6" width="9.2" height="6.8" rx="3.4" stroke="#39404f" stroke-width="2.4"/>`),
+    check: _c(`<circle cx="12" cy="12" r="9" fill="#46c47c"/><path d="M7.8 12.3l2.7 2.7L16.2 9" stroke="#fff" stroke-width="2"/>`),
+    lock: _c(`<rect x="5" y="11" width="14" height="9" rx="2.3" fill="#8a93a6"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#8a93a6" stroke-width="2"/><circle cx="12" cy="15.3" r="1.3" fill="#4a5262"/>`),
+    quest: _c(`<circle cx="12" cy="12" r="9" fill="#6a7385"/><path d="M9.6 9.7a2.5 2.5 0 0 1 4.1 1.9c0 1.6-1.6 1.9-1.6 3.1" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="16.6" r="1.05" fill="#fff"/>`),
+  };
+
   /* ===== Объёмные фигуры (SVG, стиль Стаунтон) ===== */
   // Градиенты объёма — вставляются в DOM один раз (см. buildLayout)
   const PIECE_DEFS = `<svg id="pcDefs" width="0" height="0" aria-hidden="true" style="position:absolute;width:0;height:0"><defs>
@@ -164,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v93';
+  const APP_VERSION = 'v94';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -2112,42 +2146,42 @@
 
   // Каждое достижение: ico — значок, goal — цель, cur(s) — прогресс, secret — секретное
   const ACHIEVEMENTS = [
-    { t: 'Шахматист', d: 'Поставь 15 шахов в одной партии', ico: '⚔️', goal: 15, cur: s => s.maxChecksInGame },
-    { t: 'Вилка', d: 'Сделай вилку 3 раза', ico: '🍴', goal: 3, cur: s => s.forks },
-    { t: 'Выиграл ИИ', d: 'Выиграй со сложным ботом', ico: '🤖', goal: 1, cur: s => s.wonHardBot ? 1 : 0 },
-    { t: 'Любитель шахмат', d: 'Сыграй 100 и более партий', ico: '♟️', goal: 100, cur: s => s.games },
-    { t: 'Можно без матов?', d: 'Поставь 100 и более матов', ico: '👑', goal: 100, cur: s => s.checkmatesBy },
-    { t: 'Мгновенный мат', d: 'Поставь мат за 10 ходов', ico: '⚡', goal: 1, cur: s => s.fastMate ? 1 : 0 },
-    { t: 'Убит ферзь', d: 'Съешь у соперника 5 ферзей', ico: '👸', goal: 5, cur: s => s.queensCaptured },
-    { t: 'Мафия', d: 'Съешь у соперника 50 фигур', ico: '🕵️', goal: 50, cur: s => s.captures },
-    { t: 'Казнить!', d: 'Съешь 20 пешек', ico: '🪓', goal: 20, cur: s => s.pawnsCaptured },
-    { t: 'Туда-сюда', d: 'Повтори ход 3 раза', ico: '🔄', goal: 3, cur: s => s.repeats },
-    { t: 'Заложник', d: 'Свяжи 3 фигуры соперника', ico: '🔗', goal: 3, cur: s => s.pins },
-    { t: 'Алфавитный порядок', d: 'Сходи на клетки a-b-c-d-e-f подряд', ico: '🔤', goal: 1, cur: s => s.alphabet ? 1 : 0 },
-    { t: 'Свобода!', d: 'Сыграй 30 партий без ограничений', ico: '🕊️', goal: 30, cur: s => s.freeGames },
-    { t: 'В укрытие!', d: 'Сделай рокировку 3 раза', ico: '🏰', goal: 3, cur: s => s.castles },
+    { t: 'Шахматист', d: 'Поставь 15 шахов в одной партии', ico: ACH.swords, goal: 15, cur: s => s.maxChecksInGame },
+    { t: 'Вилка', d: 'Сделай вилку 3 раза', ico: ACH.fork, goal: 3, cur: s => s.forks },
+    { t: 'Выиграл ИИ', d: 'Выиграй со сложным ботом', ico: ACH.bot, goal: 1, cur: s => s.wonHardBot ? 1 : 0 },
+    { t: 'Любитель шахмат', d: 'Сыграй 100 и более партий', ico: ACH.pawn, goal: 100, cur: s => s.games },
+    { t: 'Можно без матов?', d: 'Поставь 100 и более матов', ico: ACH.crown, goal: 100, cur: s => s.checkmatesBy },
+    { t: 'Мгновенный мат', d: 'Поставь мат за 10 ходов', ico: ACH.bolt, goal: 1, cur: s => s.fastMate ? 1 : 0 },
+    { t: 'Убит ферзь', d: 'Съешь у соперника 5 ферзей', ico: ACH.queen, goal: 5, cur: s => s.queensCaptured },
+    { t: 'Мафия', d: 'Съешь у соперника 50 фигур', ico: ACH.detective, goal: 50, cur: s => s.captures },
+    { t: 'Казнить!', d: 'Съешь 20 пешек', ico: ACH.axe, goal: 20, cur: s => s.pawnsCaptured },
+    { t: 'Туда-сюда', d: 'Повтори ход 3 раза', ico: ACH.repeat, goal: 3, cur: s => s.repeats },
+    { t: 'Заложник', d: 'Свяжи 3 фигуры соперника', ico: ACH.chain, goal: 3, cur: s => s.pins },
+    { t: 'Алфавитный порядок', d: 'Сходи на клетки a-b-c-d-e-f подряд', ico: ACH.abc, goal: 1, cur: s => s.alphabet ? 1 : 0 },
+    { t: 'Свобода!', d: 'Сыграй 30 партий без ограничений', ico: ACH.dove, goal: 30, cur: s => s.freeGames },
+    { t: 'В укрытие!', d: 'Сделай рокировку 3 раза', ico: ACH.rook, goal: 3, cur: s => s.castles },
     // секретные
-    { t: 'Превращение', d: 'Преврати пешку 5 раз', ico: '✨', goal: 5, cur: s => s.promotions, secret: true },
-    { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', ico: '🐴', goal: 1, cur: s => Math.min(s.knightThenPawn, 1), secret: true },
-    { t: 'Большой брат', d: 'Уйди от преследования фигуры', ico: '👁️', goal: 1, cur: s => Math.min(s.escapes, 1), secret: true },
-    { t: 'За чёрных', d: 'Сыграй за чёрных 10 партий', ico: '⚫', goal: 10, cur: s => s.blackGames, secret: true },
-    { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', ico: '🥱', goal: 3, cur: s => s.queensLost, secret: true },
-    { t: 'Не спи!', d: 'Сыграй партию целый час', ico: '⏰', goal: 1, cur: s => s.hourGame ? 1 : 0, secret: true },
-    { t: 'Братство', d: 'Сдайся 3 раза', ico: '🏳️', goal: 3, cur: s => s.resigns, secret: true },
-    { t: 'Равенство', d: 'Сыграй вничью 5 раз', ico: '🤝', goal: 5, cur: s => s.draws, secret: true },
-    { t: 'Убийство племя', d: 'Съешь все фигуры соперника за одну партию', ico: '💀', goal: 1, cur: s => s.wipeout ? 1 : 0, secret: true },
-    { t: 'Бедные животные!', d: 'Съешь 30 коней или слонов', ico: '🐘', goal: 30, cur: s => s.minorsCaptured, secret: true },
-    { t: 'Ой, не туда', d: 'Отмени ход 5 раз', ico: '🙈', goal: 5, cur: s => s.undos, secret: true },
-    { t: 'Нет прав у чёрных!', d: 'Свяжи 5 чёрных фигур', ico: '⛓️', goal: 5, cur: s => s.blackPins, secret: true }
+    { t: 'Превращение', d: 'Преврати пешку 5 раз', ico: ACH.sparkle, goal: 5, cur: s => s.promotions, secret: true },
+    { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', ico: ACH.horse, goal: 1, cur: s => Math.min(s.knightThenPawn, 1), secret: true },
+    { t: 'Большой брат', d: 'Уйди от преследования фигуры', ico: ACH.eye, goal: 1, cur: s => Math.min(s.escapes, 1), secret: true },
+    { t: 'За чёрных', d: 'Сыграй за чёрных 10 партий', ico: ACH.black, goal: 10, cur: s => s.blackGames, secret: true },
+    { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', ico: ACH.yawn, goal: 3, cur: s => s.queensLost, secret: true },
+    { t: 'Не спи!', d: 'Сыграй партию целый час', ico: ACH.alarm, goal: 1, cur: s => s.hourGame ? 1 : 0, secret: true },
+    { t: 'Братство', d: 'Сдайся 3 раза', ico: ACH.flag, goal: 3, cur: s => s.resigns, secret: true },
+    { t: 'Равенство', d: 'Сыграй вничью 5 раз', ico: ACH.equal, goal: 5, cur: s => s.draws, secret: true },
+    { t: 'Убийство племя', d: 'Съешь все фигуры соперника за одну партию', ico: ACH.skull, goal: 1, cur: s => s.wipeout ? 1 : 0, secret: true },
+    { t: 'Бедные животные!', d: 'Съешь 30 коней или слонов', ico: ACH.paw, goal: 30, cur: s => s.minorsCaptured, secret: true },
+    { t: 'Ой, не туда', d: 'Отмени ход 5 раз', ico: ACH.undo, goal: 5, cur: s => s.undos, secret: true },
+    { t: 'Нет прав у чёрных!', d: 'Свяжи 5 чёрных фигур', ico: ACH.chains, goal: 5, cur: s => s.blackPins, secret: true }
   ];
 
   function achCard(a, s) {
     const cur = a.cur(s), ok = cur >= a.goal;
     const locked = a.secret && !ok;
-    const ico = locked ? '❓' : a.ico;
+    const ico = locked ? ACH.quest : a.ico;
     const desc = locked ? '?' : a.d;
     const prog = locked ? '?' : (Math.min(cur, a.goal) + '/' + a.goal);
-    return `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-ico">${ico}</span><div class="ach-txt"><span class="ach-t">${ok ? '✅ ' : '🔒 '}${a.t}</span><span class="ach-d">${desc}</span></div><span class="ach-prog">${prog}</span></div>`;
+    return `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-ico">${ico}</span><div class="ach-txt"><span class="ach-t"><span class="ach-mark">${ok ? ACH.check : ACH.lock}</span>${a.t}</span><span class="ach-d">${desc}</span></div><span class="ach-prog">${prog}</span></div>`;
   }
 
   function openAch() {
