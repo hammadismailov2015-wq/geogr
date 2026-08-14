@@ -531,7 +531,7 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-piecelayer .pl-cell { position: relative; transform-style: preserve-3d; }
 .ch-piecelayer .pl-piece {
   position: absolute; left: 5%; bottom: -11%; width: 90%; height: 122%;
-  transform-origin: center center; transform: rotateX(calc(-1 * var(--t3d)));
+  transform-origin: center center; transform: rotateX(calc(-1 * var(--t3d))) translateY(-24%);
   filter: drop-shadow(0 6px 4px rgba(0, 0, 0, .4));
 }
 .ch-piecelayer .pl-img { position: absolute; inset: 0; background-position: center; background-repeat: no-repeat; background-size: contain; }
