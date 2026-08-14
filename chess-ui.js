@@ -164,7 +164,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v90';
+  const APP_VERSION = 'v91';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -222,18 +222,18 @@
             <div class="ch-acc" id="accSide">
               <button class="ch-acc-head" data-acc><span class="ch-acc-ico">${ICON.side}</span><span class="ch-acc-title">Играть за</span><span class="ch-acc-val" id="valSide">—</span><span class="ch-acc-arrow">▾</span></button>
               <div class="ch-acc-body"><div class="ch-choices" id="sideChoices">
-                <button class="ch-choice" data-side="w">♔ Белые</button>
-                <button class="ch-choice" data-side="b">♚ Чёрные</button>
-                <button class="ch-choice" data-side="r">🎲 Рандом</button>
+                <button class="ch-choice" data-side="w">Белые</button>
+                <button class="ch-choice" data-side="b">Чёрные</button>
+                <button class="ch-choice" data-side="r">Рандом</button>
               </div></div>
             </div>
 
             <div class="ch-acc" id="accLevel">
               <button class="ch-acc-head" data-acc><span class="ch-acc-ico">${ICON.level}</span><span class="ch-acc-title">Сложность бота</span><span class="ch-acc-val" id="valLevel">—</span><span class="ch-acc-arrow">▾</span></button>
               <div class="ch-acc-body"><div class="ch-choices" id="levelChoices">
-                <button class="ch-choice" data-level="1">🙂 Лёгкий</button>
-                <button class="ch-choice" data-level="2">😐 Средний</button>
-                <button class="ch-choice" data-level="3">😈 Сложный</button>
+                <button class="ch-choice" data-level="1">Лёгкий</button>
+                <button class="ch-choice" data-level="2">Средний</button>
+                <button class="ch-choice" data-level="3">Сложный</button>
               </div></div>
             </div>
 
