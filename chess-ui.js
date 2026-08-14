@@ -66,7 +66,20 @@
   };
   ICON.quiz = _svg(`<rect x="5" y="4.5" width="14" height="16" rx="2.5" ${_F}/><path d="M9 4.5V3.7a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v.8"/><path d="M8.5 12l2 2 4-4.4"/>`);
   ICON.play = _svg(`<path d="M8 8h8a5 5 0 0 1 5 5 3 3 0 0 1-5.4 1.8l-.6-.8H8.9l-.6.8A3 3 0 0 1 3 13a5 5 0 0 1 5-5z" ${_F}/><path d="M6.8 11.6v2M5.8 12.6h2"/><circle cx="16" cy="11.8" r=".95" fill="currentColor" stroke="none"/><circle cx="17.6" cy="13.4" r=".95" fill="currentColor" stroke="none"/>`);
+  ICON.menu = _svg(`<path d="M4.5 7h15M4.5 12h15M4.5 17h15"/>`);
+  ICON.hourglass = _svg(`<path d="M6.5 4h11M6.5 20h11" /><path d="M8 4c0 4 8 5 8 8s-8 4-8 8" ${_F}/><path d="M16 4c0 4-8 5-8 8s8 4 8 8" ${_F}/>`);
+  ICON.progress = _svg(`<path d="M4 20h16"/><path d="M5 15l4-4 3 2 6-6"/><path d="M15 7h3v3"/>`);
+  ICON.cross = _svg(`<circle cx="12" cy="12" r="8.5" ${_F}/><path d="M9 9l6 6M15 9l-6 6"/>`);
+  ICON.bulb = _svg(`<path d="M8.5 15.3a5.5 5.5 0 1 1 7 0c-.85.7-1.4 1.4-1.5 2.4h-4c-.1-1-.65-1.7-1.5-2.4z" ${_F}/><path d="M9.7 20.5h4.6M9.9 18.2h4.2"/>`);
+  ICON.trash = _svg(`<path d="M4.5 7h15"/><path d="M9 7V5.4A1.4 1.4 0 0 1 10.4 4h3.2A1.4 1.4 0 0 1 15 5.4V7"/><path d="M6.5 7l.8 11.2a2 2 0 0 0 2 1.8h5.4a2 2 0 0 0 2-1.8L17.5 7z" ${_F}/><path d="M10 10.5v6M14 10.5v6"/>`);
+  ICON.flip = _svg(`<path d="M19.5 11.5A7.5 7.5 0 1 0 17.6 17"/><path d="M19.5 6v5.5H14"/>`);
+  ICON.copy = _svg(`<rect x="8" y="8" width="11.5" height="11.5" rx="2.4" ${_F}/><path d="M15.5 8V6.4A2 2 0 0 0 13.5 4.4H6.4A2 2 0 0 0 4.4 6.4v7.1a2 2 0 0 0 2 2H8"/>`);
+  ICON.chat = _svg(`<path d="M4.5 6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-4 3v-3H6.5a2 2 0 0 1-2-2z" ${_F}/><path d="M8.5 8.5h7M8.5 11.5h4.5"/>`);
+  ICON.envelope = _svg(`<rect x="3.5" y="6" width="17" height="12" rx="2.5" ${_F}/><path d="M4.2 7l7.8 5.8L19.8 7"/>`);
+  ICON.soundOn = _svg(`<path d="M4 9.5h3l4-3.4v11.8l-4-3.4H4z" ${_F}/><path d="M15 9.2a4 4 0 0 1 0 5.6M17.6 6.6a7.5 7.5 0 0 1 0 10.8"/>`);
+  ICON.soundOff = _svg(`<path d="M4 9.5h3l4-3.4v11.8l-4-3.4H4z" ${_F}/><path d="M15.5 10l4.5 4M20 10l-4.5 4"/>`);
   const tutTitleHTML = (svg, txt) => `<span class="tt-ico">${svg}</span>${txt}`;
+  const inl = (svg) => `<span class="inl-ico">${svg}</span>`;
   // Уроки хранят символ (эмодзи/шахматный знак) — переводим в иконку того же стиля
   const LESSON_ICON = { '♟': ICON.side, '♞': ICON.knight, '♝': ICON.bishop, '♜': ICON.rook, '♛': ICON.queen, '♚': ICON.king, '🤝': ICON.handshake, '🛡️': ICON.shield, '🚀': ICON.rocket, '😐': ICON.face, '📌': ICON.pin, '👑': ICON.crown, '🏰': ICON.rook, '🎯': ICON.target, '🎣': ICON.hook, '🍴': ICON.fork, '✨': ICON.sparkle, '⛓️': ICON.chain, '⚠️': ICON.warning };
   const lessonIco = (g) => LESSON_ICON[g] || g || '';
@@ -151,7 +164,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v89';
+  const APP_VERSION = 'v90';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -175,7 +188,7 @@
     root.innerHTML = `
       ${PIECE_DEFS}
       <div class="ch-themebar" id="themeBar">
-        <button class="ch-sound" id="soundBtn" title="Звук вкл/выкл">🔊</button>
+        <button class="ch-sound" id="soundBtn" title="Звук вкл/выкл">${ICON.soundOn}</button>
         <button class="ch-sw" data-theme="green" title="Зелёная доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="classic" title="Чёрно-белая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="brown" title="Коричневая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
@@ -286,13 +299,13 @@
       <section id="gameScreen" class="ch-screen" hidden>
         <div class="ch-fliparea" id="flipArea">
         <div class="ch-status" id="chStatus">—</div>
-        <div class="ch-gametime" id="gameTime">⏱ 0:00</div>
+        <div class="ch-gametime" id="gameTime">${inl(ICON.clock)}0:00</div>
 
         <div class="ch-online" id="onlineBar" hidden>
           <div class="ch-online-status" id="onlineStatus">Подключение…</div>
           <div class="ch-online-share" id="onlineShare">
             <input id="onlineLink" class="ch-share-input" readonly />
-            <button class="ch-btn ch-btn-primary" id="btnOnlineCopy">📋 Скопировать ссылку для друга</button>
+            <button class="ch-btn ch-btn-primary" id="btnOnlineCopy">${inl(ICON.copy)}Скопировать ссылку для друга</button>
           </div>
           <button class="ch-btn" id="btnFallback" hidden>Не подключается? Играть по ссылке-ходу</button>
         </div>
@@ -312,10 +325,10 @@
         </div>
 
         <div class="ch-controls">
-          <button class="ch-btn" id="btnMenu">☰ Меню</button>
-          <button class="ch-btn" id="btnFlip">🔄 Повернуть</button>
-          <button class="ch-btn" id="btnUndo">↶ Отменить</button>
-          <button class="ch-btn ch-btn-warn" id="btnResign">🏳️ Сдаться</button>
+          <button class="ch-btn" id="btnMenu">${inl(ICON.menu)}Меню</button>
+          <button class="ch-btn" id="btnFlip">${inl(ICON.flip)}Повернуть</button>
+          <button class="ch-btn" id="btnUndo">${inl(ICON.undo)}Отменить</button>
+          <button class="ch-btn ch-btn-warn" id="btnResign">${inl(ICON.flag)}Сдаться</button>
         </div>
         </div><!-- /flipArea -->
         <div class="ch-history-box">
@@ -324,7 +337,7 @@
         </div>
 
         <div class="ch-chat" id="chatBox" hidden>
-          <div class="ch-chat-title">💬 Чат с другом</div>
+          <div class="ch-chat-title">${inl(ICON.chat)}Чат с другом</div>
           <div class="ch-chat-list" id="chatList"></div>
           <div class="ch-chat-row">
             <input id="chatInput" class="ch-chat-input" type="text" maxlength="300" placeholder="Написать другу…" autocomplete="off" />
@@ -339,11 +352,11 @@
 
       <div id="shareModal" class="ch-modal" hidden>
         <div class="ch-modal-box">
-          <div class="ch-modal-title">Ход сделан 📨</div>
+          <div class="ch-modal-title">Ход сделан${inl(ICON.envelope)}</div>
           <p class="ch-modal-text">Отправьте эту ссылку другу — он откроет её и сделает свой ход, затем пришлёт ссылку обратно.</p>
           <input id="shareLink" class="ch-share-input" readonly />
           <div class="ch-modal-actions">
-            <button class="ch-btn ch-btn-primary" id="btnCopy">📋 Скопировать</button>
+            <button class="ch-btn ch-btn-primary" id="btnCopy">${inl(ICON.copy)}Скопировать</button>
             <button class="ch-btn" id="btnShareEdit">↶ Переходить</button>
           </div>
           <div class="ch-share-hint" id="copyHint"></div>
@@ -357,40 +370,40 @@
           <p class="ch-modal-text" id="overText"></p>
           <div class="ch-modal-actions">
             <button class="ch-btn ch-btn-primary" id="btnNewGame">Новая партия</button>
-            <button class="ch-btn" id="btnViewOver">☰ В меню</button>
+            <button class="ch-btn" id="btnViewOver">${inl(ICON.menu)}В меню</button>
           </div>
         </div>
       </div>
 
       <div id="rematchModal" class="ch-modal" hidden>
         <div class="ch-modal-box">
-          <div class="ch-modal-title">🔁 Соперник зовёт на реванш</div>
+          <div class="ch-modal-title">${inl(ICON.repeat)}Соперник зовёт на реванш</div>
           <p class="ch-modal-text">Соперник хочет сыграть ещё одну партию с теми же настройками. Согласиться?</p>
           <div class="ch-modal-actions">
-            <button class="ch-btn ch-btn-primary" id="btnRematchYes">✅ Играть</button>
-            <button class="ch-btn ch-btn-warn" id="btnRematchNo">❌ Нет</button>
+            <button class="ch-btn ch-btn-primary" id="btnRematchYes">${inl(ICON.check)}Играть</button>
+            <button class="ch-btn ch-btn-warn" id="btnRematchNo">${inl(ICON.cross)}Нет</button>
           </div>
         </div>
       </div>
 
       <div id="undoModal" class="ch-modal" hidden>
         <div class="ch-modal-box">
-          <div class="ch-modal-title">↶ Соперник просит отмену</div>
+          <div class="ch-modal-title">${inl(ICON.undo)}Соперник просит отмену</div>
           <p class="ch-modal-text">Соперник хочет отменить последний ход. Разрешить?</p>
           <div class="ch-modal-actions">
-            <button class="ch-btn ch-btn-primary" id="btnUndoAllow">✅ Разрешить</button>
-            <button class="ch-btn ch-btn-warn" id="btnUndoDeny">❌ Не разрешать</button>
+            <button class="ch-btn ch-btn-primary" id="btnUndoAllow">${inl(ICON.check)}Разрешить</button>
+            <button class="ch-btn ch-btn-warn" id="btnUndoDeny">${inl(ICON.cross)}Не разрешать</button>
           </div>
         </div>
       </div>
 
       <div id="histModal" class="ch-modal" hidden>
         <div class="ch-modal-box ch-hist-box">
-          <div class="ch-modal-title">📊 Мои партии</div>
+          <div class="ch-modal-title">${inl(ICON.chart)}Мои партии</div>
           <div class="ch-hist-summary" id="histSummary"></div>
           <div class="ch-hist-list" id="histList"></div>
           <div class="ch-modal-actions">
-            <button class="ch-btn" id="histClear">🗑 Очистить</button>
+            <button class="ch-btn" id="histClear">${inl(ICON.trash)}Очистить</button>
             <button class="ch-btn ch-btn-primary" id="histClose">Закрыть</button>
           </div>
         </div>
@@ -501,11 +514,11 @@
   function bindSetup() {
     loadSetup();
     app.soundOn = localStorage.getItem('chessSound') !== 'off';
-    $('soundBtn').textContent = app.soundOn ? '🔊' : '🔇';
+    $('soundBtn').innerHTML = app.soundOn ? ICON.soundOn : ICON.soundOff;
     $('soundBtn').addEventListener('click', () => {
       app.soundOn = !app.soundOn;
       localStorage.setItem('chessSound', app.soundOn ? 'on' : 'off');
-      $('soundBtn').textContent = app.soundOn ? '🔊' : '🔇';
+      $('soundBtn').innerHTML = app.soundOn ? ICON.soundOn : ICON.soundOff;
       if (app.soundOn) playMoveSound(false); // короткий пример
     });
     app.view = localStorage.getItem('chessView') || '2d';
@@ -1064,7 +1077,7 @@
     const gt = $('gameTime'); if (!gt) return;
     if ($('gameScreen').hidden || !app.gs || !app.gs.start) return;
     const ms = app.over ? (app.gameDurMs || 0) : (Date.now() - app.gs.start);
-    gt.textContent = (app.over ? '⏱ Партия длилась: ' : '⏱ Идёт: ') + fmtDur(ms);
+    gt.innerHTML = inl(ICON.clock) + (app.over ? 'Партия длилась: ' : 'Идёт: ') + fmtDur(ms);
   }
   function updateClocks() { const cl = app.clock, bottomColor = viewBottomColor(), topColor = bottomColor === 'w' ? 'b' : 'w'; setClock('bot', bottomColor, cl); setClock('top', topColor, cl); }
   function setClock(which, color, cl) {
@@ -1073,9 +1086,9 @@
     el.hidden = false; el.classList.remove('active', 'low');
     if (!app.over && app.state && app.state.turn === color) el.classList.add('active');
     const parts = []; let low = false;
-    if (cl.timeOn) { parts.push('⏱️ ' + fmtTime(cl.timeMs[color])); if (cl.timeMs[color] <= 20000) low = true; }
-    if (cl.movesOn) { parts.push('🔢 ' + cl.movesLeft[color]); if (cl.movesLeft[color] <= 3) low = true; }
-    el.textContent = parts.join('  ·  '); if (low) el.classList.add('low');
+    if (cl.timeOn) { parts.push(inl(ICON.clock) + fmtTime(cl.timeMs[color])); if (cl.timeMs[color] <= 20000) low = true; }
+    if (cl.movesOn) { parts.push(inl(ICON.moves) + cl.movesLeft[color]); if (cl.movesLeft[color] <= 3) low = true; }
+    el.innerHTML = parts.join('  ·  '); if (low) el.classList.add('low');
   }
 
   /* ========================================================
@@ -1273,14 +1286,14 @@
 
   /* ---- Облачко-подколка при взятии фигуры ---- */
   // Фраза зависит от того, какую фигуру съели
-  const TAUNT_BY = { p: 'Хочу ещё!', n: 'Я голоден 🤤', b: 'Ха-ха!', r: 'Как вкусно 😋', q: 'Лашара!' };
+  const TAUNT_BY = { p: 'Хочу ещё!', n: 'Я голоден!', b: 'Ха-ха!', r: 'Как вкусно!', q: 'Лашара!' };
   let tauntEl = null, tauntTimer = 0;
   function showTaunt(sq, type) {
     const cell = elBoard.querySelector(`.ch-sq[data-sq="${sq}"]`);
     if (!cell) return;
     if (!tauntEl) { tauntEl = document.createElement('div'); tauntEl.className = 'ch-taunt'; document.body.appendChild(tauntEl); }
     const r = cell.getBoundingClientRect();
-    tauntEl.textContent = TAUNT_BY[type] || 'Ам! 🍿';
+    tauntEl.textContent = TAUNT_BY[type] || 'Ам!';
     const below = r.top < 76;
     tauntEl.classList.toggle('below', below);
     tauntEl.style.left = (r.left + r.width / 2) + 'px';
@@ -1362,21 +1375,21 @@
   function finishGame(res) {
     if (app.over) return;
     app.over = true; app.selected = -1; app.legalFrom = []; app.pendingShare = false;
-    let ico = '🤝', title = 'Ничья', text = '', winnerColor = null;
-    if (res.type === 'checkmate') { ico = '♚'; title = 'Мат!'; text = `${colorName(res.winner)} выиграли! 🎉`; winnerColor = res.winner; }
-    else if (res.type === 'stalemate') { ico = '🤝'; title = 'Пат — ничья'; text = 'Ходить нечем, но шаха нет. Ничья.'; }
-    else if (res.type === 'time') { const w = res.loser === 'w' ? 'b' : 'w'; ico = '⏱️'; title = 'Время вышло'; text = `У ${colorName(res.loser).toLowerCase()} закончилось время. ${colorName(w)} выиграли! 🎉`; winnerColor = w; }
-    else if (res.type === 'moves') { const mw = materialWinner(); ico = '🔢'; if (mw.winner) { title = 'Лимит ходов'; text = `Ходы закончились. ${colorName(mw.winner)} выиграли по материалу (+${mw.adv}). 🎉`; winnerColor = mw.winner; } else { title = 'Лимит ходов — ничья'; text = 'Ходы закончились, материал равный. Ничья.'; } }
-    else if (res.type === 'resign') { const w = res.loser === 'w' ? 'b' : 'w'; ico = '🏳️'; title = 'Сдача'; text = `${colorName(res.loser)} сдались. ${colorName(w)} выиграли! 🎉`; winnerColor = w; }
-    else { ico = '🤝'; title = 'Ничья'; text = 'Недостаточно материала или правило 50 ходов.'; }
+    let ico = ICON.handshake, title = 'Ничья', text = '', winnerColor = null;
+    if (res.type === 'checkmate') { ico = ICON.king; title = 'Мат!'; text = `${colorName(res.winner)} выиграли!`; winnerColor = res.winner; }
+    else if (res.type === 'stalemate') { ico = ICON.handshake; title = 'Пат — ничья'; text = 'Ходить нечем, но шаха нет. Ничья.'; }
+    else if (res.type === 'time') { const w = res.loser === 'w' ? 'b' : 'w'; ico = ICON.clock; title = 'Время вышло'; text = `У ${colorName(res.loser).toLowerCase()} закончилось время. ${colorName(w)} выиграли!`; winnerColor = w; }
+    else if (res.type === 'moves') { const mw = materialWinner(); ico = ICON.moves; if (mw.winner) { title = 'Лимит ходов'; text = `Ходы закончились. ${colorName(mw.winner)} выиграли по материалу (+${mw.adv}).`; winnerColor = mw.winner; } else { title = 'Лимит ходов — ничья'; text = 'Ходы закончились, материал равный. Ничья.'; } }
+    else if (res.type === 'resign') { const w = res.loser === 'w' ? 'b' : 'w'; ico = ICON.flag; title = 'Сдача'; text = `${colorName(res.loser)} сдались. ${colorName(w)} выиграли!`; winnerColor = w; }
+    else { ico = ICON.handshake; title = 'Ничья'; text = 'Недостаточно материала или правило 50 ходов.'; }
     app.gameDurMs = (app.gs && app.gs.start) ? (Date.now() - app.gs.start) : 0;
     recordResult(winnerColor);
     countGame();
     trackGameEnd(res, winnerColor);
-    app.overText = ico + ' ' + title + ' — ' + text;
+    app.overText = title + ' — ' + text;
     updateGameTime();
     render();
-    $('overIco').textContent = ico; $('overTitle').textContent = title; $('overText').textContent = text;
+    $('overIco').innerHTML = ico; $('overTitle').textContent = title; $('overText').textContent = text;
     $('shareModal').hidden = true; $('overModal').hidden = false;
   }
 
@@ -1424,7 +1437,7 @@
     $('btnRematchNo').addEventListener('click', () => answerRematch(false));
     $('btnCopy').addEventListener('click', () => { const inp = $('shareLink'); inp.select(); copyText(inp.value).then(ok => { $('copyHint').textContent = ok ? '✓ Ссылка скопирована' : 'Скопируйте вручную (выделено выше)'; }); });
     $('btnShareEdit').addEventListener('click', () => { $('shareModal').hidden = true; app.pendingShare = false; undoLast(true); });
-    $('btnOnlineCopy').addEventListener('click', () => { const inp = $('onlineLink'); inp.select(); copyText(inp.value).then(ok => { $('btnOnlineCopy').textContent = ok ? '✓ Скопировано — отправьте другу' : '📋 Выделено — скопируйте вручную'; }); });
+    $('btnOnlineCopy').addEventListener('click', () => { const inp = $('onlineLink'); inp.select(); copyText(inp.value).then(ok => { $('btnOnlineCopy').innerHTML = ok ? '✓ Скопировано — отправьте другу' : inl(ICON.copy) + 'Выделено — скопируйте вручную'; }); });
     $('btnFallback').addEventListener('click', () => switchToCorrespondence());
     $('chatSend').addEventListener('click', sendChat);
     $('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } });
@@ -1452,7 +1465,7 @@
     o.undoPending = true;
     netSend({ t: 'undoReq', s: o.myId });
     const b = $('btnUndo'); if (b) { b.disabled = true; b.textContent = '⏳ Ждём…'; }
-    o.undoTimer = setTimeout(() => { if (app.online && app.online.undoPending) { resetUndoBtn(); showInfoToast('⌛', 'Соперник не ответил', false); } }, 20000);
+    o.undoTimer = setTimeout(() => { if (app.online && app.online.undoPending) { resetUndoBtn(); showInfoToast(ICON.hourglass, 'Соперник не ответил', false); } }, 20000);
   }
   function resetUndoBtn() {
     if (app.online) { app.online.undoPending = false; if (app.online.undoTimer) { clearTimeout(app.online.undoTimer); app.online.undoTimer = null; } }
@@ -1461,8 +1474,8 @@
   // Соперник прислал ответ на мой запрос
   function onUndoAnswer(allowed) {
     resetUndoBtn();
-    if (allowed) { performUndoOnline(); showInfoToast('✅', 'Соперник разрешил отмену', true); }
-    else { showInfoToast('❌', 'Соперник не разрешил отмену', false); }
+    if (allowed) { performUndoOnline(); showInfoToast(ICON.check, 'Соперник разрешил отмену', true); }
+    else { showInfoToast(ICON.cross, 'Соперник не разрешил отмену', false); }
   }
   // Мне пришёл запрос на отмену — показываю окошко «Разрешить / Не разрешать»
   function onUndoRequested() {
@@ -1490,11 +1503,11 @@
   function requestRematch() {
     const o = app.online;
     if (!o.on || o.rematchPending) return;
-    if (!o.peerReady) { showInfoToast('⌛', 'Соперника нет в сети', false); return; }
+    if (!o.peerReady) { showInfoToast(ICON.hourglass, 'Соперника нет в сети', false); return; }
     o.rematchPending = true;
     netSend({ t: 'rematchReq', s: o.myId });
     const b = $('btnNewGame'); if (b) { b.disabled = true; b.textContent = '⏳ Ждём соперника…'; }
-    o.rematchTimer = setTimeout(() => { if (app.online && app.online.rematchPending) { resetRematchBtn(); showInfoToast('⌛', 'Соперник не ответил', false); } }, 25000);
+    o.rematchTimer = setTimeout(() => { if (app.online && app.online.rematchPending) { resetRematchBtn(); showInfoToast(ICON.hourglass, 'Соперник не ответил', false); } }, 25000);
   }
   function resetRematchBtn() {
     if (app.online) { app.online.rematchPending = false; if (app.online.rematchTimer) { clearTimeout(app.online.rematchTimer); app.online.rematchTimer = null; } }
@@ -1513,7 +1526,7 @@
   function onRematchAnswer(allowed) {
     resetRematchBtn();
     if (allowed) { $('overModal').hidden = true; startRematch(); }
-    else { showInfoToast('❌', 'Соперник отказался от новой партии', false); }
+    else { showInfoToast(ICON.cross, 'Соперник отказался от новой партии', false); }
   }
   // Новая партия с тем же соперником и настройками — соединение не рвём
   function startRematch() {
@@ -1646,11 +1659,11 @@
     if (run.reviewMode) { $('tutActions').innerHTML = ''; return; }
     const hints = step._hints || (step._hints = step.hints || [step.hint || '']);
     const h = hints[run.plyIdx] || hints[0] || '';
-    $('tutActions').innerHTML = h ? `<button class="ch-btn" id="tutHint">💡 Подсказка</button>` : '';
+    $('tutActions').innerHTML = h ? `<button class="ch-btn" id="tutHint">${inl(ICON.bulb)}Подсказка</button>` : '';
     const btn = $('tutHint');
     if (btn) btn.addEventListener('click', () => {
       const old = $('tutActions').querySelector('.tut-hintbox'); if (old) old.remove();
-      const box = document.createElement('div'); box.className = 'tut-hintbox'; box.innerHTML = '💡 ' + h;
+      const box = document.createElement('div'); box.className = 'tut-hintbox'; box.innerHTML = inl(ICON.bulb) + h;
       $('tutActions').appendChild(box);
       tut.hintArrow = true; renderTutBoard();   // показать стрелку «куда ходить»
     });
@@ -1749,7 +1762,7 @@
     if (last) { tutGood(); return; }
     // промежуточный верный ход: ответ соперника, затем продолжаем
     tut.locked = true; flashTut('good'); playGoodSound();
-    $('tutPrompt').innerHTML = '✅ <b>Верно!</b> Смотри ответ соперника…';
+    $('tutPrompt').innerHTML = inl(ICON.check) + '<b>Верно!</b> Смотри ответ соперника…';
     const reply = ply.reply;
     setTimeout(() => {
       if (reply) {
@@ -1770,15 +1783,15 @@
   function tutGood() {
     tut.locked = true; flashTut('good'); playGoodSound();
     const run = tut.run; const last = run.idx >= run.steps.length - 1;
-    $('tutPrompt').innerHTML = '✅ <b>Верно!</b> Отличный ход!';
-    $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutNext">${last ? '🎉 Готово' : 'Продолжить →'}</button>`;
+    $('tutPrompt').innerHTML = inl(ICON.check) + '<b>Верно!</b> Отличный ход!';
+    $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutNext">${last ? inl(ICON.check) + 'Готово' : 'Продолжить →'}</button>`;
     $('tutNext').addEventListener('click', () => { if (last) finishRun(); else { run.idx++; loadRunStep(); } });
   }
 
   function tutBad() {
     tut.locked = true; flashTut('bad'); playBadSound();
-    $('tutPrompt').innerHTML = '❌ <b>Не тот ход.</b> Попробуй ещё раз!';
-    $('tutActions').innerHTML = `<button class="ch-btn" id="tutRetry">↻ Ещё раз</button><button class="ch-btn ch-btn-primary" id="tutShow">💡 Показать ответ и дальше</button>`;
+    $('tutPrompt').innerHTML = inl(ICON.cross) + '<b>Не тот ход.</b> Попробуй ещё раз!';
+    $('tutActions').innerHTML = `<button class="ch-btn" id="tutRetry">↻ Ещё раз</button><button class="ch-btn ch-btn-primary" id="tutShow">${inl(ICON.bulb)}Показать ответ и дальше</button>`;
     $('tutRetry').addEventListener('click', () => loadRunStep());
     $('tutShow').addEventListener('click', showTutAnswer);
   }
@@ -1795,8 +1808,8 @@
     }
     tut.sel = -1; tut.legal = []; tut.locked = true; renderTutBoard();
     const last = run.idx >= run.steps.length - 1;
-    $('tutPrompt').innerHTML = '💡 Вот правильное решение. Запомни его!';
-    $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutNext2">${last ? '🎉 Готово' : 'Дальше →'}</button>`;
+    $('tutPrompt').innerHTML = inl(ICON.bulb) + 'Вот правильное решение. Запомни его!';
+    $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutNext2">${last ? inl(ICON.check) + 'Готово' : 'Дальше →'}</button>`;
     $('tutNext2').addEventListener('click', () => { if (last) finishRun(); else { run.idx++; loadRunStep(); } });
   }
 
@@ -1804,7 +1817,7 @@
     flashTut('good'); playGoodSound(); tut.locked = true;
     if (tut.run.reviewMode) { for (const sec of TUT_SECTIONS) for (const L of sec.lessons) markTutDone(L.id); }
     else markTutDone(tut.run.lessonId);
-    $('tutExplain').innerHTML = tut.run.reviewMode ? '🏆 Проверка знаний пройдена! Ты молодец!' : '🎉 Урок пройден! Отличная работа!'; $('tutExplain').hidden = false;
+    $('tutExplain').innerHTML = tut.run.reviewMode ? inl(ICON.trophy) + 'Проверка знаний пройдена! Ты молодец!' : inl(ICON.sparkle) + 'Урок пройден! Отличная работа!'; $('tutExplain').hidden = false;
     $('tutPrompt').innerHTML = '';
     $('tutActions').innerHTML = `<button class="ch-btn ch-btn-primary" id="tutDone">← В меню обучения</button>`;
     $('tutDone').addEventListener('click', showTutMenu);
@@ -1917,9 +1930,9 @@
   function tgWin() {
     tg.locked = true; flashTut('good'); playGoodSound();
     renderTgBoard(true);
-    $('tgQuestion').innerHTML = '🎉 Пешка дошла до конца и стала ферзём! ♛';
+    $('tgQuestion').innerHTML = inl(ICON.queen) + 'Пешка дошла до конца и стала ферзём!';
     $('tgOptions').innerHTML = '';
-    $('tgProgress').innerHTML = '🏆 Победа! Ты ответил на все вопросы!';
+    $('tgProgress').innerHTML = inl(ICON.trophy) + 'Победа! Ты ответил на все вопросы!';
     $('tgFoot').innerHTML = `<button class="ch-btn ch-btn-primary" id="tgAgain">↻ Играть ещё</button><button class="ch-btn" id="tgMenu">← В меню обучения</button>`;
     $('tgAgain').addEventListener('click', startTutGame);
     $('tgMenu').addEventListener('click', showTutMenu);
@@ -1956,7 +1969,7 @@
     let win = 0, loss = 0, draw = 0;
     for (const r of a) { if (r.r === 'win') win++; else if (r.r === 'loss') loss++; else if (r.r === 'draw') draw++; }
     $('histSummary').innerHTML =
-      `<span class="hs-win">🏆 Побед: ${win}</span><span class="hs-loss">❌ Поражений: ${loss}</span><span class="hs-draw">🤝 Ничьих: ${draw}</span>`;
+      `<span class="hs-win">${inl(ICON.trophy)}Побед: ${win}</span><span class="hs-loss">${inl(ICON.cross)}Поражений: ${loss}</span><span class="hs-draw">${inl(ICON.handshake)}Ничьих: ${draw}</span>`;
     let html = '';
     for (let i = a.length - 1; i >= 0; i--) {
       const r = a[i];
@@ -1965,7 +1978,7 @@
       else if (r.r === 'loss') { cls = 'loss'; main = 'Проиграл'; }
       else if (r.r === 'side') { cls = 'side'; main = (r.w === 'w' ? 'Белые' : 'Чёрные') + ' победили'; }
       else { cls = 'draw'; main = 'Ничья'; }
-      const sub = modeLabel(r.mode) + (r.dur ? ' · ⏱ ' + fmtDur(r.dur) : '');
+      const sub = modeLabel(r.mode) + (r.dur ? ' · ' + inl(ICON.clock) + fmtDur(r.dur) : '');
       html += `<div class="ch-hist-item ${cls}"><span class="hi-main">${main}</span><span class="hi-sub">${sub}</span></div>`;
     }
     $('histList').innerHTML = html || '<div class="ch-hist-empty">Пока нет сыгранных партий</div>';
@@ -2219,7 +2232,7 @@
     if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
     const el = document.createElement('div');
     el.className = 'ch-atoast done';
-    el.innerHTML = `<span class="at-ico">⭐</span><span class="at-body"><span class="at-t">Новый ранг!</span><span class="at-p">${name}</span></span>`;
+    el.innerHTML = `<span class="at-ico">${ICON.medal}</span><span class="at-body"><span class="at-t">Новый ранг!</span><span class="at-p">${name}</span></span>`;
     achToastWrap.appendChild(el);
     requestAnimationFrame(() => el.classList.add('show'));
     setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 2800);
@@ -2238,7 +2251,7 @@
     if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
     const el = document.createElement('div');
     el.className = 'ch-atoast' + (justDone ? ' done' : '');
-    el.innerHTML = `<span class="at-ico">${justDone ? '🏆' : '📈'}</span><span class="at-body"><span class="at-t">${a.t}${justDone ? ' — получено!' : ''}</span><span class="at-p">${Math.min(cur, a.goal)}/${a.goal}</span></span>`;
+    el.innerHTML = `<span class="at-ico">${justDone ? ICON.trophy : ICON.progress}</span><span class="at-body"><span class="at-t">${a.t}${justDone ? ' — получено!' : ''}</span><span class="at-p">${Math.min(cur, a.goal)}/${a.goal}</span></span>`;
     achToastWrap.appendChild(el);
     requestAnimationFrame(() => el.classList.add('show'));
     setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, justDone ? 2600 : 1900);

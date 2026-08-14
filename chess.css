@@ -611,8 +611,26 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
 .ch-btn {
   padding: 10px 16px; border-radius: 12px; cursor: pointer; font-size: 14px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   background: var(--panel); border: 1px solid var(--line); color: var(--text); transition: .16s;
 }
+/* Встроенные (в текст/кнопки) иконки единого стиля */
+.inl-ico { flex: none; display: inline-flex; vertical-align: -3px; }
+.inl-ico svg { width: 17px; height: 17px; display: block; }
+.ch-btn .inl-ico { vertical-align: 0; }
+.ch-btn .inl-ico svg { width: 18px; height: 18px; }
+.ch-sound { display: inline-flex; align-items: center; justify-content: center; }
+.ch-sound svg { width: 22px; height: 22px; display: block; }
+.ch-gametime .inl-ico svg { width: 15px; height: 15px; }
+.pb-clock .inl-ico svg { width: 15px; height: 15px; }
+.ch-tutor-prompt .inl-ico { vertical-align: -4px; }
+.ch-tutor-prompt .inl-ico svg { width: 21px; height: 21px; }
+.ch-tg-question .inl-ico { vertical-align: -4px; }
+.ch-tg-question .inl-ico svg { width: 22px; height: 22px; }
+.ch-over-ico .inl-ico svg, .ch-over-ico svg { width: 52px; height: 52px; display: block; }
+.ch-over-ico { display: inline-flex; }
+.ch-atoast .at-ico svg { width: 24px; height: 24px; display: block; }
+.tut-hintbox .inl-ico svg { width: 16px; height: 16px; }
 .ch-btn:hover { border-color: var(--accent); background: var(--panel2); }
 .ch-btn-warn:hover { border-color: var(--warn); color: var(--warn); }
 .ch-btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff; }
