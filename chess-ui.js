@@ -29,25 +29,25 @@
     cap: _svg(`<path d="M12 5 21.6 9 12 13 2.4 9z" ${_F}/><path d="M6.4 10.6v4.2c0 1.6 2.5 2.9 5.6 2.9s5.6-1.3 5.6-2.9v-4.2"/><path d="M21.6 9v4.3"/>`),
     medal: _svg(`<path d="M8.4 3.4 10.6 9M15.6 3.4 13.4 9"/><circle cx="12" cy="14.6" r="5.5" ${_F}/><path d="M12 11.7l.92 1.86 2.05.3-1.48 1.44.35 2.04L12 16.87l-1.84.97.35-2.04-1.48-1.44 2.05-.3z" fill="currentColor" stroke="none"/>`),
     // --- Достижения и уроки (тот же стиль) ---
-    swords: _svg(`<path d="M4 4l10.5 10.5"/><path d="M4 4h3v3" ${_F}/><path d="M20 4L9.5 14.5"/><path d="M20 4h-3v3" ${_F}/><path d="M12.5 15l3 3 1.5-1.5M11.5 15l-3 3-1.5-1.5"/>`),
+    swords: _svg(`<path d="M6 4l9 9"/><path d="M6 4h2.6M6 4v2.6"/><path d="M18 4l-9 9"/><path d="M18 4h-2.6M18 4v2.6"/><path d="M13.2 13.2l4.3 4.3M17.8 15.8l-2.6 2.6"/><path d="M10.8 13.2l-4.3 4.3M6.2 15.8l2.6 2.6"/><circle cx="18.4" cy="18.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="5.6" cy="18.4" r="1.05" fill="currentColor" stroke="none"/>`),
     fork: _svg(`<path d="M9.5 3.5v4.5M12 3.5v4.5M14.5 3.5v4.5"/><path d="M9 8h6v.5a3 3 0 0 1-2.2 2.9V20.5" ${_F}/><path d="M12 11.4V20.5"/>`),
     crown: _svg(`<path d="M4 8.5l3.2 8h9.6l3.2-8-4.8 3.6L12 5 6.8 12.1z" ${_F}/><path d="M6.5 19.5h11"/>`),
     bolt: _svg(`<path d="M13 3 5.5 13H10l-1 8 8.5-11H13z" ${_F}/>`),
     queen: _svg(`<path d="M5.5 9l1.7 7.5h9.6L18.5 9l-3.3 3.2L12 7.8 8.8 12.2z" ${_F}/><path d="M7.2 19.5h9.6M6.8 16.5h10.4"/><circle cx="5.2" cy="7.7" r="1.1"/><circle cx="12" cy="6" r="1.1"/><circle cx="18.8" cy="7.7" r="1.1"/>`),
-    hat: _svg(`<path d="M3.5 15.5c2.2-1.2 5-1.8 8.5-1.8s6.3.6 8.5 1.8"/><path d="M6.8 14.4C6.8 9.6 8 6.5 12 6.5s5.2 3.1 5.2 7.9" ${_F}/>`),
-    axe: _svg(`<path d="M13.5 4c3.2 0 5.5 2.3 5.5 5.5L12.5 11 10 8z" ${_F}/><path d="M11.2 8.8 5 19.5"/>`),
+    hat: _svg(`<path d="M3 16.2c2.4-1.1 5.2-1.7 9-1.7s6.6.6 9 1.7"/><path d="M6.2 15c0-5.4 1.6-8.8 5.8-8.8s5.8 3.4 5.8 8.8" ${_F}/><path d="M7 13.2h10"/>`),
+    axe: _svg(`<path d="M12.5 3.8c3.6-.4 6.7 2.1 7 5.7-2.4 1.6-5.4 2-8 .9z" ${_F}/><path d="M12.8 4.1l1.4 6.2"/><path d="M13.3 9L5.5 20"/>`),
     repeat: _svg(`<path d="M4.5 10a6 6 0 0 1 10.2-2.5L16.5 9"/><path d="M16.5 5v4h-4"/><path d="M19.5 14a6 6 0 0 1-10.2 2.5L7.5 15"/><path d="M7.5 19v-4h4"/>`),
     abc: _svg(`<path d="M3.5 16l2-6 2 6M4.1 14.2h2.8"/><path d="M10.5 10v6h1.7a1.5 1.5 0 0 0 0-3h-1.7m0 0h1.5a1.3 1.3 0 0 0 0-3h-1.5"/><path d="M20.5 11.6a2.6 2.6 0 0 0-4.2 2.1 2.6 2.6 0 0 0 4.2 2.1"/>`),
-    dove: _svg(`<path d="M3.5 13.8c4.2 0 6.4-2 8.5-5.3 1 3.1 3.1 4.3 6.3 4.3-1.1 3.2-4.1 5.2-7.3 5.2-3.2 0-5.4-1.8-7.5-4.2z" ${_F}/><path d="M9.5 8.8 8 5.6"/>`),
+    dove: _svg(`<path d="M3.5 13c4 1 7-1 9.2-4.8 1 4 3.2 5.6 7.3 4.8-1.8 3.8-4.8 5.6-8.5 5.2-2.8-.3-5.2-2-6.8-4.6z" ${_F}/><circle cx="18.3" cy="9" r=".9" fill="currentColor" stroke="none"/><path d="M20 8.4l1.4-1"/>`),
     sparkle: _svg(`<path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z" ${_F}/>`),
-    knight: _svg(`<path d="M7 20.5h10c.6-6.4-1.4-10.6-6.2-12.2L12 6l-2.2 1-.6-2.6C7.5 6 6.6 8.2 7.2 10.4L9 11.4 6.7 12.6z" ${_F}/><path d="M6 20.5h12"/>`),
+    knight: _svg(`<path d="M8 20.5h9c.6-6.6-1.3-11.2-6-13.2l1-2.8-2.6 1-1-2.2C6.8 4.5 5.5 7 6.3 9.6l2 1.1-3 1.8c-.3 2 1 3.4 2.7 4z" ${_F}/><path d="M6.5 20.5h11"/><circle cx="10.8" cy="9.2" r=".75" fill="currentColor" stroke="none"/>`),
     eye: _svg(`<path d="M2.5 12S6 6.2 12 6.2 21.5 12 21.5 12 18 17.8 12 17.8 2.5 12 2.5 12z" ${_F}/><circle cx="12" cy="12" r="2.6"/>`),
-    circle: _svg(`<circle cx="12" cy="12" r="7" fill="currentColor" stroke="none"/>`),
+    circle: _svg(`<path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="8"/>`),
     zzz: _svg(`<path d="M6 8h5l-5 6.5h5"/><path d="M13.5 12.5h4l-4 5h4"/>`),
     flag: _svg(`<path d="M6 4v16.5"/><path d="M6 5h11l-2.2 3.2L17 11.5H6z" ${_F}/>`),
-    handshake: _svg(`<path d="M3.5 10.5 7 7.3l4 2.8 2-1 3 1 3.5 3.1"/><path d="M11 10.1l2.1 2.1 1.9.9 2-2"/><path d="M3.5 10.5v3.6l3 3M20.5 10.5v3.6l-3 3"/>`),
+    handshake: _svg(`<circle cx="12" cy="12" r="8.5" ${_F}/><path d="M8 10.2h8M8 13.8h8"/>`),
     skull: _svg(`<path d="M6 11.5a6 6 0 0 1 12 0v3l-1.5 1.5v2.2h-9V16L6 14.5z" ${_F}/><circle cx="9.4" cy="11.8" r="1.35" fill="currentColor" stroke="none"/><circle cx="14.6" cy="11.8" r="1.35" fill="currentColor" stroke="none"/><path d="M11 15.6h2"/>`),
-    elephant: _svg(`<path d="M4 18.5v-4.2a7 7 0 0 1 13.5-2.6" ${_F}/><path d="M17 11.5c1.6 0 2.8 1.2 2.8 2.9S18.6 18 17 18v-2"/><path d="M7 18.5v-2.2M12.5 18.5v-2.2"/><path d="M4 18.5v-2"/>`),
+    elephant: _svg(`<ellipse cx="12" cy="15.4" rx="3.7" ry="3.1" fill="currentColor" stroke="none"/><ellipse cx="6.7" cy="11.6" rx="1.6" ry="2" fill="currentColor" stroke="none"/><ellipse cx="10.2" cy="8.7" rx="1.6" ry="2" fill="currentColor" stroke="none"/><ellipse cx="13.8" cy="8.7" rx="1.6" ry="2" fill="currentColor" stroke="none"/><ellipse cx="17.3" cy="11.6" rx="1.6" ry="2" fill="currentColor" stroke="none"/>`),
     undo: _svg(`<path d="M4.5 9.5h9a5 5 0 0 1 0 10H8.5"/><path d="M4.5 9.5l4-3.8M4.5 9.5l4 3.8"/>`),
     chain: _svg(`<path d="M9.6 14.4a3.5 3.5 0 0 0 5 0l2.8-2.8a3.5 3.5 0 0 0-5-5l-1.2 1.2"/><path d="M14.4 9.6a3.5 3.5 0 0 0-5 0L6.6 12.4a3.5 3.5 0 0 0 5 5l1.2-1.2"/>`),
     question: _svg(`<circle cx="12" cy="12" r="8.5" ${_F}/><path d="M9.4 9.6a2.6 2.6 0 0 1 4.2 2c0 1.6-1.6 1.9-1.6 3.2"/><circle cx="12" cy="16.8" r="1.05" fill="currentColor" stroke="none"/>`),
@@ -56,9 +56,9 @@
     shield: _svg(`<path d="M12 3l7 2.4v5.1c0 5-3 8.1-7 10-4-1.9-7-5-7-10V5.4z" ${_F}/><path d="M9.2 12l2 2 3.6-4.2"/>`),
     rocket: _svg(`<path d="M12 3c3 2.1 4.6 5.1 4.6 9.1L12 16.3l-4.6-4.2C7.4 8.1 9 5.1 12 3z" ${_F}/><circle cx="12" cy="9.2" r="1.6"/><path d="M8.8 16l-2 4.2 3.1-1.6M15.2 16l2 4.2-3.1-1.6"/>`),
     face: _svg(`<circle cx="12" cy="12" r="8.5" ${_F}/><circle cx="9" cy="10.5" r="1.05" fill="currentColor" stroke="none"/><circle cx="15" cy="10.5" r="1.05" fill="currentColor" stroke="none"/><path d="M9 15.2h6"/>`),
-    pin: _svg(`<path d="M12 3l3 3-1.2 1.2v4L17 18H7l3.2-6.8v-4L9 6z" ${_F}/><path d="M12 18v3.2"/>`),
+    pin: _svg(`<path d="M12 3.3c3.5 0 5.9 2.5 5.9 5.9 0 3.7-5.9 11-5.9 11S6.1 12.9 6.1 9.2C6.1 5.8 8.5 3.3 12 3.3z" ${_F}/><circle cx="12" cy="9.2" r="2.3"/>`),
     target: _svg(`<circle cx="12" cy="12" r="8.5" ${_F}/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>`),
-    hook: _svg(`<path d="M14 4.5a4.2 4.2 0 0 1 4.2 4.2v5.6a4.2 4.2 0 0 1-8.4 0v-1"/><circle cx="14" cy="4.5" r="1.3"/><path d="M7.8 13l2 2 2-2"/>`),
+    hook: _svg(`<path d="M4 6h7.5a4.5 4.5 0 0 1 4.5 4.5V17"/><path d="M12.6 13.4L16 16.8l3.4-3.4"/>`),
     warning: _svg(`<path d="M12 4.2 21 19.2H3z" ${_F}/><path d="M12 10v4"/><circle cx="12" cy="16.6" r="1.05" fill="currentColor" stroke="none"/>`),
     rook: _svg(`<path d="M6 8.5V5.5h2v1.6h2V5.5h4v1.6h2V5.5h2v3l-1.4 2v5H7.4v-5z" ${_F}/><path d="M6 19.5h12M7.5 15.5h9"/>`),
     bishop: _svg(`<path d="M12 4c2.1 1.6 3.2 3.6 3.2 5.2a3.2 3.2 0 0 1-6.4 0C8.8 7.6 9.9 5.6 12 4z" ${_F}/><path d="M8.8 16.5c0-2.1 1.3-3.7 3.2-4.2 1.9.5 3.2 2.1 3.2 4.2M7.5 19.5h9M12 8v3.2"/>`),
@@ -164,7 +164,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v91';
+  const APP_VERSION = 'v92';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
