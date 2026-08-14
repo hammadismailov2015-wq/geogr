@@ -8,6 +8,28 @@
 
   const GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
 
+  /* ===== Единый набор нарисованных иконок (двухтоновые линии, currentColor) =====
+     Один стиль для всего меню: тонкая обводка + мягкая заливка тем же цветом.
+     Работают и на светлых карточках, и на тёмных кнопках. */
+  const _svg = (inner) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const _F = 'fill="currentColor" fill-opacity=".14"';
+  const ICON = {
+    // Режимы игры
+    bot: _svg(`<rect x="4.5" y="8" width="15" height="11" rx="3" ${_F}/><path d="M12 4.2v3.8"/><circle cx="12" cy="3.3" r="1.4" fill="currentColor" stroke="none"/><circle cx="9.2" cy="13" r="1.35" fill="currentColor" stroke="none"/><circle cx="14.8" cy="13" r="1.35" fill="currentColor" stroke="none"/><path d="M9.6 16.2h4.8"/><path d="M2.7 12v3M21.3 12v3"/>`),
+    friend: _svg(`<path d="M9.6 14.4a3.5 3.5 0 0 0 5 0l2.8-2.8a3.5 3.5 0 0 0-5-5l-1.2 1.2"/><path d="M14.4 9.6a3.5 3.5 0 0 0-5 0L6.6 12.4a3.5 3.5 0 0 0 5 5l1.2-1.2"/>`),
+    local: _svg(`<circle cx="9" cy="7.5" r="3.4" ${_F}/><path d="M3 20v-1.2A5 5 0 0 1 8 14h2a5 5 0 0 1 5 4.8V20"/><path d="M16 4.4a3.4 3.4 0 0 1 0 6.6"/><path d="M17.5 14.2a5 5 0 0 1 3.5 4.6V20"/>`),
+    // Настройки
+    side: _svg(`<circle cx="12" cy="6.2" r="2.7" ${_F}/><path d="M9.3 11.1c.7.6 1.6 1 2.7 1s2-.4 2.7-1"/><path d="M10.2 12.1 8.7 17.4h6.6l-1.5-5.3"/><path d="M7.6 20.4h8.8l-1-3H8.6z" ${_F}/>`),
+    level: _svg(`<path d="M4.2 17.4a7.8 7.8 0 0 1 15.6 0z" ${_F}/><path d="M12 17.4l4.1-3.3"/><circle cx="12" cy="17.4" r="1.4" fill="currentColor" stroke="none"/><path d="M12 6.4v1.5M6.5 8.9l1 1M17.5 8.9l-1 1"/>`),
+    clock: _svg(`<circle cx="12" cy="13.6" r="7.2" ${_F}/><path d="M12 9.8v3.8l2.6 1.6"/><path d="M9.4 3.4h5.2M12 3.4v2.9"/><path d="M18.6 7 19.8 5.8"/>`),
+    moves: _svg(`<path d="M9.3 4 7.7 20M16.3 4 14.7 20M4 9.2h16M3.6 14.8h16"/>`),
+    // Кнопки меню
+    chart: _svg(`<path d="M4 20h16"/><rect x="5.4" y="11" width="3.4" height="7" rx="1" ${_F}/><rect x="10.3" y="6.4" width="3.4" height="11.6" rx="1" ${_F}/><rect x="15.2" y="13.4" width="3.4" height="4.6" rx="1" ${_F}/>`),
+    trophy: _svg(`<path d="M7 4.5h10v4a5 5 0 0 1-10 0z" ${_F}/><path d="M7 6H4.7a2.6 2.6 0 0 0 2.9 3.5"/><path d="M17 6h2.3a2.6 2.6 0 0 1-2.9 3.5"/><path d="M12 13.4v3"/><path d="M8.7 20.4h6.6l-1-2.7H9.7z" ${_F}/>`),
+    cap: _svg(`<path d="M12 5 21.6 9 12 13 2.4 9z" ${_F}/><path d="M6.4 10.6v4.2c0 1.6 2.5 2.9 5.6 2.9s5.6-1.3 5.6-2.9v-4.2"/><path d="M21.6 9v4.3"/>`),
+    medal: _svg(`<path d="M8.4 3.4 10.6 9M15.6 3.4 13.4 9"/><circle cx="12" cy="14.6" r="5.5" ${_F}/><path d="M12 11.7l.92 1.86 2.05.3-1.48 1.44.35 2.04L12 16.87l-1.84.97.35-2.04-1.48-1.44 2.05-.3z" fill="currentColor" stroke="none"/>`),
+  };
+
   /* ===== Объёмные фигуры (SVG, стиль Стаунтон) ===== */
   // Градиенты объёма — вставляются в DOM один раз (см. buildLayout)
   const PIECE_DEFS = `<svg id="pcDefs" width="0" height="0" aria-hidden="true" style="position:absolute;width:0;height:0"><defs>
@@ -88,7 +110,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v87';
+  const APP_VERSION = 'v88';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -126,7 +148,7 @@
           <div class="ch-rank" id="rankBadge"></div>
           <h2>Матшахи</h2>
           <p class="ch-rank-info" id="rankInfo"></p>
-          <button id="ranksBtn" class="ch-rank-btn">🏅 Посмотреть все ранги</button>
+          <button id="ranksBtn" class="ch-rank-btn"><span class="ch-btn-ico">${ICON.medal}</span>Посмотреть все ранги</button>
           <p>Выберите режим и настройки — и в бой.</p>
         </div>
 
@@ -134,9 +156,9 @@
           <div class="ch-col">
             <div class="ch-collabel">Режим игры</div>
             <div id="modeCards">
-              <button class="ch-big" data-mode="bot"><span class="ch-big-ico">🤖</span><span>Играть с ботом</span></button>
-              <button class="ch-big" data-mode="friend"><span class="ch-big-ico">🔗</span><span>Играть с другом</span></button>
-              <button class="ch-big" data-mode="local"><span class="ch-big-ico">👥</span><span>Играть рядом</span></button>
+              <button class="ch-big" data-mode="bot"><span class="ch-big-ico">${ICON.bot}</span><span>Играть с ботом</span></button>
+              <button class="ch-big" data-mode="friend"><span class="ch-big-ico">${ICON.friend}</span><span>Играть с другом</span></button>
+              <button class="ch-big" data-mode="local"><span class="ch-big-ico">${ICON.local}</span><span>Играть рядом</span></button>
             </div>
           </div>
 
@@ -144,7 +166,7 @@
             <div class="ch-collabel">Настройки</div>
 
             <div class="ch-acc" id="accSide">
-              <button class="ch-acc-head" data-acc><span class="ch-acc-ico">♟️</span><span class="ch-acc-title">Играть за</span><span class="ch-acc-val" id="valSide">—</span><span class="ch-acc-arrow">▾</span></button>
+              <button class="ch-acc-head" data-acc><span class="ch-acc-ico">${ICON.side}</span><span class="ch-acc-title">Играть за</span><span class="ch-acc-val" id="valSide">—</span><span class="ch-acc-arrow">▾</span></button>
               <div class="ch-acc-body"><div class="ch-choices" id="sideChoices">
                 <button class="ch-choice" data-side="w">♔ Белые</button>
                 <button class="ch-choice" data-side="b">♚ Чёрные</button>
@@ -153,7 +175,7 @@
             </div>
 
             <div class="ch-acc" id="accLevel">
-              <button class="ch-acc-head" data-acc><span class="ch-acc-ico">🤖</span><span class="ch-acc-title">Сложность бота</span><span class="ch-acc-val" id="valLevel">—</span><span class="ch-acc-arrow">▾</span></button>
+              <button class="ch-acc-head" data-acc><span class="ch-acc-ico">${ICON.level}</span><span class="ch-acc-title">Сложность бота</span><span class="ch-acc-val" id="valLevel">—</span><span class="ch-acc-arrow">▾</span></button>
               <div class="ch-acc-body"><div class="ch-choices" id="levelChoices">
                 <button class="ch-choice" data-level="1">🙂 Лёгкий</button>
                 <button class="ch-choice" data-level="2">😐 Средний</button>
@@ -162,9 +184,9 @@
             </div>
 
             <div class="ch-acc" id="accClock">
-              <button class="ch-acc-head" data-acc><span class="ch-acc-ico">⏱️</span><span class="ch-acc-title">Время и ходы</span><span class="ch-acc-val" id="valClock">—</span><span class="ch-acc-arrow">▾</span></button>
+              <button class="ch-acc-head" data-acc><span class="ch-acc-ico">${ICON.clock}</span><span class="ch-acc-title">Время и ходы</span><span class="ch-acc-val" id="valClock">—</span><span class="ch-acc-arrow">▾</span></button>
               <div class="ch-acc-body">
-                <div class="ch-sublabel">⏱️ Время каждому игроку</div>
+                <div class="ch-sublabel"><span class="ch-sub-ico">${ICON.clock}</span>Время каждому игроку</div>
                 <div class="ch-chips" id="timeChips">
                   <button class="ch-chip" data-min="0">Нет</button>
                   <button class="ch-chip" data-min="1">1 мин</button>
@@ -174,7 +196,7 @@
                   <button class="ch-chip" data-min="20">20 мин</button>
                   <button class="ch-chip" data-min="30">30 мин</button>
                 </div>
-                <div class="ch-sublabel" style="margin-top:12px">🔢 Ходов каждому игроку</div>
+                <div class="ch-sublabel" style="margin-top:12px"><span class="ch-sub-ico">${ICON.moves}</span>Ходов каждому игроку</div>
                 <div class="ch-chips" id="moveChips">
                   <button class="ch-chip" data-mv="0">Нет</button>
                   <button class="ch-chip" data-mv="30">30 ходов</button>
@@ -184,14 +206,14 @@
               </div>
             </div>
 
-            <div class="ch-hint-line" id="friendHint" hidden>🔗 Игра с другом идёт онлайн: отправьте ссылку — и ходите в реальном времени.</div>
+            <div class="ch-hint-line" id="friendHint" hidden><span class="ch-sub-ico">${ICON.friend}</span>Игра с другом идёт онлайн: отправьте ссылку — и ходите в реальном времени.</div>
           </div>
         </div>
 
         <button id="startBtn" class="ch-start">Начать партию ▶</button>
-        <button id="viewBtn" class="ch-view">📊 Посмотреть результаты</button>
-        <button id="achBtn" class="ch-view">🏆 Достижения</button>
-        <button id="tutBtn" class="ch-view">📚 Обучение</button>
+        <button id="viewBtn" class="ch-view"><span class="ch-btn-ico">${ICON.chart}</span>Посмотреть результаты</button>
+        <button id="achBtn" class="ch-view"><span class="ch-btn-ico">${ICON.trophy}</span>Достижения</button>
+        <button id="tutBtn" class="ch-view"><span class="ch-btn-ico">${ICON.cap}</span>Обучение</button>
       </section>
 
       <section id="tutorScreen" class="ch-screen" hidden>
@@ -483,12 +505,12 @@
   function tutDispColor(actual) { return app.tutSideResolved === 'b' ? (actual === 'w' ? 'b' : 'w') : actual; }
 
   function updateSummaries() {
-    $('valSide').textContent = { w: '♔ Белые', b: '♚ Чёрные', r: '🎲 Рандом' }[setup.side];
-    $('valLevel').textContent = { 1: '🙂 Лёгкий', 2: '😐 Средний', 3: '😈 Сложный' }[setup.level];
+    $('valSide').textContent = { w: 'Белые', b: 'Чёрные', r: 'Рандом' }[setup.side];
+    $('valLevel').textContent = { 1: 'Лёгкий', 2: 'Средний', 3: 'Сложный' }[setup.level];
     const parts = [];
     if (setup.timeMin > 0) parts.push(setup.timeMin + ' мин');
     if (setup.moveLim > 0) parts.push(setup.moveLim + ' ход.');
-    $('valClock').textContent = parts.length ? parts.join(' · ') : '♾️ Без ограничения';
+    $('valClock').textContent = parts.length ? parts.join(' · ') : 'Без ограничения';
   }
 
   function updateSetupVisibility() {

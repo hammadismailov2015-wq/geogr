@@ -163,11 +163,17 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-rank-info { margin: 0 0 6px !important; color: #f0d08a !important; font-size: 13px; font-weight: 700; }
 .ch-rank-info b { color: #ffe8a0; }
 .ch-rank-btn {
-  display: inline-block; margin: 0 0 10px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px; margin: 0 0 10px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
   font-size: 13px; font-weight: 700; color: #ffe8a0;
   background: rgba(255, 215, 120, .12); border: 1px solid rgba(255, 215, 120, .45); transition: .16s;
 }
 .ch-rank-btn:hover { background: rgba(255, 215, 120, .22); transform: translateY(-1px); }
+
+/* ===== Единые нарисованные иконки меню ===== */
+.ch-btn-ico { display: inline-flex; }
+.ch-btn-ico svg { width: 18px; height: 18px; display: block; }
+.ch-sub-ico { display: inline-flex; vertical-align: -3px; margin-right: 6px; }
+.ch-sub-ico svg { width: 15px; height: 15px; display: block; }
 
 /* Мини-значок ранга (в таблице) */
 .ch-rank.mini { width: 46px; height: 46px; margin: 0; flex: none; box-shadow: 0 4px 10px rgba(0, 0, 0, .4), inset 0 0 0 2px rgba(255, 215, 120, .3); }
@@ -204,7 +210,8 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   box-shadow: 0 6px 0 #a8afc2, 0 10px 22px rgba(0, 0, 0, .4);
   transition: transform .12s, box-shadow .12s, filter .12s;
 }
-.ch-big-ico { font-size: 26px; filter: none; -webkit-text-fill-color: initial; }
+.ch-big-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; }
+.ch-big-ico svg { width: 30px; height: 30px; display: block; }
 .ch-big:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #a8afc2, 0 14px 26px rgba(0, 0, 0, .45); }
 .ch-big:active { transform: translateY(4px); box-shadow: 0 2px 0 #a8afc2, 0 6px 14px rgba(0, 0, 0, .4); }
 .ch-big.active {
@@ -225,7 +232,8 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   padding: 14px 16px; cursor: pointer; background: transparent; border: none;
   color: #1a2030; font-size: 16px; font-weight: 800; text-align: left;
 }
-.ch-acc-ico { font-size: 20px; }
+.ch-acc-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; }
+.ch-acc-ico svg { width: 22px; height: 22px; display: block; }
 .ch-acc-title { flex: none; }
 .ch-acc-val { flex: 1; text-align: right; color: #4d566e; font-weight: 700; font-size: 14px; }
 .ch-acc-arrow { flex: none; color: #6a748f; transition: transform .18s; font-size: 13px; }
@@ -286,9 +294,11 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-start:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .ch-view {
   width: 100%; margin-top: 10px; padding: 13px; border-radius: 14px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   font-size: 15px; font-weight: 600; color: var(--text);
   background: var(--panel); border: 1px solid var(--line); transition: .16s;
 }
+.ch-view .ch-btn-ico svg { width: 20px; height: 20px; }
 .ch-view:hover { border-color: var(--accent); background: var(--panel2); }
 
 /* Окно результатов */
