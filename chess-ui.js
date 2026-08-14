@@ -164,7 +164,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v92';
+  const APP_VERSION = 'v93';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -411,7 +411,7 @@
 
       <div id="achModal" class="ch-modal" hidden>
         <div class="ch-modal-box ch-ach-box">
-          <div class="ch-modal-title"><span class="tt-ico">${ICON.trophy}</span>Достижения</div>
+          <div class="ch-modal-title">🏆 Достижения</div>
           <div class="ch-ach-sub" id="achCount"></div>
           <div class="ch-ach-list" id="achList"></div>
           <div class="ch-modal-actions"><button class="ch-btn ch-btn-primary" id="achClose">Закрыть</button></div>
@@ -2112,42 +2112,42 @@
 
   // Каждое достижение: ico — значок, goal — цель, cur(s) — прогресс, secret — секретное
   const ACHIEVEMENTS = [
-    { t: 'Шахматист', d: 'Поставь 15 шахов в одной партии', ico: ICON.swords, goal: 15, cur: s => s.maxChecksInGame },
-    { t: 'Вилка', d: 'Сделай вилку 3 раза', ico: ICON.fork, goal: 3, cur: s => s.forks },
-    { t: 'Выиграл ИИ', d: 'Выиграй со сложным ботом', ico: ICON.bot, goal: 1, cur: s => s.wonHardBot ? 1 : 0 },
-    { t: 'Любитель шахмат', d: 'Сыграй 100 и более партий', ico: ICON.side, goal: 100, cur: s => s.games },
-    { t: 'Можно без матов?', d: 'Поставь 100 и более матов', ico: ICON.crown, goal: 100, cur: s => s.checkmatesBy },
-    { t: 'Мгновенный мат', d: 'Поставь мат за 10 ходов', ico: ICON.bolt, goal: 1, cur: s => s.fastMate ? 1 : 0 },
-    { t: 'Убит ферзь', d: 'Съешь у соперника 5 ферзей', ico: ICON.queen, goal: 5, cur: s => s.queensCaptured },
-    { t: 'Мафия', d: 'Съешь у соперника 50 фигур', ico: ICON.hat, goal: 50, cur: s => s.captures },
-    { t: 'Казнить!', d: 'Съешь 20 пешек', ico: ICON.axe, goal: 20, cur: s => s.pawnsCaptured },
-    { t: 'Туда-сюда', d: 'Повтори ход 3 раза', ico: ICON.repeat, goal: 3, cur: s => s.repeats },
-    { t: 'Заложник', d: 'Свяжи 3 фигуры соперника', ico: ICON.friend, goal: 3, cur: s => s.pins },
-    { t: 'Алфавитный порядок', d: 'Сходи на клетки a-b-c-d-e-f подряд', ico: ICON.abc, goal: 1, cur: s => s.alphabet ? 1 : 0 },
-    { t: 'Свобода!', d: 'Сыграй 30 партий без ограничений', ico: ICON.dove, goal: 30, cur: s => s.freeGames },
-    { t: 'В укрытие!', d: 'Сделай рокировку 3 раза', ico: ICON.rook, goal: 3, cur: s => s.castles },
+    { t: 'Шахматист', d: 'Поставь 15 шахов в одной партии', ico: '⚔️', goal: 15, cur: s => s.maxChecksInGame },
+    { t: 'Вилка', d: 'Сделай вилку 3 раза', ico: '🍴', goal: 3, cur: s => s.forks },
+    { t: 'Выиграл ИИ', d: 'Выиграй со сложным ботом', ico: '🤖', goal: 1, cur: s => s.wonHardBot ? 1 : 0 },
+    { t: 'Любитель шахмат', d: 'Сыграй 100 и более партий', ico: '♟️', goal: 100, cur: s => s.games },
+    { t: 'Можно без матов?', d: 'Поставь 100 и более матов', ico: '👑', goal: 100, cur: s => s.checkmatesBy },
+    { t: 'Мгновенный мат', d: 'Поставь мат за 10 ходов', ico: '⚡', goal: 1, cur: s => s.fastMate ? 1 : 0 },
+    { t: 'Убит ферзь', d: 'Съешь у соперника 5 ферзей', ico: '👸', goal: 5, cur: s => s.queensCaptured },
+    { t: 'Мафия', d: 'Съешь у соперника 50 фигур', ico: '🕵️', goal: 50, cur: s => s.captures },
+    { t: 'Казнить!', d: 'Съешь 20 пешек', ico: '🪓', goal: 20, cur: s => s.pawnsCaptured },
+    { t: 'Туда-сюда', d: 'Повтори ход 3 раза', ico: '🔄', goal: 3, cur: s => s.repeats },
+    { t: 'Заложник', d: 'Свяжи 3 фигуры соперника', ico: '🔗', goal: 3, cur: s => s.pins },
+    { t: 'Алфавитный порядок', d: 'Сходи на клетки a-b-c-d-e-f подряд', ico: '🔤', goal: 1, cur: s => s.alphabet ? 1 : 0 },
+    { t: 'Свобода!', d: 'Сыграй 30 партий без ограничений', ico: '🕊️', goal: 30, cur: s => s.freeGames },
+    { t: 'В укрытие!', d: 'Сделай рокировку 3 раза', ico: '🏰', goal: 3, cur: s => s.castles },
     // секретные
-    { t: 'Превращение', d: 'Преврати пешку 5 раз', ico: ICON.sparkle, goal: 5, cur: s => s.promotions, secret: true },
-    { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', ico: ICON.knight, goal: 1, cur: s => Math.min(s.knightThenPawn, 1), secret: true },
-    { t: 'Большой брат', d: 'Уйди от преследования фигуры', ico: ICON.eye, goal: 1, cur: s => Math.min(s.escapes, 1), secret: true },
-    { t: 'За чёрных', d: 'Сыграй за чёрных 10 партий', ico: ICON.circle, goal: 10, cur: s => s.blackGames, secret: true },
-    { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', ico: ICON.zzz, goal: 3, cur: s => s.queensLost, secret: true },
-    { t: 'Не спи!', d: 'Сыграй партию целый час', ico: ICON.clock, goal: 1, cur: s => s.hourGame ? 1 : 0, secret: true },
-    { t: 'Братство', d: 'Сдайся 3 раза', ico: ICON.flag, goal: 3, cur: s => s.resigns, secret: true },
-    { t: 'Равенство', d: 'Сыграй вничью 5 раз', ico: ICON.handshake, goal: 5, cur: s => s.draws, secret: true },
-    { t: 'Убийство племя', d: 'Съешь все фигуры соперника за одну партию', ico: ICON.skull, goal: 1, cur: s => s.wipeout ? 1 : 0, secret: true },
-    { t: 'Бедные животные!', d: 'Съешь 30 коней или слонов', ico: ICON.elephant, goal: 30, cur: s => s.minorsCaptured, secret: true },
-    { t: 'Ой, не туда', d: 'Отмени ход 5 раз', ico: ICON.undo, goal: 5, cur: s => s.undos, secret: true },
-    { t: 'Нет прав у чёрных!', d: 'Свяжи 5 чёрных фигур', ico: ICON.chain, goal: 5, cur: s => s.blackPins, secret: true }
+    { t: 'Превращение', d: 'Преврати пешку 5 раз', ico: '✨', goal: 5, cur: s => s.promotions, secret: true },
+    { t: 'Убит всадник', d: 'Съешь коня и пешку подряд', ico: '🐴', goal: 1, cur: s => Math.min(s.knightThenPawn, 1), secret: true },
+    { t: 'Большой брат', d: 'Уйди от преследования фигуры', ico: '👁️', goal: 1, cur: s => Math.min(s.escapes, 1), secret: true },
+    { t: 'За чёрных', d: 'Сыграй за чёрных 10 партий', ico: '⚫', goal: 10, cur: s => s.blackGames, secret: true },
+    { t: 'Ай, зевнул!', d: 'Потеряй 3 своих ферзей', ico: '🥱', goal: 3, cur: s => s.queensLost, secret: true },
+    { t: 'Не спи!', d: 'Сыграй партию целый час', ico: '⏰', goal: 1, cur: s => s.hourGame ? 1 : 0, secret: true },
+    { t: 'Братство', d: 'Сдайся 3 раза', ico: '🏳️', goal: 3, cur: s => s.resigns, secret: true },
+    { t: 'Равенство', d: 'Сыграй вничью 5 раз', ico: '🤝', goal: 5, cur: s => s.draws, secret: true },
+    { t: 'Убийство племя', d: 'Съешь все фигуры соперника за одну партию', ico: '💀', goal: 1, cur: s => s.wipeout ? 1 : 0, secret: true },
+    { t: 'Бедные животные!', d: 'Съешь 30 коней или слонов', ico: '🐘', goal: 30, cur: s => s.minorsCaptured, secret: true },
+    { t: 'Ой, не туда', d: 'Отмени ход 5 раз', ico: '🙈', goal: 5, cur: s => s.undos, secret: true },
+    { t: 'Нет прав у чёрных!', d: 'Свяжи 5 чёрных фигур', ico: '⛓️', goal: 5, cur: s => s.blackPins, secret: true }
   ];
 
   function achCard(a, s) {
     const cur = a.cur(s), ok = cur >= a.goal;
     const locked = a.secret && !ok;
-    const ico = locked ? ICON.question : a.ico;
+    const ico = locked ? '❓' : a.ico;
     const desc = locked ? '?' : a.d;
     const prog = locked ? '?' : (Math.min(cur, a.goal) + '/' + a.goal);
-    return `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-ico">${ico}</span><div class="ach-txt"><span class="ach-t"><span class="ach-mark">${ok ? ICON.check : ICON.lock}</span>${a.t}</span><span class="ach-d">${desc}</span></div><span class="ach-prog">${prog}</span></div>`;
+    return `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-ico">${ico}</span><div class="ach-txt"><span class="ach-t">${ok ? '✅ ' : '🔒 '}${a.t}</span><span class="ach-d">${desc}</span></div><span class="ach-prog">${prog}</span></div>`;
   }
 
   function openAch() {
@@ -2232,7 +2232,7 @@
     if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
     const el = document.createElement('div');
     el.className = 'ch-atoast done';
-    el.innerHTML = `<span class="at-ico">${ICON.medal}</span><span class="at-body"><span class="at-t">Новый ранг!</span><span class="at-p">${name}</span></span>`;
+    el.innerHTML = `<span class="at-ico">⭐</span><span class="at-body"><span class="at-t">Новый ранг!</span><span class="at-p">${name}</span></span>`;
     achToastWrap.appendChild(el);
     requestAnimationFrame(() => el.classList.add('show'));
     setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 2800);
@@ -2251,7 +2251,7 @@
     if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
     const el = document.createElement('div');
     el.className = 'ch-atoast' + (justDone ? ' done' : '');
-    el.innerHTML = `<span class="at-ico">${justDone ? ICON.trophy : ICON.progress}</span><span class="at-body"><span class="at-t">${a.t}${justDone ? ' — получено!' : ''}</span><span class="at-p">${Math.min(cur, a.goal)}/${a.goal}</span></span>`;
+    el.innerHTML = `<span class="at-ico">${justDone ? '🏆' : '📈'}</span><span class="at-body"><span class="at-t">${a.t}${justDone ? ' — получено!' : ''}</span><span class="at-p">${Math.min(cur, a.goal)}/${a.goal}</span></span>`;
     achToastWrap.appendChild(el);
     requestAnimationFrame(() => el.classList.add('show'));
     setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, justDone ? 2600 : 1900);
