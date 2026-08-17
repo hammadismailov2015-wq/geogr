@@ -99,7 +99,7 @@
     repeat: _c(`<path d="M4.6 10a7 7 0 0 1 11.4-3.1M16.6 4.4V8h-3.6" stroke="#5b8def" stroke-width="2.2"/><path d="M19.4 14a7 7 0 0 1-11.4 3.1M7.4 19.6V16h3.6" stroke="#46c47c" stroke-width="2.2"/>`),
     chain: _c(`<rect x="3.4" y="8.6" width="9.2" height="6.8" rx="3.4" stroke="#9aa4b6" stroke-width="2.3"/><rect x="11.4" y="8.6" width="9.2" height="6.8" rx="3.4" stroke="#6a7385" stroke-width="2.3"/>`),
     abc: _c(`<path d="M3.6 16l2-6 2 6M4.2 14h2.8" stroke="#e85c52" stroke-width="1.8"/><path d="M10.4 10v6h1.7a1.4 1.4 0 0 0 0-2.9h-1.7m0 0h1.5a1.3 1.3 0 0 0 0-2.6h-1.5" stroke="#5b8def" stroke-width="1.7"/><path d="M20.4 11.6a2.6 2.6 0 0 0-4.2 2 2.6 2.6 0 0 0 4.2 2" stroke="#46c47c" stroke-width="1.8"/>`),
-    dove: _c(`<path d="M3 12.5c2.6 1.4 5 1.2 7.2-.6-.3 2.2.3 4 1.9 5.6-2.5.8-4.8.4-6.6-1.4l1.3 3.4-3.8-3.6z" fill="#eef1f7" stroke="#c9cfdb" stroke-width=".7"/><path d="M10 11.5c1.3-2.7 3.4-4.6 6.3-5.6 2.3-.8 3.7-.6 4.7.3-1.1 2.9-3.4 4.9-6.9 5.9-1.6.5-3 .3-4.1-.6z" fill="#f0f3f9" stroke="#c9cfdb" stroke-width=".7"/><circle cx="18.5" cy="7.8" r="0.85" fill="#2a2f3c"/><path d="M20.3 7l1.5-.8" stroke="#f4a83c" stroke-width="1.8"/>`),
+    dove: _c(`<ellipse cx="10.5" cy="15.5" rx="5.8" ry="2.9" fill="#eef1f7" transform="rotate(-12 10.5 15.5)"/><circle cx="16.8" cy="10.8" r="2.3" fill="#eef1f7"/><path d="M18.7 9.9 22 9 19 11.5Z" fill="#f4a83c"/><circle cx="17.4" cy="10.2" r=".7" fill="#2a2f3c"/><path d="M9 13.5C6.5 10 6.8 5.8 9 4c1.2 3 3.4 5.8 6.2 7-2 1.5-4.4 2-6.2 1.5z" fill="#f6f8fc" stroke="#c9cfdb" stroke-width=".6"/><path d="M6.5 16.5C4 15.5 2.5 13.5 2 11c2.3 1 4.6 2.6 6 4.8-.4 .5-.9 .7-1.5 .7z" fill="#f6f8fc" stroke="#c9cfdb" stroke-width=".6"/>`),
     rook: _c(`<path d="M6 8.6V5.6h2v1.6h2V5.6h4v1.6h2V5.6h2v3l-1.4 2v5H7.4v-5z" fill="#9aa4b6"/><path d="M6 19.4h12M7.5 15.4h9" stroke="#6a7385" stroke-width="1.8"/>`),
     sparkle: _c(`<path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z" fill="#f4c04e"/><circle cx="18.5" cy="6" r="1.2" fill="#f4c04e"/><circle cx="5.5" cy="17.5" r="1" fill="#f4c04e"/>`),
     horse: `<svg viewBox="0 0 45 45" fill="none" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="22.5" cy="40" rx="11.5" ry="2.2" fill="rgba(0,0,0,.22)"/><path d="M12.5,38.5 L32.5,38.5 L32.5,36.2 C32.5,34.9 31.2,34 29.8,34 L15.2,34 C13.8,34 12.5,34.9 12.5,36.2 Z" fill="#4f2f1a"/><path d="M15.5,34.5 C15.5,29.8 17.4,26.6 20.6,24.7 C16.8,23.4 14,20.1 14,16.4 C14,14.8 14.7,13.4 15.9,12.4 C14.8,13.1 13.9,13.9 13.1,14.2 C11.9,14.6 10.8,13.7 11.3,12.3 C11.9,10.3 14.4,8.6 17.1,7.9 L17.9,5.9 C18.3,4.9 19.6,4.9 20.1,6 L19.7,7.8 C22.5,7.2 25.5,8.2 27.7,10.5 C31,13.9 31.5,19.2 30,25.2 C31.3,27.5 31.9,30.5 31.9,34.5 Z" fill="#6b4225"/><ellipse cx="25.5" cy="19" rx="1.9" ry="6" fill="#8a5a34" opacity=".5"/><circle cx="15.6" cy="12.5" r="1.05" fill="#ead2ba"/></svg>`,
@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v97';
+  const APP_VERSION = 'v98';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
