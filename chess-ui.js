@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v98';
+  const APP_VERSION = 'v99';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -2180,7 +2180,7 @@
     const locked = a.secret && !ok;
     const ico = locked ? ACH.quest : a.ico;
     const desc = locked ? '?' : a.d;
-    const prog = locked ? '?' : (Math.min(cur, a.goal) + '/' + a.goal);
+    const prog = Math.min(cur, a.goal) + '/' + a.goal;
     return `<div class="ch-ach-item ${ok ? 'done' : ''}"><span class="ach-ico">${ico}</span><div class="ach-txt"><span class="ach-t"><span class="ach-mark">${ok ? ACH.check : ACH.lock}</span>${a.t}</span><span class="ach-d">${desc}</span></div><span class="ach-prog">${prog}</span></div>`;
   }
 
