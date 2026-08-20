@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v110';
+  const APP_VERSION = 'v111';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);

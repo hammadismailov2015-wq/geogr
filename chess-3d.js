@@ -235,7 +235,7 @@
     // камера смотрит сверху-сбоку со стороны игрока (низ).
     // Дальше и выше — чтобы вся доска влезала в кадр с полями.
     const ar = camera.aspect || 1;
-    const dist = ar < 0.85 ? 12.4 : 11.3;   // на узких экранах чуть дальше
+    const dist = ar < 0.85 ? 11.6 : 10.6;   // на узких экранах чуть дальше
     camera.position.set(0, dist * 1.02, dist);
     camera.lookAt(0, 0.2, -0.3);
     camera.updateProjectionMatrix();
