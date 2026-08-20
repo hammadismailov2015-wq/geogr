@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v106';
+  const APP_VERSION = 'v107';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -350,7 +350,7 @@
           <div class="pb-clock" id="topClock" hidden>—</div>
         </div>
 
-        <div class="ch-board-wrap"><div class="ch-board-stack"><div class="ch-board" id="chBoard"></div><div class="ch-piecelayer" id="pieceLayer"></div></div></div>
+        <div class="ch-board-wrap"><div class="ch-board-stack"><div class="ch-board" id="chBoard"></div><div class="ch-piecelayer" id="pieceLayer"></div></div><div id="board3d" class="ch-board3d" hidden></div></div>
 
         <div class="ch-playerbar" id="barBot">
           <div class="pb-info"><span class="pb-name" id="botName">Белые</span><span class="pb-adv" id="botAdv"></span></div>
@@ -1027,6 +1027,7 @@
         elPieceLayer.appendChild(pcell);
       }
     }
+    if (use3DReal()) update3D();
   }
 
   function renderStatus() {
@@ -1446,7 +1447,51 @@
      ТЕМЫ
      ======================================================== */
   function applyTheme(name) { document.body.setAttribute('data-chess-theme', name); if (bg.ctx) { readBgColors(); if (bg.reduce) drawBg(0); } }
-  function applyView(v) { document.body.classList.toggle('ch-3d', v === '3d'); }
+  /* ===== Настоящий 3D (WebGL) ===== */
+  let _c3dReady = false;
+  function bodyTheme() { return document.body.dataset.chessTheme || 'classic'; }
+  function use3DReal() { return app.view === '3d' && !!window.Chess3D; }
+  function ensure3D() {
+    if (_c3dReady || !window.Chess3D) return;
+    const el = $('board3d'); if (!el) return;
+    el.hidden = false;
+    Chess3D.init(el, { onTap: boardTap, theme: bodyTheme });
+    _c3dReady = true;
+  }
+  function boardTap(s) {
+    const ae = document.activeElement; if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
+    if (!app.state || !canMoveNow()) return;
+    const p = app.state.board[s];
+    if (app.selected >= 0 && isMyPiece(p) && C.typeOf(p) === 'r' && app.state.board[app.selected] && C.typeOf(app.state.board[app.selected]) === 'k') {
+      const want = (s % 8) === 7 ? 'cK' : ((s % 8) === 0 ? 'cQ' : null);
+      const cm = want && app.legalFrom.find(m => m.flag === want);
+      if (cm) { doMove(cm); return; }
+    }
+    if (isMyPiece(p)) { app.selected = s; app.legalFrom = C.legalMovesFrom(app.state, s); renderBoard(); return; }
+    if (app.selected >= 0) { if (tryMoveTo(s)) return; }
+    app.selected = -1; app.legalFrom = []; renderBoard();
+  }
+  function update3D() {
+    if (!use3DReal() || !_c3dReady || !app.state) return;
+    const localFlip = app.mode === 'local' && !app.over && app.state.turn === 'b';
+    const rot = (app.orientation === 'b') !== localFlip;
+    let checkSq = -1;
+    if (C.inCheck(app.state, app.state.turn)) { for (let i = 0; i < 64; i++) { const p = app.state.board[i]; if (p && C.typeOf(p) === 'k' && C.colorOf(p) === app.state.turn) { checkSq = i; break; } } }
+    Chess3D.update(app.state, {
+      theme: bodyTheme(), flip: rot,
+      selected: app.selected, legal: app.selected >= 0 ? app.legalFrom : [],
+      occupied: (sq) => !!app.state.board[sq],
+      last: app.lastMove, checkSq: checkSq
+    });
+  }
+  function applyView(v) {
+    document.body.classList.toggle('ch-3d', v === '3d');
+    const real = (v === '3d') && !!window.Chess3D;
+    document.body.classList.toggle('ch-3dreal', real);
+    const el = $('board3d');
+    if (real) { ensure3D(); if (el) el.hidden = false; if (window.Chess3D) Chess3D.setVisible(true); update3D(); }
+    else { if (window.Chess3D && Chess3D.setVisible) Chess3D.setVisible(false); if (el) el.hidden = true; }
+  }
 
   /* ========================================================
      КНОПКИ + МОДАЛКИ
