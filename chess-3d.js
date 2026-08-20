@@ -166,7 +166,7 @@
     const P = {
       classic: { w: 0xf3f3f4, b: 0x26282e, ld: 0xe9e9ea, dk: 0x6d7280 },
       brown: { w: 0xf1e4c6, b: 0x4a2f18, ld: 0xf0d9b5, dk: 0xb58863 },
-      green: { w: 0xeef0e8, b: 0x2c3327, ld: 0xeeeed2, dk: 0x6f9f57 },
+      green: { w: 0xcbe3aa, b: 0x35592c, ld: 0xeeeed2, dk: 0x6f9f57 },
     }[theme] || { w: 0xf1e4c6, b: 0x4a2f18, ld: 0xf0d9b5, dk: 0xb58863 };
     matWhite = new T.MeshStandardMaterial({ color: P.w, roughness: 0.35, metalness: 0.05 });
     matBlack = new T.MeshStandardMaterial({ color: P.b, roughness: 0.4, metalness: 0.05 });
