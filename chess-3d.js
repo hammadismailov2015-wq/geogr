@@ -22,44 +22,49 @@
     for (let i = 0; i <= steps; i++) { const a = a0 + (a1 - a0) * i / steps; p.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
     return p;
   }
-  function baseStem(baseR, baseH, neckR, neckY) {
-    return [[0, 0], [baseR, 0], [baseR, baseH * 0.5], [baseR * 0.8, baseH], [neckR * 1.4, baseH + 0.03], [neckR, neckY]];
+  // Классическое стонтоновское основание: широкий диск + торовый валик + узкая ножка
+  function baseStem(baseR, neckR, neckY) {
+    return [
+      [0, 0], [baseR, 0], [baseR, 0.045],
+      [baseR * 0.90, 0.09], [baseR * 0.80, 0.12],
+      [baseR * 0.85, 0.19], [baseR * 0.60, 0.27],   // валик
+      [neckR * 1.55, 0.33], [neckR, neckY],
+    ];
   }
   const PROFILES = {
     p: () => {   // пешка
-      let s = baseStem(0.34, 0.12, 0.12, 0.42);
-      s = s.concat([[0.19, 0.46], [0.11, 0.50]]);
-      s = s.concat(arc(0, 0.60, 0.15, -Math.PI / 2, Math.PI / 2, 10));
+      let s = baseStem(0.32, 0.115, 0.42);
+      s = s.concat([[0.155, 0.45], [0.205, 0.48], [0.165, 0.52], [0.11, 0.55]]);      // воротник
+      s = s.concat(arc(0, 0.665, 0.15, -Math.PI / 2, Math.PI / 2, 14));               // головка-шар
       return s;
     },
     r: () => {   // ладья — тело (зубцы добавляются боксами)
-      let s = baseStem(0.37, 0.14, 0.18, 0.42);
-      s = s.concat([[0.22, 0.48], [0.20, 0.58], [0.27, 0.62], [0.29, 0.72], [0.33, 0.74], [0.33, 0.80], [0, 0.80]]);
+      let s = baseStem(0.36, 0.24, 0.44);
+      s = s.concat([[0.245, 0.50], [0.235, 0.66], [0.265, 0.68], [0.30, 0.70], [0.30, 0.78], [0, 0.78]]);
       return s;
     },
-    b: () => {   // слон
-      let s = baseStem(0.34, 0.12, 0.13, 0.5);
-      s = s.concat([[0.18, 0.56], [0.10, 0.60]]);
-      s = s.concat(arc(0, 0.72, 0.15, -Math.PI / 2, Math.PI / 2, 10));
-      s = s.concat([[0.05, 0.90], [0.07, 0.98], [0, 1.0]]);
+    b: () => {   // слон — митра с шариком
+      let s = baseStem(0.31, 0.115, 0.46);
+      s = s.concat([[0.15, 0.49], [0.205, 0.52], [0.16, 0.56], [0.105, 0.605]]);      // воротник
+      s = s.concat([[0.14, 0.66], [0.185, 0.74], [0.185, 0.82], [0.12, 0.905], [0.07, 0.955]]);  // митра
+      s = s.concat(arc(0, 1.0, 0.055, -Math.PI / 2, Math.PI / 2, 8));                 // шарик сверху
       return s;
     },
-    q: () => {   // ферзь — тело с чашей короны (бусины сверху отдельно)
-      let s = baseStem(0.38, 0.14, 0.15, 0.56);
-      s = s.concat([[0.20, 0.62], [0.29, 0.72], [0.33, 0.78]]);                       // воротник
-      s = s.concat([[0.21, 0.82], [0.30, 0.90], [0.31, 0.96], [0.16, 0.96], [0.14, 0.90], [0, 0.90]]);  // чаша короны
+    q: () => {   // ферзь — воротник + чаша короны (зубцы сверху отдельно)
+      let s = baseStem(0.34, 0.13, 0.52);
+      s = s.concat([[0.16, 0.56], [0.25, 0.64], [0.29, 0.705]]);                      // воротник
+      s = s.concat([[0.20, 0.75], [0.28, 0.83], [0.29, 0.90], [0.15, 0.90], [0.13, 0.84], [0, 0.86]]);  // чаша короны
       return s;
     },
-    k: () => {   // король — тело с круглой макушкой (крест отдельно)
-      let s = baseStem(0.40, 0.15, 0.16, 0.58);
-      s = s.concat([[0.22, 0.64], [0.31, 0.74], [0.34, 0.80]]);                       // воротник
-      s = s.concat([[0.24, 0.84], [0.15, 0.86]]);                                     // шея
-      s = s.concat(arc(0, 0.98, 0.13, -Math.PI / 2, Math.PI / 2, 8));                 // круглая макушка
+    k: () => {   // король — воротник + корона (крест отдельно)
+      let s = baseStem(0.36, 0.15, 0.54);
+      s = s.concat([[0.17, 0.58], [0.27, 0.66], [0.31, 0.725]]);                      // воротник
+      s = s.concat([[0.22, 0.77], [0.29, 0.85], [0.29, 0.92], [0.15, 0.92], [0.15, 0.98], [0.09, 1.0], [0, 1.0]]);  // корона
       return s;
     },
     n: () => {   // конь — постамент (голова добавляется силуэтом)
-      let s = baseStem(0.37, 0.14, 0.18, 0.36);
-      s = s.concat([[0.22, 0.42], [0.15, 0.48], [0, 0.48]]);
+      let s = baseStem(0.35, 0.19, 0.36);
+      s = s.concat([[0.22, 0.42], [0.15, 0.46], [0, 0.46]]);
       return s;
     },
   };
@@ -78,7 +83,7 @@
     const grp = new T.Group();
     const body = new T.Mesh(pieceGeometry('r'), mat); body.castShadow = true; grp.add(body);
     const merlon = new T.BoxGeometry(0.16, 0.18, 0.14);
-    const R = 0.24, y = 0.88, n = 8;
+    const R = 0.22, y = 0.85, n = 8;
     for (let i = 0; i < n; i += 2) {
       const a = (i / n) * Math.PI * 2;
       const m = new T.Mesh(merlon, mat); m.castShadow = true;
@@ -121,23 +126,28 @@
     return grp;
   }
 
-  // Король: тело + крест
+  // Король: тело + корона-обод + крест
   function kingMesh(mat) {
     const grp = new T.Group();
     const body = new T.Mesh(pieceGeometry('k'), mat); body.castShadow = true; grp.add(body);
-    const v = new T.Mesh(new T.BoxGeometry(0.08, 0.28, 0.08), mat); v.position.y = 1.24; v.castShadow = true; grp.add(v);
-    const h = new T.Mesh(new T.BoxGeometry(0.22, 0.08, 0.08), mat); h.position.y = 1.23; h.castShadow = true; grp.add(h);
+    const v = new T.Mesh(new T.BoxGeometry(0.08, 0.30, 0.08), mat); v.position.y = 1.17; v.castShadow = true; grp.add(v);
+    const h = new T.Mesh(new T.BoxGeometry(0.22, 0.08, 0.08), mat); h.position.y = 1.13; h.castShadow = true; grp.add(h);
     return grp;
   }
 
-  // Ферзь: тело + бусины короны + шарик сверху
+  // Ферзь: тело + зубцы короны (шипы с шариками) + шарик по центру
   function queenMesh(mat) {
     const grp = new T.Group();
     const body = new T.Mesh(pieceGeometry('q'), mat); body.castShadow = true; grp.add(body);
-    const bead = new T.SphereGeometry(0.065, 12, 10);
-    const R = 0.28, y = 0.99, n = 8;
-    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; const m = new T.Mesh(bead, mat); m.castShadow = true; m.position.set(Math.cos(a) * R, y, Math.sin(a) * R); grp.add(m); }
-    const top = new T.Mesh(new T.SphereGeometry(0.10, 14, 12), mat); top.position.y = 1.05; top.castShadow = true; grp.add(top);
+    const spike = new T.ConeGeometry(0.055, 0.16, 10);
+    const tip = new T.SphereGeometry(0.052, 10, 8);
+    const R = 0.25, y = 0.98, n = 8;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2, x = Math.cos(a) * R, z = Math.sin(a) * R;
+      const c = new T.Mesh(spike, mat); c.castShadow = true; c.position.set(x, y, z); grp.add(c);
+      const t = new T.Mesh(tip, mat); t.castShadow = true; t.position.set(x, y + 0.10, z); grp.add(t);
+    }
+    const top = new T.Mesh(new T.SphereGeometry(0.085, 14, 12), mat); top.position.y = 1.02; top.castShadow = true; grp.add(top);
     return grp;
   }
 
