@@ -32,9 +32,9 @@
       s = s.concat(arc(0, 0.60, 0.15, -Math.PI / 2, Math.PI / 2, 10));
       return s;
     },
-    r: () => {   // ладья
-      let s = baseStem(0.36, 0.13, 0.17, 0.5);
-      s = s.concat([[0.20, 0.56], [0.26, 0.6], [0.26, 0.74], [0.30, 0.74], [0.30, 0.82], [0, 0.82]]);
+    r: () => {   // ладья — тело (зубцы добавляются боксами)
+      let s = baseStem(0.37, 0.14, 0.18, 0.42);
+      s = s.concat([[0.22, 0.48], [0.20, 0.58], [0.27, 0.62], [0.29, 0.72], [0.33, 0.74], [0.33, 0.80], [0, 0.80]]);
       return s;
     },
     b: () => {   // слон
@@ -44,22 +44,22 @@
       s = s.concat([[0.05, 0.90], [0.07, 0.98], [0, 1.0]]);
       return s;
     },
-    q: () => {   // ферзь
-      let s = baseStem(0.38, 0.14, 0.15, 0.62);
-      s = s.concat([[0.20, 0.68], [0.30, 0.80], [0.34, 0.86]]);   // корона-чаша
-      s = s.concat([[0.24, 0.90], [0.10, 0.90]]);
-      s = s.concat(arc(0, 1.0, 0.11, -Math.PI / 2, Math.PI / 2, 8));
+    q: () => {   // ферзь — тело с чашей короны (бусины сверху отдельно)
+      let s = baseStem(0.38, 0.14, 0.15, 0.56);
+      s = s.concat([[0.20, 0.62], [0.29, 0.72], [0.33, 0.78]]);                       // воротник
+      s = s.concat([[0.21, 0.82], [0.30, 0.90], [0.31, 0.96], [0.16, 0.96], [0.14, 0.90], [0, 0.90]]);  // чаша короны
       return s;
     },
-    k: () => {   // король
-      let s = baseStem(0.40, 0.15, 0.16, 0.68);
-      s = s.concat([[0.22, 0.74], [0.32, 0.86], [0.36, 0.92]]);
-      s = s.concat([[0.26, 0.98], [0.16, 1.02], [0.16, 1.12], [0, 1.12]]);
+    k: () => {   // король — тело с круглой макушкой (крест отдельно)
+      let s = baseStem(0.40, 0.15, 0.16, 0.58);
+      s = s.concat([[0.22, 0.64], [0.31, 0.74], [0.34, 0.80]]);                       // воротник
+      s = s.concat([[0.24, 0.84], [0.15, 0.86]]);                                     // шея
+      s = s.concat(arc(0, 0.98, 0.13, -Math.PI / 2, Math.PI / 2, 8));                 // круглая макушка
       return s;
     },
-    n: () => {   // конь — только основание (голова добавляется боксами)
-      let s = baseStem(0.36, 0.13, 0.17, 0.42);
-      s = s.concat([[0.22, 0.48], [0.20, 0.56], [0, 0.56]]);
+    n: () => {   // конь — постамент (голова добавляется силуэтом)
+      let s = baseStem(0.37, 0.14, 0.18, 0.36);
+      s = s.concat([[0.22, 0.42], [0.15, 0.48], [0, 0.48]]);
       return s;
     },
   };
@@ -67,34 +67,86 @@
   function pieceGeometry(type) {
     if (pieceCache[type]) return pieceCache[type];
     const pts = PROFILES[type]().map(p => new T.Vector2(p[0], p[1]));
-    const g = new T.LatheGeometry(pts, 32);
+    const g = new T.LatheGeometry(pts, 40);
     g.computeVertexNormals();
     pieceCache[type] = g;
     return g;
   }
 
-  // Конь: основание (lathe) + голова из скруглённых боксов
-  function knightMesh(mat) {
+  // Ладья: тело + зубцы (кирпичики) по кругу с промежутками
+  function rookMesh(mat) {
     const grp = new T.Group();
-    const base = new T.Mesh(pieceGeometry('n'), mat); grp.add(base);
-    const headMat = mat;
-    const head = new T.Mesh(new T.BoxGeometry(0.24, 0.34, 0.44), headMat);
-    head.position.set(0, 0.74, -0.04); head.rotation.x = 0.28; grp.add(head);
-    const muzzle = new T.Mesh(new T.BoxGeometry(0.22, 0.20, 0.26), headMat);
-    muzzle.position.set(0, 0.66, 0.24); muzzle.rotation.x = 0.7; grp.add(muzzle);
-    const ear = new T.Mesh(new T.ConeGeometry(0.06, 0.16, 8), headMat);
-    ear.position.set(-0.07, 0.96, -0.14); ear.rotation.x = -0.2; grp.add(ear);
-    const ear2 = ear.clone(); ear2.position.x = 0.07; grp.add(ear2);
-    grp.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; } });
+    const body = new T.Mesh(pieceGeometry('r'), mat); body.castShadow = true; grp.add(body);
+    const merlon = new T.BoxGeometry(0.16, 0.18, 0.14);
+    const R = 0.24, y = 0.88, n = 8;
+    for (let i = 0; i < n; i += 2) {
+      const a = (i / n) * Math.PI * 2;
+      const m = new T.Mesh(merlon, mat); m.castShadow = true;
+      m.position.set(Math.cos(a) * R, y, Math.sin(a) * R); m.rotation.y = -a;
+      grp.add(m);
+    }
     return grp;
   }
 
-  // Крест на короле
-  function kingCross(mat) {
+  // Конь: постамент + настоящая голова коня (выдавленный силуэт)
+  let _knightGeo = null;
+  function knightHeadGeo() {
+    if (_knightGeo) return _knightGeo;
+    const sh = new T.Shape();
+    sh.moveTo(-0.10, -0.34);
+    sh.lineTo(0.22, -0.34);
+    sh.lineTo(0.26, -0.04);
+    sh.lineTo(0.21, 0.16);
+    sh.lineTo(0.10, 0.30);
+    sh.lineTo(0.03, 0.38);      // между ушами
+    sh.lineTo(-0.01, 0.27);
+    sh.lineTo(-0.07, 0.31);     // ухо
+    sh.lineTo(-0.11, 0.20);
+    sh.lineTo(-0.25, 0.11);     // лоб
+    sh.lineTo(-0.35, 0.00);     // кончик морды
+    sh.lineTo(-0.34, -0.11);
+    sh.lineTo(-0.18, -0.13);    // низ морды
+    sh.lineTo(-0.12, -0.23);    // челюсть
+    sh.closePath();
+    const g = new T.ExtrudeGeometry(sh, { depth: 0.30, bevelEnabled: true, bevelThickness: 0.035, bevelSize: 0.035, bevelSegments: 2 });
+    g.center(); g.computeVertexNormals();
+    _knightGeo = g; return g;
+  }
+  function knightMesh(mat) {
     const grp = new T.Group();
-    const v = new T.Mesh(new T.BoxGeometry(0.06, 0.22, 0.06), mat); v.position.y = 1.20; grp.add(v);
-    const h = new T.Mesh(new T.BoxGeometry(0.16, 0.06, 0.06), mat); h.position.y = 1.22; grp.add(h);
+    const base = new T.Mesh(pieceGeometry('n'), mat); base.castShadow = true; grp.add(base);
+    const head = new T.Mesh(knightHeadGeo(), mat); head.castShadow = true;
+    head.position.set(0, 0.74, 0); head.scale.set(1.08, 1.08, 1.0);
+    grp.add(head);
     return grp;
+  }
+
+  // Король: тело + крест
+  function kingMesh(mat) {
+    const grp = new T.Group();
+    const body = new T.Mesh(pieceGeometry('k'), mat); body.castShadow = true; grp.add(body);
+    const v = new T.Mesh(new T.BoxGeometry(0.08, 0.28, 0.08), mat); v.position.y = 1.24; v.castShadow = true; grp.add(v);
+    const h = new T.Mesh(new T.BoxGeometry(0.22, 0.08, 0.08), mat); h.position.y = 1.23; h.castShadow = true; grp.add(h);
+    return grp;
+  }
+
+  // Ферзь: тело + бусины короны + шарик сверху
+  function queenMesh(mat) {
+    const grp = new T.Group();
+    const body = new T.Mesh(pieceGeometry('q'), mat); body.castShadow = true; grp.add(body);
+    const bead = new T.SphereGeometry(0.065, 12, 10);
+    const R = 0.28, y = 0.99, n = 8;
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; const m = new T.Mesh(bead, mat); m.castShadow = true; m.position.set(Math.cos(a) * R, y, Math.sin(a) * R); grp.add(m); }
+    const top = new T.Mesh(new T.SphereGeometry(0.10, 14, 12), mat); top.position.y = 1.05; top.castShadow = true; grp.add(top);
+    return grp;
+  }
+
+  function buildPiece(type, mat) {
+    if (type === 'r') return rookMesh(mat);
+    if (type === 'n') return knightMesh(mat);
+    if (type === 'k') return kingMesh(mat);
+    if (type === 'q') return queenMesh(mat);
+    const m = new T.Mesh(pieceGeometry(type), mat); m.castShadow = true; return m;
   }
 
   let matWhite, matBlack, matSel;
@@ -203,16 +255,9 @@
 
   function addPiece(color, type, sq) {
     const mat = color === 'w' ? matWhite : matBlack;
-    let mesh;
-    if (type === 'n') mesh = knightMesh(mat);
-    else {
-      mesh = new T.Mesh(pieceGeometry(type), mat);
-      mesh.castShadow = true;
-    }
-    if (type === 'k') mesh.add(kingCross(mat));
+    const mesh = buildPiece(type, mat);
     const f = sq % 8, r = (sq / 8) | 0;
     mesh.position.set((f - 3.5) * S, 0, (3.5 - r) * S);
-    if (color === 'b' && type === 'n') mesh.rotation.y = Math.PI; // конь смотрит навстречу
     mesh.userData.sq = sq;
     mesh.traverse(o => { if (o.isMesh) o.castShadow = true; });
     pieceGroup.add(mesh);
