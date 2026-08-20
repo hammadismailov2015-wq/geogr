@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v113';
+  const APP_VERSION = 'v114';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -559,7 +559,9 @@
     applyView(app.view);
     $('themeBar').addEventListener('click', (e) => {
       const b = e.target.closest('.ch-sw');
-      if (b) { app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b); return; }
+      if (b) { app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b);
+        if (app.state && !$('gameScreen').hidden) { renderBoard(); }   // перекрасить доску/фигуры (в т.ч. 3D) под тему
+        return; }
       const v = e.target.closest('.ch-vw');
       if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v);
         if (app.state && !$('gameScreen').hidden) { renderBoard(); renderPlayerBars(); updateClocks(); applyScreenFlip(); } }
