@@ -258,6 +258,7 @@
     const mesh = buildPiece(type, mat);
     const f = sq % 8, r = (sq / 8) | 0;
     mesh.position.set((f - 3.5) * S, 0, (3.5 - r) * S);
+    mesh.scale.set(0.72, 1.0, 0.72);   // стройнее (уже по толщине)
     mesh.userData.sq = sq;
     mesh.traverse(o => { if (o.isMesh) o.castShadow = true; });
     pieceGroup.add(mesh);
