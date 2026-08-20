@@ -14,6 +14,7 @@
   let scene, camera, renderer, raycaster, pointer, rafId = null;
   let root, boardGroup, pieceGroup, hlGroup, sqMeshes = [];
   let container, hooks = {}, visible = false, needsRender = true;
+  let targetRotY = 0, curRotY = 0, rotInit = false;   // плавный разворот доски
   const pieceCache = {};        // геометрии по типу
 
   // ---- Профили точёных фигур (правый силуэт: x=радиус, y=высота) ----
@@ -297,8 +298,9 @@
     // тема сменилась?
     if (o.theme && o.theme !== NS._theme) { const P = makeMaterials(o.theme); buildBoard(P); NS._theme = o.theme; }
     if (!boardGroup) { buildBoard(makeMaterials(o.theme || 'brown')); NS._theme = o.theme || 'brown'; }
-    // ориентация доски (за чёрных / ход чёрных в «Рядом»)
-    root.rotation.y = o.flip ? Math.PI : 0;
+    // ориентация доски (за чёрных / ход чёрных в «Рядом») — плавный поворот
+    targetRotY = o.flip ? Math.PI : 0;
+    if (!rotInit) { curRotY = targetRotY; root.rotation.y = curRotY; rotInit = true; }
     // фигуры
     for (let i = pieceGroup.children.length - 1; i >= 0; i--) pieceGroup.remove(pieceGroup.children[i]);
     const b = state.board;
@@ -315,7 +317,7 @@
   NS.setVisible = function (v) {
     visible = !!v;
     if (container) container.style.display = v ? 'block' : 'none';
-    if (v) { NS.resize(); needsRender = true; }
+    if (v) { rotInit = false; NS.resize(); needsRender = true; }   // при показе — без анимации спина
   };
 
   NS.resize = function () {
@@ -329,7 +331,14 @@
 
   function animate() {
     rafId = requestAnimationFrame(animate);
-    if (visible && needsRender) { renderer.render(scene, camera); needsRender = false; }
+    if (!visible) return;
+    if (root && Math.abs(curRotY - targetRotY) > 0.002) {
+      curRotY += (targetRotY - curRotY) * 0.16;
+      if (Math.abs(curRotY - targetRotY) < 0.01) curRotY = targetRotY;
+      root.rotation.y = curRotY;
+      needsRender = true;
+    }
+    if (needsRender) { renderer.render(scene, camera); needsRender = false; }
   }
 
   window.Chess3D = NS;
