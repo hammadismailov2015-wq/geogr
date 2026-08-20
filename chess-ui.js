@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v100';
+  const APP_VERSION = 'v101';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -2245,7 +2245,15 @@
     badge.innerHTML = rankHtml(r);
     const next = RANKS.find(x => x.g > g);
     const info = $('rankInfo');
-    if (info) info.innerHTML = `Ранг: <b>${r.name}</b> · сыграно партий: <b>${g}</b>` + (next ? ` · до «${next.name}»: ${next.g - g}` : '');
+    if (info) {
+      const plGames = (n) => { const a = n % 10, b = n % 100; if (a === 1 && b !== 11) return 'партия'; if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return 'партии'; return 'партий'; };
+      const line1 = `Сыграно партий — <b>${g}</b>`;
+      const left = next ? next.g - g : 0;
+      const line2 = next
+        ? `Ранг — <b>${r.name}</b>, до «${next.name}» — <b>${left}</b> ${plGames(left)}`
+        : `Ранг — <b>${r.name}</b> (максимальный!)`;
+      info.innerHTML = line1 + '<br>' + line2;
+    }
   }
   function openRanks() {
     const g = ensureStats().games || 0;
