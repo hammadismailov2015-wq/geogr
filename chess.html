@@ -49,6 +49,8 @@
     (function () {
       var online = location.protocol === "http:" || location.protocol === "https:";
       var v = online ? "?v=" + Date.now() : "";
+      document.write('<script src="three.min.js"><\/script>');
+      document.write('<script src="chess-3d.js' + v + '"><\/script>');
       document.write('<script src="chess.js' + v + '"><\/script>');
       document.write('<script src="chess-ui.js' + v + '"><\/script>');
     })();

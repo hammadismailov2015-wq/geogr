@@ -442,6 +442,10 @@ body:not(.ch-3d) .ch-fliparea.flip180 .ch-coord { transform: rotate(180deg); }
 .ch-tg-foot { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
 
 .ch-board-wrap { display: flex; justify-content: center; }
+/* Настоящий 3D (WebGL) */
+.ch-board3d { width: min(92vw, 560px); aspect-ratio: 1 / 1; margin: 0 auto; touch-action: manipulation; }
+body.ch-3dreal .ch-board-stack { display: none; }
+body:not(.ch-3dreal) .ch-board3d { display: none; }
 .ch-board {
   width: min(92vw, 560px); aspect-ratio: 1/1;
   display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
