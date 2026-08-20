@@ -160,8 +160,8 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 /* «на ладье» — фигуру поднимаем чуть выше */
 .ch-rank.combo.tower .rk-top { bottom: 41px; }
-.ch-rank-info { margin: 0 0 6px !important; color: #f0d08a !important; font-size: 13px; font-weight: 700; }
-.ch-rank-info b { color: #ffe8a0; }
+.ch-rank-info { display: inline-block; margin: 10px 0 14px !important; padding: 8px 16px; border-radius: 12px; background: #eef1f7; color: #1a2030 !important; font-size: 13px; font-weight: 700; line-height: 1.5; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
+.ch-rank-info b { color: #000; }
 .ch-rank-btn {
   display: inline-flex; align-items: center; gap: 7px; margin: 0 0 10px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
   font-size: 13px; font-weight: 700; color: #ffe8a0;
