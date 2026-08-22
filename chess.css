@@ -384,6 +384,17 @@ body:not(.ch-3d) .ch-fliparea.flip180 .ch-coord { transform: rotate(180deg); }
 #tutReview { margin-bottom: 6px; }
 .ch-tut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 6px; }
 .ch-tut-count { text-align: center; font-weight: 800; color: #ffe08a; margin-top: 16px; margin-bottom: 12px; font-size: 14px; }
+/* Задача дня */
+.ch-daily { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; margin-bottom: 6px; padding: 14px 16px; border-radius: 14px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #f0a91e, #e0691f); border: none; box-shadow: 0 4px 14px rgba(0, 0, 0, .4); transition: transform .14s, filter .14s; }
+.ch-daily:hover { transform: translateY(-2px); filter: brightness(1.05); }
+.ch-daily.done { background: linear-gradient(135deg, #2fae59, #1f8a44); }
+.ch-daily .cd-ico { flex: none; display: inline-flex; }
+.ch-daily .cd-ico svg { width: 26px; height: 26px; }
+.ch-daily .cd-txt { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.ch-daily .cd-t { font-weight: 800; font-size: 16px; }
+.ch-daily .cd-d { font-size: 12.5px; opacity: .92; }
+.ch-daily .cd-st { flex: none; font-weight: 800; font-size: 18px; display: inline-flex; }
+.ch-daily .cd-st svg { width: 20px; height: 20px; }
 .ch-tut-card {
   display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 14px; cursor: pointer;
   background: rgba(16, 19, 33, .82); border: 1px solid var(--line); color: #9aa2bd; font-size: 15px; font-weight: 700;
