@@ -98,7 +98,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-sound {
   width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 18px; line-height: 1;
   background: rgba(20, 24, 40, .7); border: 2px solid rgba(255, 255, 255, .18); color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); transition: .16s; margin-right: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); transition: .16s;
 }
 .ch-sound:hover { transform: translateY(-2px); border-color: var(--accent); }
 .ch-sw {
