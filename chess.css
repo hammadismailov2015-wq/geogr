@@ -93,9 +93,8 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 
 /* ---------- Переключатель темы (мини-доски) ---------- */
-.ch-themebar { position: sticky; top: 8px; z-index: 6; display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 4px; margin: 0 2px 6px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-.ch-themebar::-webkit-scrollbar { display: none; }
-.ch-themebar > * { flex: none; }
+.ch-themebar { position: sticky; top: 8px; z-index: 6; width: 100%; box-sizing: border-box; display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 3px; margin: 0 0 6px; padding: 0 2px; }
+.ch-themebar > * { flex: 0 0 auto; }
 .ch-sound {
   width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 18px; line-height: 1;
   background: rgba(20, 24, 40, .7); border: 2px solid rgba(255, 255, 255, .18); color: #fff;
