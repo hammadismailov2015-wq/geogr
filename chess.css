@@ -465,8 +465,15 @@ body:not(.ch-3d) .ch-fliparea.flip180 .ch-coord { transform: rotate(180deg); }
 .ch-board-wrap { display: flex; justify-content: center; }
 /* Настоящий 3D (WebGL) */
 .ch-board3d { width: min(92vw, 560px); aspect-ratio: 1 / 1; margin: 0 auto; touch-action: manipulation; }
-body.ch-3dreal .ch-board-stack { display: none; }
+body.ch-3dreal #gameScreen .ch-board-stack { display: none; }
 body:not(.ch-3dreal) .ch-board3d { display: none; }
+/* Учебная доска (уроки/задача дня/проверка) — ВСЕГДА 2D, без 3D-наклона.
+   3D-движок рисует только игровую доску, поэтому в 3D-режиме учебную не наклоняем. */
+.ch-3d #tutBoard, .ch-3d #tgBoard { transform: none !important; }
+.ch-3d #tutBoard .ch-piece, .ch-3d #tgBoard .ch-piece { display: flex !important; }
+.ch-3d #tutBoard .ch-sq, .ch-3d #tgBoard .ch-sq { box-shadow: none !important; }
+#tutPieceLayer { display: none !important; }
+.ch-tut-arrowlayer { transform: none !important; }
 .ch-board {
   width: min(92vw, 560px); aspect-ratio: 1/1;
   display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
