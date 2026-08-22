@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v118';
+  const APP_VERSION = 'v119';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -209,7 +209,7 @@
     initBackground();
     startClockLoop();
     const h = location.hash;
-    if (h.indexOf('room=') >= 0) startOnlineGuest(h);
+    if (h.indexOf('room=') >= 0) { (parseHash(h).w === '1') ? startOnlineWatch(h) : startOnlineGuest(h); }
     else if (h.startsWith('#g=')) startFromLink(h.slice(3));
     else showSetup();
   });
@@ -342,9 +342,12 @@
 
         <div class="ch-online" id="onlineBar" hidden>
           <div class="ch-online-status" id="onlineStatus">Подключение…</div>
+          <div class="ch-watchers" id="watchers" hidden></div>
           <div class="ch-online-share" id="onlineShare">
             <input id="onlineLink" class="ch-share-input" readonly />
-            <button class="ch-btn ch-btn-primary" id="btnOnlineCopy">${inl(ICON.copy)}Скопировать ссылку для друга</button>
+            <button class="ch-btn ch-btn-primary" id="btnOnlineCopy">${inl(ICON.copy)}Ссылка для соперника</button>
+            <input id="watchLink" class="ch-share-input" readonly />
+            <button class="ch-btn" id="btnWatchCopy">${inl(ICON.copy)}Ссылка для зрителя</button>
           </div>
           <button class="ch-btn" id="btnFallback" hidden>Не подключается? Играть по ссылке-ходу</button>
         </div>
@@ -633,6 +636,7 @@
 
   function showSetup() {
     closeOnline();
+    document.body.classList.remove('ch-watching');
     $('setupScreen').hidden = false;
     $('gameScreen').hidden = true;
     $('tutorScreen').hidden = true;
@@ -690,6 +694,10 @@
     $('btnFlip').style.display = onl ? 'none' : '';
     $('btnUndo').style.display = (app.mode === 'friend' && !onl) ? 'none' : '';
     $('btnResign').style.display = (app.mode === 'friend' && !onl) ? 'none' : '';
+    // зритель: не может ходить/сдаваться/отменять
+    const watch = onl && app.online.role === 'watch';
+    document.body.classList.toggle('ch-watching', !!watch);
+    if (watch) { $('btnUndo').style.display = 'none'; $('btnResign').style.display = 'none'; }
     resetUndoBtn();
     resetRematchBtn();
     render();
@@ -747,6 +755,32 @@
     checkOver();
   }
 
+  // Наблюдатель: заходит по «зрительской» ссылке, только смотрит (не ходит)
+  function startOnlineWatch(hash) {
+    const params = parseHash(hash);
+    if (!params.room) { showSetup(); return; }
+    app.theme = localStorage.getItem('chessTheme') || 'classic'; applyTheme(app.theme);
+    if (!netAvailable()) { app.mode = 'friend'; resetGame(); alert('Чтобы смотреть партию онлайн, откройте ссылку в браузере с интернетом.'); showSetup(); return; }
+    app.mode = 'friend'; resetGame();
+    const saved = loadOnlineGame(params.room);
+    const hostColor = params.h === 'b' ? 'b' : 'w';
+    setup.timeMin = saved ? (saved.tm || 0) : (parseInt(params.t || '0', 10) || 0);
+    setup.moveLim = saved ? (saved.mm || 0) : (parseInt(params.m || '0', 10) || 0);
+    app.myColor = null; app.orientation = 'w';
+    app.online = { on: true, role: 'watch', room: params.room, myColor: null, hostColor, myId: null, net: null, connected: false, peerReady: false, failed: false, timeMin: setup.timeMin, moveLim: setup.moveLim, watchers: {} };
+    initClock();
+    if (saved && saved.moves && saved.moves.length) {
+      rebuildFrom(saved.moves);
+      if (saved.msW != null) { app.clock.timeMs.w = saved.msW; app.clock.timeMs.b = saved.msB; }
+      if (saved.mvW != null) { app.clock.movesLeft.w = saved.mvW; app.clock.movesLeft.b = saved.mvB; }
+      app.clock.lastTick = Date.now();
+    }
+    document.body.classList.add('ch-watching');
+    connectOnline();
+    enterGameScreen();
+    checkOver();
+  }
+
   function parseHash(h) {
     const out = {};
     h.replace(/^#/, '').split('&').forEach(kv => { const i = kv.indexOf('='); if (i > 0) out[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); });
@@ -757,18 +791,19 @@
     const o = app.online;
     return location.origin + location.pathname + '#room=' + o.room + '&h=' + o.hostColor + '&t=' + (o.timeMin || 0) + '&m=' + (o.moveLim || 0);
   }
+  function buildWatchLink() { return buildOnlineLink() + '&w=1'; }
 
   function connectOnline() {
     const o = app.online;
     o.net = ChessNet.connect(o.room, {
       onOpen: () => {
         o.connected = true; o.failed = false; o.myId = o.net.id;
-        netSend({ t: 'hi', s: o.myId, c: o.myColor });
+        netSend({ t: 'hi', s: o.myId, c: o.myColor, r: o.role });
         startPresence(); setOnlineStatus();
         // Обновляем «прилипающее» состояние на сервере, но с задержкой: сначала
         // даём брокеру прислать своё сохранённое состояние (вдруг оно новее), а
         // потом публикуем самую длинную известную партию — чтобы не затереть ходы.
-        if (app.history.length) setTimeout(() => { if (app.online.on && app.online.net) publishStateRetained(); }, 1500);
+        if (app.history.length && o.role !== 'watch') setTimeout(() => { if (app.online.on && app.online.net) publishStateRetained(); }, 1500);
       },
       onReconnect: () => { o.connected = false; setOnlineStatus(); },
       onClose: () => { o.connected = false; setOnlineStatus(); },
@@ -795,6 +830,14 @@
     // а не признак того, что соперник сейчас на связи. Восстанавливаем ходы, но
     // НЕ помечаем соперника присутствующим (его покажет только «живой» пинг).
     if (retained) { if (o.t === 'sync') applySync(o); return; }
+    // сообщение от ЗРИТЕЛЯ — учитываем в счётчике зрителей, но это не соперник
+    if (o.r === 'watch') {
+      me.watchers = me.watchers || {};
+      if (o.t === 'bye') delete me.watchers[o.s]; else me.watchers[o.s] = Date.now();
+      if (o.t === 'react') showReaction(o.e, true);
+      setOnlineStatus();
+      return;
+    }
     me.lastSeen = Date.now();
     // соперник вышел (закрыл вкладку)
     if (o.t === 'bye') { me.peerReady = false; setOnlineStatus(); return; }
@@ -835,11 +878,21 @@
   function startPresence() {
     const o = app.online; clearPresence();
     o.lastSeen = Date.now();
-    o.hbTimer = setInterval(() => { if (app.online.on) netSend({ t: 'ping', s: app.online.myId }); }, 3000);
+    o.watchers = o.watchers || {};
+    o.hbTimer = setInterval(() => { if (app.online.on) netSend({ t: 'ping', s: app.online.myId, r: app.online.role }); }, 3000);
     o.wdTimer = setInterval(() => {
-      const a = app.online;
-      if (a.on && a.peerReady && Date.now() - (a.lastSeen || 0) > 8000) { a.peerReady = false; setOnlineStatus(); }
+      const a = app.online; if (!a.on) return;
+      const before = watchCount();
+      if (a.peerReady && Date.now() - (a.lastSeen || 0) > 8000) { a.peerReady = false; setOnlineStatus(); }
+      if (watchCount() !== before) setOnlineStatus();   // изменилось число зрителей
     }, 2000);
+  }
+  function watchCount() {
+    const o = app.online; if (!o) return 0;
+    let n = 0; const now = Date.now(); const w = o.watchers || {};
+    for (const id in w) { if (now - w[id] < 8000) n++; else delete w[id]; }
+    if (o.role === 'watch') n++;   // себя тоже считаю
+    return n;
   }
   function clearPresence() {
     const o = app.online; if (!o) return;
@@ -950,11 +1003,24 @@
     const o = app.online; if (!o.on) return;
     const st = $('onlineStatus'); const fb = $('btnFallback');
     st.classList.remove('ok', 'warn', 'bad');
-    if (o.failed && !o.connected) { st.textContent = '🔴 Нет связи с сервером. Проверьте интернет — или сыграйте по ссылке-ходу.'; st.classList.add('bad'); fb.hidden = false; }
+    const watch = o.role === 'watch';
+    if (o.failed && !o.connected) { st.textContent = '🔴 Нет связи с сервером. Проверьте интернет' + (watch ? '.' : ' — или сыграйте по ссылке-ходу.'); st.classList.add('bad'); fb.hidden = watch; }
     else if (!o.connected) { st.textContent = '🟡 Подключение к серверу…'; st.classList.add('warn'); fb.hidden = true; }
+    else if (watch) { st.textContent = '👁 Вы смотрите партию'; st.classList.add('ok'); fb.hidden = true; }
     else if (!o.peerReady) { st.textContent = '🔴 Соперника нет'; st.classList.add('bad'); fb.hidden = true; }
     else { st.textContent = '🟢 Соперник есть'; st.classList.add('ok'); fb.hidden = true; }
-    $('onlineLink').value = buildOnlineLink();
+    // число зрителей
+    const wc = watchCount(), we = $('watchers');
+    if (we) { if (wc > 0) { we.hidden = false; we.textContent = '👁 Смотрят: ' + wc; } else we.hidden = true; }
+    // ссылки: соперника показываем только игрокам, зрительскую — всем
+    const share = $('onlineShare');
+    if (share) {
+      const oppInp = $('onlineLink'), oppBtn = $('btnOnlineCopy');
+      if (oppInp) oppInp.value = buildOnlineLink();
+      const wl = $('watchLink'); if (wl) wl.value = buildWatchLink();
+      if (oppInp) oppInp.hidden = watch;
+      if (oppBtn) oppBtn.hidden = watch;
+    }
   }
 
   function switchToCorrespondence() {
@@ -1581,6 +1647,7 @@
     $('btnCopy').addEventListener('click', () => { const inp = $('shareLink'); inp.select(); copyText(inp.value).then(ok => { $('copyHint').textContent = ok ? '✓ Ссылка скопирована' : 'Скопируйте вручную (выделено выше)'; }); });
     $('btnShareEdit').addEventListener('click', () => { $('shareModal').hidden = true; app.pendingShare = false; undoLast(true); });
     $('btnOnlineCopy').addEventListener('click', () => { const inp = $('onlineLink'); inp.select(); copyText(inp.value).then(ok => { $('btnOnlineCopy').innerHTML = ok ? '✓ Скопировано — отправьте другу' : inl(ICON.copy) + 'Выделено — скопируйте вручную'; }); });
+    $('btnWatchCopy').addEventListener('click', () => { const inp = $('watchLink'); inp.select(); copyText(inp.value).then(ok => { $('btnWatchCopy').innerHTML = ok ? '✓ Ссылка для зрителя скопирована' : inl(ICON.copy) + 'Выделено — скопируйте вручную'; }); });
     $('btnFallback').addEventListener('click', () => switchToCorrespondence());
     $('chatSend').addEventListener('click', sendChat);
     $('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } });
@@ -2181,7 +2248,7 @@
      ДОСТИЖЕНИЯ (статистика игрока)
      ======================================================== */
   const STATS_KEY = 'chessStats';
-  function hasYou() { return app.mode === 'bot' || (app.mode === 'friend' && app.online.on); }
+  function hasYou() { return app.mode === 'bot' || (app.mode === 'friend' && app.online.on && app.online.role !== 'watch'); }
   function myStatColor() { return app.mode === 'bot' ? app.myColor : (app.mode === 'friend' && app.online.on ? app.online.myColor : null); }
   function resetGameStats() { app.gs = { checks: 0, start: Date.now(), lastCapType: null, lastFrom: -1, lastTo: -1, myCaps: 0, alphaNext: 0, prevPins: new Set() }; }
 
