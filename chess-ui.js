@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v127';
+  const APP_VERSION = 'v128';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -321,7 +321,7 @@
         </div>
         <div id="tutLesson" hidden>
           <div class="ch-tutor-explain" id="tutExplain"></div>
-          <div class="ch-board-wrap"><div class="ch-board-stack"><div class="ch-board" id="tutBoard"></div><div class="ch-piecelayer" id="tutPieceLayer"></div><div class="ch-tut-arrowlayer" id="tutArrowLayer"></div></div></div>
+          <div class="ch-board-wrap"><div class="ch-board-stack"><div class="ch-board" id="tutBoard"></div><div class="ch-piecelayer" id="tutPieceLayer"></div><div class="ch-tut-arrowlayer" id="tutArrowLayer"></div></div><div id="tutBoard3d" class="ch-board3d" hidden></div></div>
           <div class="ch-tutor-prompt" id="tutPrompt"></div>
           <div class="ch-tutor-actions" id="tutActions"></div>
         </div>
@@ -329,7 +329,7 @@
           <div class="ch-tg-progress" id="tgProgress"></div>
           <div class="ch-tg-question" id="tgQuestion"></div>
           <div class="ch-tg-options" id="tgOptions"></div>
-          <div class="ch-board-wrap"><div class="ch-board ch-tg-board" id="tgBoard"></div></div>
+          <div class="ch-board-wrap"><div class="ch-board ch-tg-board" id="tgBoard"></div><div id="tgBoard3d" class="ch-board3d" hidden></div></div>
           <div class="ch-tg-foot" id="tgFoot"></div>
         </div>
       </section>
@@ -1601,6 +1601,7 @@
   }
   function update3D() {
     if (!use3DReal() || !_c3dReady || !app.state) return;
+    Chess3D.mount($('board3d')); Chess3D.setTap(boardTap); Chess3D.setVisible(true);
     const localFlip = app.mode === 'local' && !app.over && app.state.turn === 'b';
     const rot = (app.orientation === 'b') !== localFlip;
     let checkSq = -1;
@@ -1940,6 +1941,24 @@
       }
     }
     maybeDrawTutArrow(el);
+    updateTut3D();
+  }
+  // Настоящий WebGL-движок на учебной доске (уроки/задача дня)
+  function updateTut3D() {
+    const t3 = $('tutBoard3d');
+    if (!use3DReal() || !window.Chess3D || !tut.state) { if (t3) t3.hidden = true; return; }
+    ensure3D();
+    if (!_c3dReady || !t3) return;
+    t3.hidden = false;
+    Chess3D.mount(t3); Chess3D.setTap(onTutTap); Chess3D.setVisible(true);
+    let checkSq = -1;
+    for (let i = 0; i < 64; i++) { const p = tut.state.board[i]; if (p && C.typeOf(p) === 'k' && C.inCheck(tut.state, C.colorOf(p))) { checkSq = i; break; } }
+    Chess3D.update(tut.state, {
+      theme: bodyTheme(), texture: app.texture || 'plain', flip: app.tutSideResolved === 'b',
+      selected: tut.sel, legal: tut.legal || [],
+      occupied: (sq) => !!tut.state.board[sq],
+      last: tut.lastMove, checkSq: checkSq
+    });
   }
 
   // Стрелка-подсказка «куда ходить» — в ПЕРВОМ задании урока (до первого хода) и когда нажали «Подсказку».
@@ -2150,6 +2169,22 @@
       }
       el.appendChild(cell);
     }
+    updateTg3D(pRank, promoted);
+  }
+  // WebGL на доске «Игра — повторение»: одна фигура (пешка/ферзь) на клетке прогресса
+  function updateTg3D(pRank, promoted) {
+    const t3 = $('tgBoard3d');
+    if (!use3DReal() || !window.Chess3D) { if (t3) t3.hidden = true; return; }
+    ensure3D();
+    if (!_c3dReady || !t3) return;
+    t3.hidden = false;
+    Chess3D.mount(t3); Chess3D.setTap(function () { }); Chess3D.setVisible(true);
+    const board = new Array(64).fill(null);
+    board[C.sq(TG_FILE, pRank)] = 'w' + (promoted ? 'q' : 'p');
+    Chess3D.update({ board: board, turn: 'w' }, {
+      theme: bodyTheme(), texture: app.texture || 'plain', flip: false,
+      selected: -1, legal: [], occupied: () => false, last: null, checkSq: -1
+    });
   }
 
   function onTgAnswer(val, btn) {
