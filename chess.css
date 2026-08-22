@@ -93,15 +93,17 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 
 /* ---------- Переключатель темы (мини-доски) ---------- */
-.ch-themebar { position: sticky; top: 8px; z-index: 6; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px; margin: 0 2px 6px; }
+.ch-themebar { position: sticky; top: 8px; z-index: 6; display: flex; flex-wrap: nowrap; justify-content: flex-end; align-items: center; gap: 4px; margin: 0 2px 6px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.ch-themebar::-webkit-scrollbar { display: none; }
+.ch-themebar > * { flex: none; }
 .ch-sound {
-  width: 40px; height: 40px; border-radius: 11px; cursor: pointer; font-size: 18px; line-height: 1;
+  width: 32px; height: 32px; border-radius: 10px; cursor: pointer; font-size: 18px; line-height: 1;
   background: rgba(20, 24, 40, .7); border: 2px solid rgba(255, 255, 255, .18); color: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, .35); transition: .16s; margin-right: auto;
 }
 .ch-sound:hover { transform: translateY(-2px); border-color: var(--accent); }
 .ch-sw {
-  width: 40px; height: 40px; padding: 3px; border-radius: 11px; cursor: pointer;
+  width: 28px; height: 28px; padding: 2px; border-radius: 9px; cursor: pointer;
   display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0;
   background: rgba(20, 24, 40, .7); border: 2px solid rgba(255, 255, 255, .18);
   box-shadow: 0 4px 12px rgba(0, 0, 0, .35); transition: .16s; overflow: hidden;
@@ -116,8 +118,8 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 /* Переключатель 2D / 3D */
 .ch-vsep { width: 1px; height: 26px; background: rgba(255, 255, 255, .22); }
 .ch-vw {
-  min-width: 42px; height: 40px; padding: 0 10px; border-radius: 11px; cursor: pointer;
-  font-weight: 800; font-size: 15px; color: #fff; line-height: 1;
+  min-width: 32px; height: 32px; padding: 0 6px; border-radius: 10px; cursor: pointer;
+  font-weight: 800; font-size: 14px; color: #fff; line-height: 1;
   background: rgba(20, 24, 40, .7); border: 2px solid rgba(255, 255, 255, .18);
   box-shadow: 0 4px 12px rgba(0, 0, 0, .35); transition: .16s;
 }
@@ -125,7 +127,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-vw.active { border-color: var(--accent); background: rgba(108, 140, 255, .28); box-shadow: 0 0 0 3px rgba(108, 140, 255, .35), 0 4px 12px rgba(0, 0, 0, .35); }
 
 /* Кнопки текстуры доски (мини-превью) */
-.ch-tx { width: 34px; height: 34px; border-radius: 9px; cursor: pointer; border: 2px solid rgba(255, 255, 255, .18); box-shadow: 0 3px 9px rgba(0, 0, 0, .35); transition: .16s; background-color: #b98a5a; }
+.ch-tx { width: 26px; height: 26px; border-radius: 8px; cursor: pointer; border: 2px solid rgba(255, 255, 255, .18); box-shadow: 0 3px 9px rgba(0, 0, 0, .35); transition: .16s; background-color: #b98a5a; }
 .ch-tx:hover { transform: translateY(-2px); border-color: var(--accent); }
 .ch-tx.active { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108, 140, 255, .4), 0 4px 12px rgba(0, 0, 0, .35); }
 .ch-tx[data-tex="plain"] { background-image: linear-gradient(158deg, rgba(255,255,255,.2), rgba(0,0,0,.12)); }
