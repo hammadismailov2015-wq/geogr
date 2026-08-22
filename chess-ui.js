@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v119';
+  const APP_VERSION = 'v120';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -344,12 +344,15 @@
           <div class="ch-online-status" id="onlineStatus">Подключение…</div>
           <div class="ch-watchers" id="watchers" hidden></div>
           <div class="ch-online-share" id="onlineShare">
-            <input id="onlineLink" class="ch-share-input" readonly />
-            <button class="ch-btn ch-btn-primary" id="btnOnlineCopy">${inl(ICON.copy)}Ссылка для соперника</button>
-            <input id="watchLink" class="ch-share-input" readonly />
-            <button class="ch-btn" id="btnWatchCopy">${inl(ICON.copy)}Ссылка для зрителя</button>
+            <div class="ch-share-col" id="oppCol">
+              <button class="ch-btn ch-btn-primary" id="btnOnlineCopy">${inl(ICON.copy)}Ссылка для соперника</button>
+              <input id="onlineLink" class="ch-share-input" readonly />
+            </div>
+            <div class="ch-share-col">
+              <button class="ch-btn" id="btnWatchCopy">${inl(ICON.copy)}Ссылка для зрителя</button>
+              <input id="watchLink" class="ch-share-input" readonly />
+            </div>
           </div>
-          <button class="ch-btn" id="btnFallback" hidden>Не подключается? Играть по ссылке-ходу</button>
         </div>
 
         <div class="ch-playerbar" id="barTop">
@@ -1001,26 +1004,21 @@
 
   function setOnlineStatus() {
     const o = app.online; if (!o.on) return;
-    const st = $('onlineStatus'); const fb = $('btnFallback');
+    const st = $('onlineStatus');
     st.classList.remove('ok', 'warn', 'bad');
     const watch = o.role === 'watch';
-    if (o.failed && !o.connected) { st.textContent = '🔴 Нет связи с сервером. Проверьте интернет' + (watch ? '.' : ' — или сыграйте по ссылке-ходу.'); st.classList.add('bad'); fb.hidden = watch; }
-    else if (!o.connected) { st.textContent = '🟡 Подключение к серверу…'; st.classList.add('warn'); fb.hidden = true; }
-    else if (watch) { st.textContent = '👁 Вы смотрите партию'; st.classList.add('ok'); fb.hidden = true; }
-    else if (!o.peerReady) { st.textContent = '🔴 Соперника нет'; st.classList.add('bad'); fb.hidden = true; }
-    else { st.textContent = '🟢 Соперник есть'; st.classList.add('ok'); fb.hidden = true; }
+    if (o.failed && !o.connected) { st.textContent = '🔴 Нет связи с сервером. Проверьте интернет.'; st.classList.add('bad'); }
+    else if (!o.connected) { st.textContent = '🟡 Подключение к серверу…'; st.classList.add('warn'); }
+    else if (watch) { st.textContent = '👁 Вы смотрите партию'; st.classList.add('ok'); }
+    else if (!o.peerReady) { st.textContent = '🔴 Соперника нет'; st.classList.add('bad'); }
+    else { st.textContent = '🟢 Соперник есть'; st.classList.add('ok'); }
     // число зрителей
     const wc = watchCount(), we = $('watchers');
     if (we) { if (wc > 0) { we.hidden = false; we.textContent = '👁 Смотрят: ' + wc; } else we.hidden = true; }
     // ссылки: соперника показываем только игрокам, зрительскую — всем
-    const share = $('onlineShare');
-    if (share) {
-      const oppInp = $('onlineLink'), oppBtn = $('btnOnlineCopy');
-      if (oppInp) oppInp.value = buildOnlineLink();
-      const wl = $('watchLink'); if (wl) wl.value = buildWatchLink();
-      if (oppInp) oppInp.hidden = watch;
-      if (oppBtn) oppBtn.hidden = watch;
-    }
+    const oppInp = $('onlineLink'); if (oppInp) oppInp.value = buildOnlineLink();
+    const wl = $('watchLink'); if (wl) wl.value = buildWatchLink();
+    const oppCol = $('oppCol'); if (oppCol) oppCol.hidden = watch;
   }
 
   function switchToCorrespondence() {
@@ -1648,7 +1646,6 @@
     $('btnShareEdit').addEventListener('click', () => { $('shareModal').hidden = true; app.pendingShare = false; undoLast(true); });
     $('btnOnlineCopy').addEventListener('click', () => { const inp = $('onlineLink'); inp.select(); copyText(inp.value).then(ok => { $('btnOnlineCopy').innerHTML = ok ? '✓ Скопировано — отправьте другу' : inl(ICON.copy) + 'Выделено — скопируйте вручную'; }); });
     $('btnWatchCopy').addEventListener('click', () => { const inp = $('watchLink'); inp.select(); copyText(inp.value).then(ok => { $('btnWatchCopy').innerHTML = ok ? '✓ Ссылка для зрителя скопирована' : inl(ICON.copy) + 'Выделено — скопируйте вручную'; }); });
-    $('btnFallback').addEventListener('click', () => switchToCorrespondence());
     $('chatSend').addEventListener('click', sendChat);
     $('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } });
     window.addEventListener('beforeunload', () => { if (app.online && app.online.on && app.online.net) { try { app.online.net.publish({ t: 'bye', s: app.online.myId }); } catch (e) { } } });
