@@ -734,8 +734,11 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .ch-online-status.ok { color: #6ee7a8; }
 .ch-online-status.warn { color: #ffd166; }
 .ch-online-status.bad { color: #ff8b8b; }
-.ch-online-share { display: flex; flex-direction: column; gap: 8px; }
-.ch-online-share .ch-share-input { margin-bottom: 0; }
+.ch-online-share { display: flex; gap: 10px; }
+.ch-share-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.ch-share-col[hidden] { display: none; }
+.ch-share-col .ch-btn { width: 100%; padding: 12px 10px; font-size: 13.5px; }
+.ch-online-share .ch-share-input { margin-bottom: 0; width: 100%; box-sizing: border-box; }
 
 /* Чат в онлайн-игре с другом */
 .ch-chat { width: min(92vw, 560px); margin: 12px auto 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
