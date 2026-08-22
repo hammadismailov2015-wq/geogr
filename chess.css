@@ -469,6 +469,8 @@ body:not(.ch-3d) .ch-fliparea.flip180 .ch-coord { transform: rotate(180deg); }
    поэтому прячем через WebGL только игровой board-stack, а учебная остаётся
    в CSS-3D (наклон + стоящие фигуры). */
 body.ch-3dreal #gameScreen .ch-board-stack { display: none; }
+body.ch-3dreal #tutorScreen .ch-board-stack { display: none; }
+body.ch-3dreal #tgBoard { display: none; }
 body:not(.ch-3dreal) .ch-board3d { display: none; }
 .ch-board {
   width: min(92vw, 560px); aspect-ratio: 1/1;

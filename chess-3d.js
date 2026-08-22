@@ -347,6 +347,21 @@
     if (v) { rotInit = false; NS.resize(); needsRender = true; }   // при показе — без анимации спина
   };
 
+  // Переместить canvas движка в другой контейнер (игровая ↔ учебная доска)
+  NS.mount = function (el) {
+    if (!renderer || !el || el === container) { if (el === container) { NS.resize(); } return; }
+    if (container) container.style.display = 'none';
+    container = el;
+    el.appendChild(renderer.domElement);
+    el.style.display = 'block';
+    rotInit = false;
+    NS.resize();
+    needsRender = true;
+  };
+  // Сменить обработчик клика по клетке (ход в игре / в уроке)
+  NS.setTap = function (fn) { hooks.onTap = fn; };
+  NS.mounted = function () { return container; };
+
   NS.resize = function () {
     if (!renderer || !container) return;
     const w = container.clientWidth || 360, h = container.clientHeight || 360;
