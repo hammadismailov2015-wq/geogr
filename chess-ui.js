@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v117';
+  const APP_VERSION = 'v118';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -229,6 +229,11 @@
         <span class="ch-vsep" aria-hidden="true"></span>
         <button class="ch-vw" data-view="2d" title="Плоская доска (2D)">2D</button>
         <button class="ch-vw" data-view="3d" title="Объёмная доска (3D)">3D</button>
+        <span class="ch-vsep" aria-hidden="true"></span>
+        <button class="ch-tx" data-tex="plain" title="Гладкая"></button>
+        <button class="ch-tx" data-tex="marble" title="Мрамор"></button>
+        <button class="ch-tx" data-tex="wood" title="Дерево"></button>
+        <button class="ch-tx" data-tex="glass" title="Стекло"></button>
       </div>
 
       <section id="setupScreen" class="ch-screen">
@@ -573,8 +578,14 @@
         return; }
       const v = e.target.closest('.ch-vw');
       if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v);
-        if (app.state && !$('gameScreen').hidden) { renderBoard(); renderPlayerBars(); updateClocks(); applyScreenFlip(); } }
+        if (app.state && !$('gameScreen').hidden) { renderBoard(); renderPlayerBars(); updateClocks(); applyScreenFlip(); } return; }
+      const tx = e.target.closest('.ch-tx');
+      if (tx) { app.texture = tx.dataset.tex; localStorage.setItem('chessTexture', app.texture); applyTexture(app.texture); markActive('#themeBar .ch-tx', tx);
+        if (app.state && !$('gameScreen').hidden) { renderBoard(); } }
     });
+    app.texture = localStorage.getItem('chessTexture') || 'plain';
+    applyTexture(app.texture);
+    selectDefault('#themeBar .ch-tx', `[data-tex="${app.texture}"]`);
     $('modeCards').addEventListener('click', (e) => {
       const c = e.target.closest('.ch-big'); if (!c) return;
       setup.mode = c.dataset.mode; markActive('#modeCards .ch-big', c); updateSetupVisibility(); saveSetup();
@@ -1499,6 +1510,7 @@
      ТЕМЫ
      ======================================================== */
   function applyTheme(name) { document.body.setAttribute('data-chess-theme', name); if (bg.ctx) { readBgColors(); if (bg.reduce) drawBg(0); } }
+  function applyTexture(name) { document.body.setAttribute('data-chess-texture', name || 'plain'); }
   /* ===== Настоящий 3D (WebGL) ===== */
   let _c3dReady = false;
   function bodyTheme() { return document.body.dataset.chessTheme || 'classic'; }
@@ -1530,7 +1542,7 @@
     let checkSq = -1;
     if (C.inCheck(app.state, app.state.turn)) { for (let i = 0; i < 64; i++) { const p = app.state.board[i]; if (p && C.typeOf(p) === 'k' && C.colorOf(p) === app.state.turn) { checkSq = i; break; } } }
     Chess3D.update(app.state, {
-      theme: bodyTheme(), flip: rot,
+      theme: bodyTheme(), texture: app.texture || 'plain', flip: rot,
       selected: app.selected, legal: app.selected >= 0 ? app.legalFrom : [],
       occupied: (sq) => !!app.state.board[sq],
       last: app.lastMove, checkSq: checkSq
