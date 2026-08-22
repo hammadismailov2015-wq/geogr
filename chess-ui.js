@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v120';
+  const APP_VERSION = 'v121';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1815,7 +1815,7 @@
   function openDaily() {
     const p = DAILY[dailyIndex()];
     const L = {
-      id: dailyKey(), title: 'Задача дня', icon: '🎯', explain: 'Поставь мат в 1 ход!',
+      id: dailyKey(), title: 'Задача дня', icon: '🎯', explain: 'Поставь мат в 1 ход!', noAutoArrow: true,
       steps: [{ board: p.board.slice(), turn: 'w', prompt: 'Поставь мат в 1 ход!', hint: p.hint, answers: [p.ans] }],
     };
     startLesson(L);
@@ -1861,7 +1861,7 @@
 
   function startLesson(L) {
     tut.info = false; resolveTutSide();
-    tut.run = { title: L.title, icon: L.icon, explain: L.explain, lessonId: L.id, steps: L.steps.map(s => ({ ...s })), idx: 0, reviewMode: false };
+    tut.run = { title: L.title, icon: L.icon, explain: L.explain, lessonId: L.id, steps: L.steps.map(s => ({ ...s })), idx: 0, reviewMode: false, noAutoArrow: !!L.noAutoArrow };
     $('tutTitle').innerHTML = tutTitleHTML(lessonIco(L.icon), L.title);
     $('tutMenu').hidden = true; $('tutLesson').hidden = false;
     loadRunStep();
@@ -1946,7 +1946,7 @@
   function maybeDrawTutArrow(el) {
     const al = $('tutArrowLayer'); if (al) al.innerHTML = '';   // отдельный слой стрелки (поверх фигур в 3D)
     const run = tut.run; if (!run || run.reviewMode || !al) return;
-    const firstAuto = run.idx === 0 && run.plyIdx === 0 && !tut.lastMove;
+    const firstAuto = run.idx === 0 && run.plyIdx === 0 && !tut.lastMove && !run.noAutoArrow;
     if (!firstAuto && !tut.hintArrow) return;
     const step = run.steps[run.idx]; if (!step) return;
     const plies = step._plies || (step.plies) || [{ answers: step.answers }];
