@@ -645,6 +645,9 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 
 .ch-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
 
+/* Зрители онлайн */
+.ch-watchers { text-align: center; font-weight: 800; font-size: 13px; color: #a9e6c0; margin: 2px 0 6px; }
+
 /* Эмодзи-реакции */
 .ch-fliparea { position: relative; }
 .ch-reacts { display: flex; justify-content: center; gap: 8px; margin: 4px 0 2px; }
