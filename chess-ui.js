@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v115';
+  const APP_VERSION = 'v116';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -364,6 +364,14 @@
           <button class="ch-btn" id="btnUndo">${inl(ICON.undo)}Отменить</button>
           <button class="ch-btn ch-btn-warn" id="btnResign">${inl(ICON.flag)}Сдаться</button>
         </div>
+        <div class="ch-reacts" id="reactBar">
+          <button class="ch-react" data-emo="😄">😄</button>
+          <button class="ch-react" data-emo="😡">😡</button>
+          <button class="ch-react" data-emo="😭">😭</button>
+          <button class="ch-react" data-emo="🤯">🤯</button>
+          <button class="ch-react" data-emo="😎">😎</button>
+        </div>
+        <div class="ch-react-layer" id="reactLayer"></div>
         </div><!-- /flipArea -->
         <div class="ch-history-box">
           <div class="ch-history-title">Ходы</div>
@@ -469,6 +477,7 @@
     bindSetup();
     bindGame();
     bindHistory();
+    bindReactions();
     initDrag();
   }
 
@@ -806,6 +815,8 @@
       onRematchAnswer(true);
     } else if (o.t === 'rematchNo') {
       onRematchAnswer(false);
+    } else if (o.t === 'react') {
+      showReaction(o.e, true);
     }
   }
 
@@ -1269,6 +1280,40 @@
     }
   }
 
+  // Эмодзи-реакции: всплывающий эмодзи над доской
+  function showReaction(emo, fromPeer) {
+    const layer = $('reactLayer'); if (!layer) return;
+    const el = document.createElement('div');
+    el.className = 'ch-react-fly' + (fromPeer ? ' peer' : '');
+    el.textContent = emo;
+    el.style.left = (12 + Math.random() * 70) + '%';
+    layer.appendChild(el);
+    setTimeout(() => el.remove(), 2200);
+  }
+  function bindReactions() {
+    const bar = $('reactBar'); if (!bar || bar._bound) return; bar._bound = true;
+    bar.addEventListener('click', (e) => {
+      const b = e.target.closest('.ch-react'); if (!b) return;
+      const emo = b.dataset.emo;
+      showReaction(emo, false);
+      if (app.mode === 'friend' && app.online && app.online.on) netSend({ t: 'react', e: emo });
+    });
+  }
+
+  // Звук ШАХА/МАТА — как «взятие», только громче (мат — двойной мощный удар)
+  function playCheckSound(mate) {
+    if (!app.soundOn) return;
+    const ctx = getAudio(); if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const t = ctx.currentTime;
+    thump(ctx, t, 300, 80, 0.9, 0.18, 'sawtooth');
+    noiseBurst(ctx, t, 0.08, 'highpass', 850, 0.75);
+    if (mate) {
+      thump(ctx, t + 0.15, 210, 60, 0.95, 0.24, 'sawtooth');
+      noiseBurst(ctx, t + 0.15, 0.11, 'highpass', 650, 0.8);
+    }
+  }
+
   function startDrag(e, s, p) {
     drag.active = true; drag.from = s; drag.moved = false; drag.sx = e.clientX; drag.sy = e.clientY;
     const size = elBoard.clientWidth / 8;
@@ -1360,6 +1405,11 @@
     applyMove(m);
     app.selected = -1; app.legalFrom = [];
     playMoveSound(!!capType);
+    // шах/мат — отдельный громкий звук
+    if (C.inCheck(app.state, app.state.turn)) {
+      const mate = C.legalMoves(app.state).length === 0;
+      setTimeout(() => playCheckSound(mate), capType ? 120 : 60);
+    }
     if (hasYou()) trackMyMove(m, me, capType, fromAttacked);
     if (app.mode === 'friend' && app.online.on) { publishMove(); publishStateRetained(); saveOnlineGame(); }
     // «Играть рядом»: доску НЕ переворачиваем. Игроки сидят по разные стороны

@@ -616,6 +616,22 @@ body.ch-3d { --t3d: 28deg; }                          /* наклон 3D-дос�
 .pb-clock.active.low { border-color: var(--warn); box-shadow: 0 0 0 2px rgba(255, 107, 107, .3); }
 
 .ch-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+
+/* Эмодзи-реакции */
+.ch-fliparea { position: relative; }
+.ch-reacts { display: flex; justify-content: center; gap: 8px; margin: 4px 0 2px; }
+.ch-react { font-size: 22px; line-height: 1; padding: 6px 11px; border-radius: 12px; cursor: pointer; background: var(--panel); border: 1px solid var(--line); transition: transform .12s, border-color .12s; }
+.ch-react:hover { border-color: var(--accent); transform: translateY(-2px); }
+.ch-react:active { transform: scale(.88); }
+.ch-react-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+.ch-react-fly { position: absolute; bottom: 22%; font-size: 46px; will-change: transform, opacity; animation: reactFly 2.1s ease-out forwards; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.ch-react-fly.peer { bottom: 55%; }
+@keyframes reactFly {
+  0% { transform: translateY(24px) scale(.4); opacity: 0; }
+  15% { transform: translateY(0) scale(1.15); opacity: 1; }
+  78% { opacity: 1; }
+  100% { transform: translateY(-230px) scale(1); opacity: 0; }
+}
 .ch-btn {
   padding: 10px 16px; border-radius: 12px; cursor: pointer; font-size: 14px;
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
