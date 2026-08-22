@@ -173,11 +173,33 @@
     return P;
   }
 
-  function buildBoard(P) {
+  // Процедурная текстура клеток (белая основа + затемнения — умножается на цвет)
+  const _texCache = {};
+  function genTexture(type) {
+    if (type === 'plain' || type === 'glass') return null;
+    if (_texCache[type]) return _texCache[type];
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const x = c.getContext('2d');
+    x.fillStyle = '#ffffff'; x.fillRect(0, 0, 128, 128);
+    if (type === 'wood') {
+      for (let i = 0; i < 128; i += 2) { const a = 0.05 + 0.05 * Math.abs(Math.sin(i * 0.45)); x.fillStyle = 'rgba(60,40,20,' + a + ')'; x.fillRect(i, 0, 1, 128); }
+      for (let k = 0; k < 6; k++) { const px = Math.floor(Math.random() * 128); x.fillStyle = 'rgba(40,25,10,0.12)'; x.fillRect(px, 0, 2, 128); }
+    } else if (type === 'marble') {
+      for (let k = 0; k < 44; k++) { const px = Math.random() * 128, py = Math.random() * 128, r = 8 + Math.random() * 26, dark = Math.random() < 0.5; const g = x.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, dark ? 'rgba(110,110,120,0.10)' : 'rgba(255,255,255,0.13)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(px - r, py - r, r * 2, r * 2); }
+      x.strokeStyle = 'rgba(110,110,125,0.22)'; x.lineWidth = 1.4;
+      for (let k = 0; k < 3; k++) { x.beginPath(); let px = Math.random() * 128, py = 0; x.moveTo(px, py); for (let s = 0; s < 8; s++) { px += (Math.random() - 0.5) * 42; py += 16; x.lineTo(px, py); } x.stroke(); }
+    }
+    const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; _texCache[type] = t; return t;
+  }
+
+  function buildBoard(P, tex) {
     if (boardGroup) { root.remove(boardGroup); disposeGroup(boardGroup); }
     boardGroup = new T.Group(); sqMeshes = [];
-    const lightMat = new T.MeshStandardMaterial({ color: P.ld, roughness: 0.6 });
-    const darkMat = new T.MeshStandardMaterial({ color: P.dk, roughness: 0.6 });
+    const map = genTexture(tex);
+    const rough = tex === 'marble' ? 0.28 : tex === 'glass' ? 0.08 : 0.6;
+    const metal = tex === 'glass' ? 0.28 : 0.05;
+    const lightMat = new T.MeshStandardMaterial({ color: P.ld, roughness: rough, metalness: metal, map: map || null });
+    const darkMat = new T.MeshStandardMaterial({ color: P.dk, roughness: rough, metalness: metal, map: map || null });
     const geo = new T.BoxGeometry(S, 0.18, S);
     for (let f = 0; f < N; f++) for (let r = 0; r < N; r++) {
       const dark = (f + r) % 2 === 0;
@@ -295,9 +317,14 @@
   NS.update = function (state, o) {
     o = o || {};
     if (!renderer) return;
-    // тема сменилась?
-    if (o.theme && o.theme !== NS._theme) { const P = makeMaterials(o.theme); buildBoard(P); NS._theme = o.theme; }
-    if (!boardGroup) { buildBoard(makeMaterials(o.theme || 'brown')); NS._theme = o.theme || 'brown'; }
+    // тема или текстура сменились?
+    const tex = o.texture || 'plain';
+    if (!boardGroup || (o.theme && o.theme !== NS._theme) || tex !== NS._tex) {
+      const th = o.theme || NS._theme || 'brown';
+      const P = makeMaterials(th);
+      buildBoard(P, tex);
+      NS._theme = th; NS._tex = tex;
+    }
     // ориентация доски (за чёрных / ход чёрных в «Рядом») — плавный поворот
     targetRotY = o.flip ? Math.PI : 0;
     if (!rotInit) { curRotY = targetRotY; root.rotation.y = curRotY; rotInit = true; }
