@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v116';
+  const APP_VERSION = 'v117';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1717,11 +1717,44 @@
   function loadTutDone() { try { const a = JSON.parse(localStorage.getItem(TUT_DONE_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
   function markTutDone(id) { if (!id) return; const a = loadTutDone(); if (a.indexOf(id) < 0) { a.push(id); try { localStorage.setItem(TUT_DONE_KEY, JSON.stringify(a)); } catch (e) { } } }
 
+  // ===== Задача дня (мат в 1 ход) =====
+  const DAILY = [
+    { board: ['a1 wr', 'g1 wk', 'g8 bk', 'f7 bp', 'g7 bp', 'h7 bp'], ans: 'a1a8', hint: 'Ладья на последнюю линию: a1 → a8.' },
+    { board: ['d1 wq', 'g1 wk', 'g8 bk', 'f7 bp', 'g7 bp', 'h7 bp'], ans: 'd1d8', hint: 'Ферзь на последнюю линию: d1 → d8.' },
+    { board: ['a7 wr', 'b1 wr', 'e1 wk', 'e8 bk'], ans: 'b1b8', hint: 'Вторая ладья держит 7-ю линию — ставь мат: b1 → b8.' },
+    { board: ['h1 wr', 'a1 wk', 'a8 bk', 'a7 bp', 'b7 bp'], ans: 'h1h8', hint: 'Ладья на 8-ю линию: h1 → h8.' },
+    { board: ['h1 wr', 'a1 wk', 'c8 bk', 'b7 bp', 'c7 bp', 'd7 bp'], ans: 'h1h8', hint: 'Ладья на 8-ю линию: h1 → h8.' },
+    { board: ['e1 wq', 'a1 wk', 'b8 bk', 'a7 bp', 'b7 bp', 'c7 bp'], ans: 'e1e8', hint: 'Ферзь на 8-ю линию: e1 → e8.' },
+    { board: ['c1 wr', 'h5 wk', 'h8 bk', 'g7 bp', 'h7 bp'], ans: 'c1c8', hint: 'Ладья на 8-ю линию: c1 → c8.' },
+    { board: ['a1 wq', 'g1 wk', 'h8 bk', 'g7 bp', 'h7 bp'], ans: 'a1a8', hint: 'Ферзь на 8-ю линию: a1 → a8.' },
+    { board: ['h4 wq', 'a3 wk', 'a8 bk', 'a7 bp', 'b7 bp'], ans: 'h4h8', hint: 'Ферзь на 8-ю линию: h4 → h8.' },
+    { board: ['e1 wr', 'g1 wk', 'c8 bk', 'b7 bp', 'c7 bp', 'd7 bp'], ans: 'e1e8', hint: 'Ладья на 8-ю линию: e1 → e8.' },
+  ];
+  function dailyIndex() {
+    const d = new Date();
+    const day = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+    return ((day % DAILY.length) + DAILY.length) % DAILY.length;
+  }
+  function dailyKey() { const d = new Date(); return 'daily-' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function openDaily() {
+    const p = DAILY[dailyIndex()];
+    const L = {
+      id: dailyKey(), title: 'Задача дня', icon: '🎯', explain: 'Поставь мат в 1 ход!',
+      steps: [{ board: p.board.slice(), turn: 'w', prompt: 'Поставь мат в 1 ход!', hint: p.hint, answers: [p.ans] }],
+    };
+    startLesson(L);
+  }
+
   function renderTutMenu() {
     const done = loadTutDone();
+    const dailyDone = done.indexOf(dailyKey()) >= 0;
     let total = 0, doneCount = 0;
     for (const sec of TUT_SECTIONS) for (const L of sec.lessons) { total++; if (done.indexOf(L.id) >= 0) doneCount++; }
-    let html = `<div class="ch-tut-count">Пройдено тем: ${doneCount} из ${total}</div>`;
+    let html = `<button class="ch-daily${dailyDone ? ' done' : ''}" id="dailyCard">
+      <span class="cd-ico">${ICON.target}</span>
+      <span class="cd-txt"><span class="cd-t">Задача дня</span><span class="cd-d">${dailyDone ? 'Решено сегодня — молодец!' : 'Поставь мат в 1 ход'}</span></span>
+      <span class="cd-st">${dailyDone ? ICON.check : '→'}</span></button>`;
+    html += `<div class="ch-tut-count">Пройдено тем: ${doneCount} из ${total}</div>`;
     for (const sec of TUT_SECTIONS) {
       html += `<div class="ch-ach-head">${sec.name}</div><div class="ch-tut-grid">`;
       for (const L of sec.lessons) {
@@ -1731,6 +1764,7 @@
       html += '</div>';
     }
     $('tutSections').innerHTML = html;
+    const dc = $('dailyCard'); if (dc) dc.addEventListener('click', openDaily);
     document.querySelectorAll('#tutSections .ch-tut-card').forEach(b => b.addEventListener('click', () => openLesson(b.dataset.lid)));
   }
 
