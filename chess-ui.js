@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v131';
+  const APP_VERSION = 'v132';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1757,9 +1757,11 @@
     let sx = 0, sy = 0, sl = 0, st = 0, dragging = false;
     el.addEventListener('pointerdown', (e) => {
       if (e.target.closest('.at-close')) return;
+      if (el.parentNode) el.parentNode.appendChild(el);   // поднять наверх — чтобы можно было ухватить любую
       dragging = true; try { el.setPointerCapture(e.pointerId); } catch (x) { }
       sx = e.clientX; sy = e.clientY; sl = el.offsetLeft; st = el.offsetTop;
       clearTimeout(el._t); el.style.transition = 'none';
+      e.preventDefault();
     });
     el.addEventListener('pointermove', (e) => { if (dragging) { el.style.left = (sl + e.clientX - sx) + 'px'; el.style.top = (st + e.clientY - sy) + 'px'; } });
     const end = () => { if (!dragging) return; dragging = false; el.style.transition = ''; };
@@ -1772,9 +1774,9 @@
     const el = document.createElement('div');
     el.className = 'ch-atoast ' + (cls || '');
     // каскад: каждая новая появляется со сдвигом, дальше её можно двигать
-    const k = _toastN++ % 7;
-    el.style.left = (10 + k * 22) + 'px';
-    el.style.top = (10 + k * 20) + 'px';
+    const k = _toastN++ % 6;
+    el.style.left = (10 + k * 30) + 'px';
+    el.style.top = (10 + k * 42) + 'px';
     el.innerHTML = inner + '<button class="at-close" aria-label="Закрыть">×</button>';
     achToastWrap.appendChild(el);
     el.querySelector('.at-close').addEventListener('click', (e) => { e.stopPropagation(); dismissToast(el); });
