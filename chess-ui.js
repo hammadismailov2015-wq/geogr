@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v128';
+  const APP_VERSION = 'v129';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1794,18 +1794,23 @@
   function loadTutDone() { try { const a = JSON.parse(localStorage.getItem(TUT_DONE_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
   function markTutDone(id) { if (!id) return; const a = loadTutDone(); if (a.indexOf(id) < 0) { a.push(id); try { localStorage.setItem(TUT_DONE_KEY, JSON.stringify(a)); } catch (e) { } } }
 
-  // ===== Задача дня (мат в 1 ход) =====
+  // ===== Задача дня — разные типы: мат в 1, выигрыш фигуры, взятие =====
+  const M = 'Поставь мат в 1 ход!';
   const DAILY = [
-    { board: ['a1 wr', 'g1 wk', 'g8 bk', 'f7 bp', 'g7 bp', 'h7 bp'], ans: 'a1a8', hint: 'Ладья на последнюю линию: a1 → a8.' },
-    { board: ['d1 wq', 'g1 wk', 'g8 bk', 'f7 bp', 'g7 bp', 'h7 bp'], ans: 'd1d8', hint: 'Ферзь на последнюю линию: d1 → d8.' },
-    { board: ['a7 wr', 'b1 wr', 'e1 wk', 'e8 bk'], ans: 'b1b8', hint: 'Вторая ладья держит 7-ю линию — ставь мат: b1 → b8.' },
-    { board: ['h1 wr', 'a1 wk', 'a8 bk', 'a7 bp', 'b7 bp'], ans: 'h1h8', hint: 'Ладья на 8-ю линию: h1 → h8.' },
-    { board: ['h1 wr', 'a1 wk', 'c8 bk', 'b7 bp', 'c7 bp', 'd7 bp'], ans: 'h1h8', hint: 'Ладья на 8-ю линию: h1 → h8.' },
-    { board: ['e1 wq', 'a1 wk', 'b8 bk', 'a7 bp', 'b7 bp', 'c7 bp'], ans: 'e1e8', hint: 'Ферзь на 8-ю линию: e1 → e8.' },
-    { board: ['c1 wr', 'h5 wk', 'h8 bk', 'g7 bp', 'h7 bp'], ans: 'c1c8', hint: 'Ладья на 8-ю линию: c1 → c8.' },
-    { board: ['a1 wq', 'g1 wk', 'h8 bk', 'g7 bp', 'h7 bp'], ans: 'a1a8', hint: 'Ферзь на 8-ю линию: a1 → a8.' },
-    { board: ['h4 wq', 'a3 wk', 'a8 bk', 'a7 bp', 'b7 bp'], ans: 'h4h8', hint: 'Ферзь на 8-ю линию: h4 → h8.' },
-    { board: ['e1 wr', 'g1 wk', 'c8 bk', 'b7 bp', 'c7 bp', 'd7 bp'], ans: 'e1e8', hint: 'Ладья на 8-ю линию: e1 → e8.' },
+    // маты
+    { board: ['a1 wr', 'g1 wk', 'g8 bk', 'f7 bp', 'g7 bp', 'h7 bp'], ans: 'a1a8', prompt: M, hint: 'Ладья на 8-ю линию: a1 → a8.' },
+    { board: ['d1 wq', 'g1 wk', 'g8 bk', 'f7 bp', 'g7 bp', 'h7 bp'], ans: 'd1d8', prompt: M, hint: 'Ферзь на 8-ю линию: d1 → d8.' },
+    { board: ['h1 wr', 'a1 wk', 'c8 bk', 'b7 bp', 'c7 bp', 'd7 bp'], ans: 'h1h8', prompt: M, hint: 'Ладья на 8-ю линию: h1 → h8.' },
+    { board: ['e1 wq', 'a1 wk', 'b8 bk', 'a7 bp', 'b7 bp', 'c7 bp'], ans: 'e1e8', prompt: M, hint: 'Ферзь на 8-ю линию: e1 → e8.' },
+    { board: ['c1 wr', 'h5 wk', 'h8 bk', 'g7 bp', 'h7 bp'], ans: 'c1c8', prompt: M, hint: 'Ладья на 8-ю линию: c1 → c8.' },
+    // выигрыш фигуры / взятие
+    { board: ['a1 wr', 'e1 wk', 'a8 bq', 'h8 bk', 'e7 bp'], ans: 'a1a8', prompt: 'Съешь ферзя!', hint: 'Ладья бьёт ферзя: a1 → a8.' },
+    { board: ['d1 wq', 'e1 wk', 'd8 br', 'a8 bk', 'a7 bp'], ans: 'd1d8', prompt: 'Съешь ладью!', hint: 'Ферзь бьёт ладью: d1 → d8.' },
+    { board: ['e1 wr', 'h1 wk', 'e5 bb', 'a8 bk', 'a7 bp'], ans: 'e1e5', prompt: 'Съешь фигуру бесплатно!', hint: 'Ладья бьёт слона: e1 → e5.' },
+    { board: ['d4 wp', 'e1 wk', 'e5 bq', 'h8 bk'], ans: 'd4e5', prompt: 'Съешь ферзя пешкой!', hint: 'Пешка бьёт наискосок: d4 → e5.' },
+    { board: ['c1 wr', 'g1 wk', 'c6 bn', 'h8 bk', 'h7 bp'], ans: 'c1c6', prompt: 'Съешь коня!', hint: 'Ладья бьёт коня: c1 → c6.' },
+    { board: ['e4 wn', 'g1 wk', 'c5 bq', 'h8 bk'], ans: 'e4c5', prompt: 'Съешь ферзя конём!', hint: 'Конь прыгает на ферзя: e4 → c5.' },
+    { board: ['a3 wb', 'g1 wk', 'f8 br', 'a8 bk', 'a7 bp'], ans: 'a3f8', prompt: 'Съешь ладью слоном!', hint: 'Слон по диагонали: a3 → f8.' },
   ];
   function dailyIndex() {
     const d = new Date();
@@ -1816,8 +1821,8 @@
   function openDaily() {
     const p = DAILY[dailyIndex()];
     const L = {
-      id: dailyKey(), title: 'Задача дня', icon: '🎯', explain: 'Поставь мат в 1 ход!', noAutoArrow: true,
-      steps: [{ board: p.board.slice(), turn: 'w', prompt: 'Поставь мат в 1 ход!', hint: p.hint, answers: [p.ans] }],
+      id: dailyKey(), title: 'Задача дня', icon: '🎯', explain: p.prompt, noAutoArrow: true,
+      steps: [{ board: p.board.slice(), turn: 'w', prompt: p.prompt, hint: p.hint, answers: [p.ans] }],
     };
     startLesson(L);
   }
@@ -1829,7 +1834,7 @@
     for (const sec of TUT_SECTIONS) for (const L of sec.lessons) { total++; if (done.indexOf(L.id) >= 0) doneCount++; }
     let html = `<button class="ch-daily${dailyDone ? ' done' : ''}" id="dailyCard">
       <span class="cd-ico">${ICON.target}</span>
-      <span class="cd-txt"><span class="cd-t">Задача дня</span><span class="cd-d">${dailyDone ? 'Решено сегодня — молодец!' : 'Поставь мат в 1 ход'}</span></span>
+      <span class="cd-txt"><span class="cd-t">Задача дня</span><span class="cd-d">${dailyDone ? 'Решено! Возвращайся завтра' : 'Реши сегодняшнюю задачу'}</span></span>
       <span class="cd-st">${dailyDone ? ICON.check : '→'}</span></button>`;
     html += `<div class="ch-tut-count">Пройдено тем: ${doneCount} из ${total}</div>`;
     for (const sec of TUT_SECTIONS) {
@@ -1841,7 +1846,10 @@
       html += '</div>';
     }
     $('tutSections').innerHTML = html;
-    const dc = $('dailyCard'); if (dc) dc.addEventListener('click', openDaily);
+    const dc = $('dailyCard'); if (dc) dc.addEventListener('click', () => {
+      if (dailyDone) showInfoToast(ICON.check, 'Задача дня уже решена — возвращайся завтра!', true);
+      else openDaily();
+    });
     document.querySelectorAll('#tutSections .ch-tut-card').forEach(b => b.addEventListener('click', () => openLesson(b.dataset.lid)));
   }
 
