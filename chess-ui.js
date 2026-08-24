@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v129';
+  const APP_VERSION = 'v130';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1748,14 +1748,41 @@
     setOnlineStatus();
   }
 
-  function showInfoToast(ico, text, ok) {
+  // ===== Всплывашки: не дублируются, максимум 3, с крестиком и перетаскиванием =====
+  function dismissToast(el, instant) {
+    if (!el) return; clearTimeout(el._t); el.classList.remove('show');
+    setTimeout(() => { if (el.parentNode) el.remove(); }, instant ? 0 : 300);
+  }
+  function makeToastDraggable(el) {
+    let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.at-close')) return;
+      dragging = true; try { el.setPointerCapture(e.pointerId); } catch (x) { }
+      sx = e.clientX; sy = e.clientY; clearTimeout(el._t); el.style.transition = 'none';
+    });
+    el.addEventListener('pointermove', (e) => { if (dragging) el.style.transform = `translate(${ox + e.clientX - sx}px, ${oy + e.clientY - sy}px)`; });
+    const end = (e) => { if (!dragging) return; dragging = false; ox += (e.clientX || sx) - sx; oy += (e.clientY || sy) - sy; el.style.transition = ''; };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  }
+  function pushToast(inner, cls, ms) {
     if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
+    const key = (cls || '') + '|' + inner;
+    const same = Array.prototype.find.call(achToastWrap.children, c => c._key === key);
+    if (same) { clearTimeout(same._t); same._t = setTimeout(() => dismissToast(same), ms); return same; }
+    while (achToastWrap.children.length >= 3) dismissToast(achToastWrap.firstElementChild, true);
     const el = document.createElement('div');
-    el.className = 'ch-atoast' + (ok ? ' done' : '');
-    el.innerHTML = `<span class="at-ico">${ico}</span><span class="at-body"><span class="at-t">${text}</span></span>`;
+    el.className = 'ch-atoast ' + (cls || ''); el._key = key;
+    el.innerHTML = inner + '<button class="at-close" aria-label="Закрыть">×</button>';
     achToastWrap.appendChild(el);
+    el.querySelector('.at-close').addEventListener('click', (e) => { e.stopPropagation(); dismissToast(el); });
+    makeToastDraggable(el);
     requestAnimationFrame(() => el.classList.add('show'));
-    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 2400);
+    el._t = setTimeout(() => dismissToast(el), ms);
+    return el;
+  }
+
+  function showInfoToast(ico, text, ok) {
+    pushToast(`<span class="at-ico">${ico}</span><span class="at-body"><span class="at-t">${text}</span></span>`, ok ? 'done' : '', 3200);
   }
 
   /* ========================================================
@@ -2521,13 +2548,7 @@
     $('ranksModal').hidden = false;
   }
   function showRankToast(name) {
-    if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
-    const el = document.createElement('div');
-    el.className = 'ch-atoast done';
-    el.innerHTML = `<span class="at-ico">⭐</span><span class="at-body"><span class="at-t">Новый ранг!</span><span class="at-p">${name}</span></span>`;
-    achToastWrap.appendChild(el);
-    requestAnimationFrame(() => el.classList.add('show'));
-    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 2800);
+    pushToast(`<span class="at-ico">⭐</span><span class="at-body"><span class="at-t">Новый ранг!</span><span class="at-p">${name}</span></span>`, 'done', 3200);
   }
   // считаем ВСЕ сыгранные партии (любой режим) + ранг-апы
   function countGame() {
@@ -2540,13 +2561,7 @@
 
   let achToastWrap = null;
   function showAchToast(a, cur, justDone) {
-    if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
-    const el = document.createElement('div');
-    el.className = 'ch-atoast' + (justDone ? ' done' : '');
-    el.innerHTML = `<span class="at-ico">${justDone ? '🏆' : '📈'}</span><span class="at-body"><span class="at-t">${a.t}${justDone ? ' — получено!' : ''}</span><span class="at-p">${Math.min(cur, a.goal)}/${a.goal}</span></span>`;
-    achToastWrap.appendChild(el);
-    requestAnimationFrame(() => el.classList.add('show'));
-    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, justDone ? 2600 : 1900);
+    pushToast(`<span class="at-ico">${justDone ? '🏆' : '📈'}</span><span class="at-body"><span class="at-t">${a.t}${justDone ? ' — получено!' : ''}</span><span class="at-p">${Math.min(cur, a.goal)}/${a.goal}</span></span>`, justDone ? 'done' : '', justDone ? 3000 : 2400);
   }
 
 })();

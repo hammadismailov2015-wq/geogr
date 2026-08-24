@@ -363,12 +363,20 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 /* Всплывашки прогресса достижений */
 .ch-toastwrap { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 120; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; max-width: 92vw; }
 .ch-atoast {
-  display: flex; align-items: center; gap: 10px;
+  position: relative; display: flex; align-items: center; gap: 10px;
   background: var(--panel2); border: 1px solid var(--line); color: var(--text);
-  border-radius: 12px; padding: 8px 14px; box-shadow: 0 8px 20px rgba(0, 0, 0, .45);
+  border-radius: 12px; padding: 8px 34px 8px 14px; box-shadow: 0 8px 20px rgba(0, 0, 0, .45);
   opacity: 0; transform: translateY(-12px); transition: opacity .3s, transform .3s;
+  pointer-events: auto; cursor: grab; touch-action: none; user-select: none;
 }
+.ch-atoast:active { cursor: grabbing; }
 .ch-atoast.show { opacity: 1; transform: none; }
+.at-close {
+  position: absolute; top: 4px; right: 5px; width: 22px; height: 22px; flex: none;
+  border: none; border-radius: 50%; background: rgba(0, 0, 0, .22); color: inherit;
+  font-size: 17px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0;
+}
+.at-close:hover { background: rgba(0, 0, 0, .38); }
 .ch-atoast.done { background: linear-gradient(135deg, #2fae59, #1f8a44); border-color: transparent; color: #fff; }
 .ch-atoast .at-ico { font-size: 20px; }
 .ch-atoast .at-t { display: block; font-weight: 800; font-size: 14px; }
