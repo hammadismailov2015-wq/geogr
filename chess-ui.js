@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v130';
+  const APP_VERSION = 'v131';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1754,24 +1754,27 @@
     setTimeout(() => { if (el.parentNode) el.remove(); }, instant ? 0 : 300);
   }
   function makeToastDraggable(el) {
-    let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
+    let sx = 0, sy = 0, sl = 0, st = 0, dragging = false;
     el.addEventListener('pointerdown', (e) => {
       if (e.target.closest('.at-close')) return;
       dragging = true; try { el.setPointerCapture(e.pointerId); } catch (x) { }
-      sx = e.clientX; sy = e.clientY; clearTimeout(el._t); el.style.transition = 'none';
+      sx = e.clientX; sy = e.clientY; sl = el.offsetLeft; st = el.offsetTop;
+      clearTimeout(el._t); el.style.transition = 'none';
     });
-    el.addEventListener('pointermove', (e) => { if (dragging) el.style.transform = `translate(${ox + e.clientX - sx}px, ${oy + e.clientY - sy}px)`; });
-    const end = (e) => { if (!dragging) return; dragging = false; ox += (e.clientX || sx) - sx; oy += (e.clientY || sy) - sy; el.style.transition = ''; };
+    el.addEventListener('pointermove', (e) => { if (dragging) { el.style.left = (sl + e.clientX - sx) + 'px'; el.style.top = (st + e.clientY - sy) + 'px'; } });
+    const end = () => { if (!dragging) return; dragging = false; el.style.transition = ''; };
     el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
   }
+  let _toastN = 0;
   function pushToast(inner, cls, ms) {
     if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
-    const key = (cls || '') + '|' + inner;
-    const same = Array.prototype.find.call(achToastWrap.children, c => c._key === key);
-    if (same) { clearTimeout(same._t); same._t = setTimeout(() => dismissToast(same), ms); return same; }
-    while (achToastWrap.children.length >= 3) dismissToast(achToastWrap.firstElementChild, true);
+    while (achToastWrap.children.length >= 12) dismissToast(achToastWrap.firstElementChild, true);
     const el = document.createElement('div');
-    el.className = 'ch-atoast ' + (cls || ''); el._key = key;
+    el.className = 'ch-atoast ' + (cls || '');
+    // каскад: каждая новая появляется со сдвигом, дальше её можно двигать
+    const k = _toastN++ % 7;
+    el.style.left = (10 + k * 22) + 'px';
+    el.style.top = (10 + k * 20) + 'px';
     el.innerHTML = inner + '<button class="at-close" aria-label="Закрыть">×</button>';
     achToastWrap.appendChild(el);
     el.querySelector('.at-close').addEventListener('click', (e) => { e.stopPropagation(); dismissToast(el); });

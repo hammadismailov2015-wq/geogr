@@ -361,9 +361,9 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 }
 
 /* Всплывашки прогресса достижений */
-.ch-toastwrap { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 120; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; max-width: 92vw; }
+.ch-toastwrap { position: fixed; inset: 0; z-index: 120; pointer-events: none; overflow: hidden; }
 .ch-atoast {
-  position: relative; display: flex; align-items: center; gap: 10px;
+  position: absolute; max-width: min(80vw, 320px); display: flex; align-items: center; gap: 10px;
   background: var(--panel2); border: 1px solid var(--line); color: var(--text);
   border-radius: 12px; padding: 8px 34px 8px 14px; box-shadow: 0 8px 20px rgba(0, 0, 0, .45);
   opacity: 0; transform: translateY(-12px); transition: opacity .3s, transform .3s;
