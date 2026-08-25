@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v132';
+  const APP_VERSION = 'v133';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1764,13 +1764,16 @@
       e.preventDefault();
     });
     el.addEventListener('pointermove', (e) => { if (dragging) { el.style.left = (sl + e.clientX - sx) + 'px'; el.style.top = (st + e.clientY - sy) + 'px'; } });
-    const end = () => { if (!dragging) return; dragging = false; el.style.transition = ''; };
+    const end = () => {
+      if (!dragging) return; dragging = false; el.style.transition = '';
+      clearTimeout(el._t); el._t = setTimeout(() => dismissToast(el), 3000);   // после отпускания снова исчезнет сама
+    };
     el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
   }
   let _toastN = 0;
   function pushToast(inner, cls, ms) {
     if (!achToastWrap) { achToastWrap = document.createElement('div'); achToastWrap.className = 'ch-toastwrap'; document.body.appendChild(achToastWrap); }
-    while (achToastWrap.children.length >= 12) dismissToast(achToastWrap.firstElementChild, true);
+    while (achToastWrap.children.length >= 6) dismissToast(achToastWrap.firstElementChild, true);
     const el = document.createElement('div');
     el.className = 'ch-atoast ' + (cls || '');
     // каскад: каждая новая появляется со сдвигом, дальше её можно двигать
