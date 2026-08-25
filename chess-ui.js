@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v133';
+  const APP_VERSION = 'v134';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1750,8 +1750,10 @@
 
   // ===== Всплывашки: не дублируются, максимум 3, с крестиком и перетаскиванием =====
   function dismissToast(el, instant) {
-    if (!el) return; clearTimeout(el._t); el.classList.remove('show');
-    setTimeout(() => { if (el.parentNode) el.remove(); }, instant ? 0 : 300);
+    if (!el) return; clearTimeout(el._t);
+    if (instant) { if (el.parentNode) el.remove(); return; }   // убрать сразу — иначе цикл-ограничитель зациклится
+    el.classList.remove('show');
+    setTimeout(() => { if (el.parentNode) el.remove(); }, 300);
   }
   function makeToastDraggable(el) {
     let sx = 0, sy = 0, sl = 0, st = 0, dragging = false;
