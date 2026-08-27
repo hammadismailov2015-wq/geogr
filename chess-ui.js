@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v135';
+  const APP_VERSION = 'v136';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1857,8 +1857,9 @@
     const day = dailyDay();
     return ((day % DAILY.length) + DAILY.length) % DAILY.length;
   }
-  // Генератор задачи дня: по номеру дня строим уникальную корректную задачу
-  // «съешь фигуру без потерь». Позиция каждый раз новая — задачи не повторяются.
+  // Генератор задачи дня: по номеру дня строим уникальную корректную задачу.
+  // Каждый день — новый тип: мат в 1 ход / проведи пешку в ферзи / съешь фигуру.
+  // Все позиции проверяются настоящим движком, так что задача всегда решаема.
   function _rng32(seed) {
     let a = seed >>> 0;
     return function () {
@@ -1870,57 +1871,119 @@
   }
   const _DG_ATT = [{ t: 'r', a: 'Ладья' }, { t: 'b', a: 'Слон' }, { t: 'n', a: 'Конь' }, { t: 'q', a: 'Ферзь' }];
   const _DG_VIC = [{ t: 'q', v: 'ферзя' }, { t: 'r', v: 'ладью' }, { t: 'b', v: 'слона' }, { t: 'n', v: 'коня' }];
-  function _dgClone(st) {
-    return { board: st.board.slice(), turn: st.turn, castling: { wK: false, wQ: false, bK: false, bQ: false }, ep: -1, half: 0, full: 1 };
+  const _dgNm = (f, r) => 'abcdefgh'[f] + (r + 1);
+  function _dgClr(st) { for (let i = 0; i < 64; i++) st.board[i] = null; st.castling = { wK: false, wQ: false, bK: false, bQ: false }; st.ep = -1; st.turn = 'w'; return st; }
+  function _dgClone(st) { return { board: st.board.slice(), turn: st.turn, castling: { wK: false, wQ: false, bK: false, bQ: false }, ep: -1, half: 0, full: 1 }; }
+  function _dgIsMate(C, st, mv) {
+    const s2 = _dgClone(st);
+    const m2 = C.legalMoves(s2).find((x) => x.from === mv.from && x.to === mv.to);
+    if (!m2) return false;
+    C.makeMove(s2, m2);
+    return C.inCheck(s2, s2.turn) && C.legalMoves(s2).length === 0;
   }
-  function genDailyPuzzle(dayNum) {
-    const C = window.Chess; if (!C) return null;
-    const rng = _rng32((dayNum * 2654435761) >>> 0);
-    const ri = (n) => Math.floor(rng() * n);
-    const nm = (f, r) => 'abcdefgh'[f] + (r + 1);
-    for (let tries = 0; tries < 600; tries++) {
+  // Тип «съешь фигуру без потерь»
+  function _dgCapture(C, rng) {
+    const ri = (n) => Math.floor(rng() * n), nm = _dgNm;
+    for (let t = 0; t < 600; t++) {
       const att = _DG_ATT[ri(4)], vic = _DG_VIC[ri(4)];
       const af = ri(8), ar = ri(8), vf = ri(8), vr = ri(8), wkf = ri(8), wkr = ri(8), bkf = ri(8), bkr = ri(8);
       const cells = [[af, ar], [vf, vr], [wkf, wkr], [bkf, bkr]];
       let bad = false;
       for (let i = 0; i < 4 && !bad; i++) for (let j = i + 1; j < 4; j++) if (cells[i][0] === cells[j][0] && cells[i][1] === cells[j][1]) bad = true;
       if (bad) continue;
-      if (Math.max(Math.abs(wkf - bkf), Math.abs(wkr - bkr)) <= 1) continue;   // короли не рядом
-      if (Math.max(Math.abs(bkf - vf), Math.abs(bkr - vr)) <= 1) continue;      // чёрный король не защищает жертву
-      if (Math.max(Math.abs(wkf - vf), Math.abs(wkr - vr)) <= 1) continue;      // белый король не рядом с жертвой
-      const st = C.newGameState();
-      for (let i = 0; i < 64; i++) st.board[i] = null;
-      st.castling = { wK: false, wQ: false, bK: false, bQ: false }; st.ep = -1;
-      st.board[C.sq(af, ar)] = 'w' + att.t;
-      st.board[C.sq(vf, vr)] = 'b' + vic.t;
-      st.board[C.sq(wkf, wkr)] = 'wk';
-      st.board[C.sq(bkf, bkr)] = 'bk';
-      st.turn = 'w';
-      if (C.inCheck(st, 'w') || C.inCheck(st, 'b')) continue;                   // позиция без шахов
+      if (Math.max(Math.abs(wkf - bkf), Math.abs(wkr - bkr)) <= 1) continue;
+      if (Math.max(Math.abs(bkf - vf), Math.abs(bkr - vr)) <= 1) continue;
+      if (Math.max(Math.abs(wkf - vf), Math.abs(wkr - vr)) <= 1) continue;
+      const st = _dgClr(C.newGameState());
+      st.board[C.sq(af, ar)] = 'w' + att.t; st.board[C.sq(vf, vr)] = 'b' + vic.t;
+      st.board[C.sq(wkf, wkr)] = 'wk'; st.board[C.sq(bkf, bkr)] = 'bk';
+      if (C.inCheck(st, 'w') || C.inCheck(st, 'b')) continue;
       const from = C.sq(af, ar), to = C.sq(vf, vr);
       const moves = C.legalMoves(st);
-      const cap = moves.find((m) => m.from === from && m.to === to);
-      if (!cap) continue;                                                       // взятие должно быть легальным
-      if (moves.filter((m) => st.board[m.to]).length !== 1) continue;          // единственное взятие
+      if (!moves.find((m) => m.from === from && m.to === to)) continue;
+      if (moves.filter((m) => st.board[m.to]).length !== 1) continue;
       const st2 = _dgClone(st);
-      const cap2 = C.legalMoves(st2).find((m) => m.from === from && m.to === to);
-      C.makeMove(st2, cap2);
-      if (C.legalMoves(st2).some((m) => m.to === to)) continue;                 // чёрный не отыграет фигуру
+      C.makeMove(st2, C.legalMoves(st2).find((m) => m.from === from && m.to === to));
+      if (C.legalMoves(st2).some((m) => m.to === to)) continue;
       return {
         board: [nm(af, ar) + ' w' + att.t, nm(vf, vr) + ' b' + vic.t, nm(wkf, wkr) + ' wk', nm(bkf, bkr) + ' bk'],
-        ans: nm(af, ar) + nm(vf, vr),
-        prompt: 'Съешь ' + vic.v + '!',
-        hint: att.a + ' бьёт: ' + nm(af, ar) + ' → ' + nm(vf, vr) + '.',
+        ans: nm(af, ar) + nm(vf, vr), answers: [nm(af, ar) + nm(vf, vr)],
+        prompt: 'Съешь ' + vic.v + '!', hint: att.a + ' бьёт: ' + nm(af, ar) + ' → ' + nm(vf, vr) + '.',
       };
     }
     return null;
+  }
+  // Тип «проведи пешку в ферзи»
+  function _dgPromo(C, rng) {
+    const ri = (n) => Math.floor(rng() * n), nm = _dgNm;
+    for (let t = 0; t < 400; t++) {
+      const pf = ri(8), wkf = ri(8), wkr = ri(8), bkf = ri(8), bkr = ri(8);
+      const cells = [[pf, 6], [pf, 7], [wkf, wkr], [bkf, bkr]];
+      let bad = false;
+      for (let i = 0; i < 4 && !bad; i++) for (let j = i + 1; j < 4; j++) if (cells[i][0] === cells[j][0] && cells[i][1] === cells[j][1]) bad = true;
+      if (bad) continue;
+      if (Math.max(Math.abs(wkf - bkf), Math.abs(wkr - bkr)) <= 1) continue;
+      if (Math.max(Math.abs(bkf - pf), Math.abs(bkr - 7)) <= 1) continue;   // чёрный король не рядом с полем превращения
+      if (Math.max(Math.abs(bkf - pf), Math.abs(bkr - 6)) <= 1) continue;   // и не рядом с пешкой
+      if (Math.max(Math.abs(wkf - pf), Math.abs(wkr - 7)) <= 1) continue;
+      const st = _dgClr(C.newGameState());
+      st.board[C.sq(pf, 6)] = 'wp'; st.board[C.sq(wkf, wkr)] = 'wk'; st.board[C.sq(bkf, bkr)] = 'bk';
+      if (C.inCheck(st, 'w') || C.inCheck(st, 'b')) continue;
+      const from = C.sq(pf, 6), to = C.sq(pf, 7);
+      if (!C.legalMoves(st).find((m) => m.from === from && m.to === to && m.promo === 'q')) continue;
+      return {
+        board: [nm(pf, 6) + ' wp', nm(wkf, wkr) + ' wk', nm(bkf, bkr) + ' bk'],
+        ans: nm(pf, 6) + nm(pf, 7), answers: [nm(pf, 6) + nm(pf, 7), nm(pf, 6) + nm(pf, 7) + 'q'],
+        prompt: 'Проведи пешку в ферзи!', hint: 'Пешка идёт на последнюю линию: ' + nm(pf, 6) + ' → ' + nm(pf, 7) + '.',
+      };
+    }
+    return null;
+  }
+  // Тип «мат в 1 ход» (ферзём или ладьёй, король чёрных у края)
+  function _dgMate(C, rng) {
+    const ri = (n) => Math.floor(rng() * n), nm = _dgNm, off = [-2, 0, 2];
+    for (let t = 0; t < 1500; t++) {
+      const edge = ri(4); let bkf, bkr;
+      if (edge === 0) { bkf = ri(8); bkr = 0; } else if (edge === 1) { bkf = ri(8); bkr = 7; }
+      else if (edge === 2) { bkf = 0; bkr = ri(8); } else { bkf = 7; bkr = ri(8); }
+      const wkf = bkf + off[ri(3)], wkr = bkr + off[ri(3)];
+      if (wkf < 0 || wkf > 7 || wkr < 0 || wkr > 7) continue;
+      if (Math.max(Math.abs(wkf - bkf), Math.abs(wkr - bkr)) < 2) continue;
+      const heavy = ri(3) === 0 ? 'r' : 'q';
+      const hf = ri(8), hr = ri(8);
+      const cells = [[bkf, bkr], [wkf, wkr], [hf, hr]];
+      let bad = false;
+      for (let i = 0; i < 3 && !bad; i++) for (let j = i + 1; j < 3; j++) if (cells[i][0] === cells[j][0] && cells[i][1] === cells[j][1]) bad = true;
+      if (bad) continue;
+      const st = _dgClr(C.newGameState());
+      st.board[C.sq(bkf, bkr)] = 'bk'; st.board[C.sq(wkf, wkr)] = 'wk'; st.board[C.sq(hf, hr)] = 'w' + heavy;
+      if (C.inCheck(st, 'w') || C.inCheck(st, 'b')) continue;
+      const mates = C.legalMoves(st).filter((m) => _dgIsMate(C, st, m));
+      if (!mates.length) continue;
+      const answers = Array.from(new Set(mates.map((m) => C.sqName(m.from) + C.sqName(m.to) + (m.promo || ''))));
+      const best = mates[0];
+      return {
+        board: [nm(hf, hr) + ' w' + heavy, nm(wkf, wkr) + ' wk', nm(bkf, bkr) + ' bk'],
+        ans: C.sqName(best.from) + C.sqName(best.to), answers,
+        prompt: 'Поставь мат в 1 ход!', hint: 'Мат ' + (heavy === 'r' ? 'ладьёй' : 'ферзём') + ': ' + C.sqName(best.from) + ' → ' + C.sqName(best.to) + '.',
+      };
+    }
+    return null;
+  }
+  function genDailyPuzzle(dayNum) {
+    const C = window.Chess; if (!C) return null;
+    const rng = _rng32((dayNum * 2654435761) >>> 0);
+    const r = rng();
+    let p = r < 0.34 ? _dgMate(C, rng) : (r < 0.67 ? _dgPromo(C, rng) : _dgCapture(C, rng));
+    if (!p) p = _dgCapture(C, rng) || _dgPromo(C, rng);   // на всякий случай — надёжный запасной тип
+    return p;
   }
   function dailyKey() { const d = new Date(); return 'daily-' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
   function openDaily() {
     const p = genDailyPuzzle(dailyDay()) || DAILY[dailyIndex()];
     const L = {
       id: dailyKey(), title: 'Задача дня', icon: '🎯', explain: p.prompt, noAutoArrow: true,
-      steps: [{ board: p.board.slice(), turn: 'w', prompt: p.prompt, hint: p.hint, answers: [p.ans] }],
+      steps: [{ board: p.board.slice(), turn: 'w', prompt: p.prompt, hint: p.hint, answers: p.answers || [p.ans] }],
     };
     startLesson(L);
   }
