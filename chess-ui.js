@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v134';
+  const APP_VERSION = 'v135';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1849,14 +1849,75 @@
     { board: ['e4 wn', 'g1 wk', 'c5 bq', 'h8 bk'], ans: 'e4c5', prompt: 'Съешь ферзя конём!', hint: 'Конь прыгает на ферзя: e4 → c5.' },
     { board: ['a3 wb', 'g1 wk', 'f8 br', 'a8 bk', 'a7 bp'], ans: 'a3f8', prompt: 'Съешь ладью слоном!', hint: 'Слон по диагонали: a3 → f8.' },
   ];
-  function dailyIndex() {
+  function dailyDay() {
     const d = new Date();
-    const day = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+    return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+  }
+  function dailyIndex() {
+    const day = dailyDay();
     return ((day % DAILY.length) + DAILY.length) % DAILY.length;
+  }
+  // Генератор задачи дня: по номеру дня строим уникальную корректную задачу
+  // «съешь фигуру без потерь». Позиция каждый раз новая — задачи не повторяются.
+  function _rng32(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const _DG_ATT = [{ t: 'r', a: 'Ладья' }, { t: 'b', a: 'Слон' }, { t: 'n', a: 'Конь' }, { t: 'q', a: 'Ферзь' }];
+  const _DG_VIC = [{ t: 'q', v: 'ферзя' }, { t: 'r', v: 'ладью' }, { t: 'b', v: 'слона' }, { t: 'n', v: 'коня' }];
+  function _dgClone(st) {
+    return { board: st.board.slice(), turn: st.turn, castling: { wK: false, wQ: false, bK: false, bQ: false }, ep: -1, half: 0, full: 1 };
+  }
+  function genDailyPuzzle(dayNum) {
+    const C = window.Chess; if (!C) return null;
+    const rng = _rng32((dayNum * 2654435761) >>> 0);
+    const ri = (n) => Math.floor(rng() * n);
+    const nm = (f, r) => 'abcdefgh'[f] + (r + 1);
+    for (let tries = 0; tries < 600; tries++) {
+      const att = _DG_ATT[ri(4)], vic = _DG_VIC[ri(4)];
+      const af = ri(8), ar = ri(8), vf = ri(8), vr = ri(8), wkf = ri(8), wkr = ri(8), bkf = ri(8), bkr = ri(8);
+      const cells = [[af, ar], [vf, vr], [wkf, wkr], [bkf, bkr]];
+      let bad = false;
+      for (let i = 0; i < 4 && !bad; i++) for (let j = i + 1; j < 4; j++) if (cells[i][0] === cells[j][0] && cells[i][1] === cells[j][1]) bad = true;
+      if (bad) continue;
+      if (Math.max(Math.abs(wkf - bkf), Math.abs(wkr - bkr)) <= 1) continue;   // короли не рядом
+      if (Math.max(Math.abs(bkf - vf), Math.abs(bkr - vr)) <= 1) continue;      // чёрный король не защищает жертву
+      if (Math.max(Math.abs(wkf - vf), Math.abs(wkr - vr)) <= 1) continue;      // белый король не рядом с жертвой
+      const st = C.newGameState();
+      for (let i = 0; i < 64; i++) st.board[i] = null;
+      st.castling = { wK: false, wQ: false, bK: false, bQ: false }; st.ep = -1;
+      st.board[C.sq(af, ar)] = 'w' + att.t;
+      st.board[C.sq(vf, vr)] = 'b' + vic.t;
+      st.board[C.sq(wkf, wkr)] = 'wk';
+      st.board[C.sq(bkf, bkr)] = 'bk';
+      st.turn = 'w';
+      if (C.inCheck(st, 'w') || C.inCheck(st, 'b')) continue;                   // позиция без шахов
+      const from = C.sq(af, ar), to = C.sq(vf, vr);
+      const moves = C.legalMoves(st);
+      const cap = moves.find((m) => m.from === from && m.to === to);
+      if (!cap) continue;                                                       // взятие должно быть легальным
+      if (moves.filter((m) => st.board[m.to]).length !== 1) continue;          // единственное взятие
+      const st2 = _dgClone(st);
+      const cap2 = C.legalMoves(st2).find((m) => m.from === from && m.to === to);
+      C.makeMove(st2, cap2);
+      if (C.legalMoves(st2).some((m) => m.to === to)) continue;                 // чёрный не отыграет фигуру
+      return {
+        board: [nm(af, ar) + ' w' + att.t, nm(vf, vr) + ' b' + vic.t, nm(wkf, wkr) + ' wk', nm(bkf, bkr) + ' bk'],
+        ans: nm(af, ar) + nm(vf, vr),
+        prompt: 'Съешь ' + vic.v + '!',
+        hint: att.a + ' бьёт: ' + nm(af, ar) + ' → ' + nm(vf, vr) + '.',
+      };
+    }
+    return null;
   }
   function dailyKey() { const d = new Date(); return 'daily-' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
   function openDaily() {
-    const p = DAILY[dailyIndex()];
+    const p = genDailyPuzzle(dailyDay()) || DAILY[dailyIndex()];
     const L = {
       id: dailyKey(), title: 'Задача дня', icon: '🎯', explain: p.prompt, noAutoArrow: true,
       steps: [{ board: p.board.slice(), turn: 'w', prompt: p.prompt, hint: p.hint, answers: [p.ans] }],
