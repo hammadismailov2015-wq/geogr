@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v136';
+  const APP_VERSION = 'v137';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -456,7 +456,6 @@
           <div class="ch-hist-summary" id="histSummary"></div>
           <div class="ch-hist-list" id="histList"></div>
           <div class="ch-modal-actions">
-            <button class="ch-btn" id="histClear">${inl(ICON.trash)}Очистить</button>
             <button class="ch-btn ch-btn-primary" id="histClose">Закрыть</button>
           </div>
         </div>
@@ -1545,7 +1544,7 @@
     else if (res.type === 'resign') { const w = res.loser === 'w' ? 'b' : 'w'; ico = ICON.flag; title = 'Сдача'; text = `${colorName(res.loser)} сдались. ${colorName(w)} выиграли!`; winnerColor = w; }
     else { ico = ICON.handshake; title = 'Ничья'; text = 'Недостаточно материала или правило 50 ходов.'; }
     app.gameDurMs = (app.gs && app.gs.start) ? (Date.now() - app.gs.start) : 0;
-    recordResult(winnerColor);
+    recordResult(winnerColor, res);
     countGame();
     trackGameEnd(res, winnerColor);
     app.overText = title + ' — ' + text;
@@ -2396,7 +2395,7 @@
   function saveHist(a) { try { localStorage.setItem(HIST_KEY, JSON.stringify(a.slice(-300))); } catch (e) { } }
 
   // Записать итог партии с точки зрения игрока
-  function recordResult(winnerColor) {
+  function recordResult(winnerColor, res) {
     let myC = null;
     if (app.mode === 'bot') myC = app.myColor;
     else if (app.mode === 'friend' && app.online.on) myC = app.online.myColor;
@@ -2404,6 +2403,8 @@
     if (myC) rec.r = winnerColor == null ? 'draw' : (winnerColor === myC ? 'win' : 'loss');
     else if (winnerColor == null) rec.r = 'draw';
     else { rec.r = 'side'; rec.w = winnerColor; }
+    // отметить, если сдался именно ты
+    if (res && res.type === 'resign' && myC && res.loser === myC) rec.resigned = true;
     const a = loadHist(); a.push(rec); saveHist(a);
   }
 
@@ -2411,15 +2412,16 @@
 
   function openHistory() {
     const a = loadHist();
-    let win = 0, loss = 0, draw = 0;
-    for (const r of a) { if (r.r === 'win') win++; else if (r.r === 'loss') loss++; else if (r.r === 'draw') draw++; }
+    let win = 0, loss = 0, draw = 0, resign = 0;
+    for (const r of a) { if (r.r === 'win') win++; else if (r.r === 'loss') loss++; else if (r.r === 'draw') draw++; if (r.resigned) resign++; }
     $('histSummary').innerHTML =
-      `<span class="hs-win">${inl(ICON.trophy)}Побед: ${win}</span><span class="hs-loss">${inl(ICON.cross)}Поражений: ${loss}</span><span class="hs-draw">${inl(ICON.handshake)}Ничьих: ${draw}</span>`;
+      `<span class="hs-win">${inl(ICON.trophy)}Побед: ${win}</span><span class="hs-loss">${inl(ICON.cross)}Поражений: ${loss}</span><span class="hs-draw">${inl(ICON.handshake)}Ничьих: ${draw}</span><span class="hs-resign">${inl(ICON.flag)}Сдался: ${resign}</span>`;
     let html = '';
     for (let i = a.length - 1; i >= 0; i--) {
       const r = a[i];
       let cls, main;
-      if (r.r === 'win') { cls = 'win'; main = 'Выиграл'; }
+      if (r.resigned) { cls = 'loss'; main = 'Сдался'; }
+      else if (r.r === 'win') { cls = 'win'; main = 'Выиграл'; }
       else if (r.r === 'loss') { cls = 'loss'; main = 'Проиграл'; }
       else if (r.r === 'side') { cls = 'side'; main = (r.w === 'w' ? 'Белые' : 'Чёрные') + ' победили'; }
       else { cls = 'draw'; main = 'Ничья'; }
@@ -2434,7 +2436,6 @@
     $('viewBtn').addEventListener('click', openHistory);
     $('btnViewOver').addEventListener('click', () => { $('overModal').hidden = true; location.hash = ''; showSetup(); });
     $('histClose').addEventListener('click', () => { $('histModal').hidden = true; });
-    $('histClear').addEventListener('click', () => { if (confirm('Очистить историю партий?')) { saveHist([]); openHistory(); } });
     $('achBtn').addEventListener('click', openAch);
     $('achClose').addEventListener('click', () => { $('achModal').hidden = true; });
     $('tutBtn').addEventListener('click', openTutorial);
