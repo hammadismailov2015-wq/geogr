@@ -333,6 +333,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-hist-item.loss { background: linear-gradient(135deg, #d64545, #a72f2f); }
 .ch-hist-item.draw { background: linear-gradient(135deg, #c9a227, #9a7d1a); }
 .ch-hist-item.side { background: linear-gradient(135deg, #4f6ef2, #3a52c0); }
+.ch-hist-item.resign { background: linear-gradient(135deg, #f0932b, #d97917); }
 .ch-hist-empty { color: var(--muted); text-align: center; padding: 22px; }
 
 /* Окно достижений */
