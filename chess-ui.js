@@ -201,7 +201,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v139';
+  const APP_VERSION = 'v140';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -467,7 +467,7 @@
 
       <div id="achModal" class="ch-modal" hidden>
         <div class="ch-modal-box ch-ach-box">
-          <div class="ch-modal-title">🏆 Достижения</div>
+          <div class="ch-modal-title">${tutTitleHTML(ICON.trophy, 'Достижения')}</div>
           <div class="ch-ach-sub" id="achCount"></div>
           <div class="ch-ach-list" id="achList"></div>
           <div class="ch-modal-actions"><button class="ch-btn ch-btn-primary" id="achClose">Закрыть</button></div>
@@ -476,7 +476,7 @@
 
       <div id="ranksModal" class="ch-modal" hidden>
         <div class="ch-modal-box ch-ranks-box">
-          <div class="ch-modal-title">🏅 Ранги</div>
+          <div class="ch-modal-title">${tutTitleHTML(ICON.medal, 'Ранги')}</div>
           <div class="ch-ranks-list" id="ranksList"></div>
           <div class="ch-modal-actions"><button class="ch-btn ch-btn-primary" id="ranksClose">Закрыть</button></div>
         </div>
@@ -1136,14 +1136,14 @@
     const turnName = colorName(app.state.turn);
     if (app.over) { st.classList.add('over'); st.textContent = app.overText || 'Партия окончена'; return; }
     let txt;
-    if (app.botThinking) txt = '🤖 Бот думает…';
+    if (app.botThinking) txt = inl(ICON.bot) + 'Бот думает…';
     else if (app.mode === 'friend' && app.online.on) txt = (app.state.turn === app.online.myColor ? `Ваш ход · ${turnName}` : `Ход соперника · ${turnName}`);
     else if (app.mode === 'friend' && app.pendingShare) txt = 'Ход сделан — отправьте ссылку другу';
     else if (app.mode === 'friend') txt = `Ваш ход · ${turnName}`;
     else if (app.mode === 'bot') txt = app.state.turn === app.myColor ? `Ваш ход · ${turnName}` : `Ход бота · ${turnName}`;
     else txt = `Ход: ${turnName}`;
-    if (C.inCheck(app.state, app.state.turn)) { txt = '⚠️ ШАХ! ' + txt; st.classList.add('check'); }
-    st.textContent = txt;
+    if (C.inCheck(app.state, app.state.turn)) { txt = inl(ICON.warning) + 'ШАХ! ' + txt; st.classList.add('check'); }
+    st.innerHTML = txt;
   }
 
   function renderHistory() {
