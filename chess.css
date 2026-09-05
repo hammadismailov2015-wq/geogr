@@ -324,6 +324,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
 .ch-hist-summary .hs-win { color: #6ee7a8; }
 .ch-hist-summary .hs-loss { color: #ff8b8b; }
 .ch-hist-summary .hs-draw { color: #ffd166; }
+.ch-hist-summary .hs-resign { color: #f0a35e; }
 .ch-hist-list { max-height: 52vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
 .ch-hist-item { border-radius: 12px; padding: 10px 14px; text-align: center; color: #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, .3); }
 .ch-hist-item .hi-main { display: block; font-weight: 800; font-size: 16px; }
