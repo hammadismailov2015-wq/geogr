@@ -198,7 +198,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v137';
+  const APP_VERSION = 'v138';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -2420,7 +2420,7 @@
     for (let i = a.length - 1; i >= 0; i--) {
       const r = a[i];
       let cls, main;
-      if (r.resigned) { cls = 'loss'; main = 'Сдался'; }
+      if (r.resigned) { cls = 'resign'; main = 'Сдался'; }
       else if (r.r === 'win') { cls = 'win'; main = 'Выиграл'; }
       else if (r.r === 'loss') { cls = 'loss'; main = 'Проиграл'; }
       else if (r.r === 'side') { cls = 'side'; main = (r.w === 'w' ? 'Белые' : 'Чёрные') + ' победили'; }
