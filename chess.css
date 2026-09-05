@@ -101,6 +101,7 @@ main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding
   box-shadow: 0 4px 12px rgba(0, 0, 0, .35); transition: .16s;
 }
 .ch-sound:hover { transform: translateY(-2px); border-color: var(--accent); }
+.ch-sound.off { opacity: .5; }
 .ch-sw {
   width: 28px; height: 28px; padding: 2px; border-radius: 9px; cursor: pointer;
   display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0;

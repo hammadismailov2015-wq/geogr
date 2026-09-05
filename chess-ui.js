@@ -78,6 +78,8 @@
   ICON.envelope = _svg(`<rect x="3.5" y="6" width="17" height="12" rx="2.5" ${_F}/><path d="M4.2 7l7.8 5.8L19.8 7"/>`);
   ICON.soundOn = _svg(`<path d="M4 9.5h3l4-3.4v11.8l-4-3.4H4z" ${_F}/><path d="M15 9.2a4 4 0 0 1 0 5.6M17.6 6.6a7.5 7.5 0 0 1 0 10.8"/>`);
   ICON.soundOff = _svg(`<path d="M4 9.5h3l4-3.4v11.8l-4-3.4H4z" ${_F}/><path d="M15.5 10l4.5 4M20 10l-4.5 4"/>`);
+  ICON.taunt = _svg(`<path d="M4.5 5.5h15a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H9l-4 3.2V16H4.5A1.5 1.5 0 0 1 3 14.5V7a1.5 1.5 0 0 1 1.5-1.5z" ${_F}/><path d="M8 10.6h8M8 13.2h5"/>`);
+  ICON.tauntOff = _svg(`<path d="M4.5 5.5h15a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H9l-4 3.2V16H4.5A1.5 1.5 0 0 1 3 14.5V7a1.5 1.5 0 0 1 1.5-1.5z" ${_F}/><path d="M4 4l16 16"/>`);
   const tutTitleHTML = (svg, txt) => `<span class="tt-ico">${svg}</span>${txt}`;
   const inl = (svg) => `<span class="inl-ico">${svg}</span>`;
   // Уроки хранят символ (эмодзи/шахматный знак) — переводим в иконку того же стиля
@@ -157,6 +159,7 @@
     paused: false,
     theme: 'classic',
     soundOn: true,
+    tauntOn: false,
     tutSideResolved: 'w',
     clock: { timeOn: false, movesOn: false, timeMs: { w: 0, b: 0 }, movesLeft: { w: 0, b: 0 }, lastTick: 0 },
     online: { on: false, role: null, room: null, myColor: 'w', hostColor: 'w', myId: null, net: null, connected: false, peerReady: false, failed: false }
@@ -198,7 +201,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v138';
+  const APP_VERSION = 'v139';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -223,6 +226,7 @@
       ${PIECE_DEFS}
       <div class="ch-themebar" id="themeBar">
         <button class="ch-sound" id="soundBtn" title="Звук вкл/выкл">${ICON.soundOn}</button>
+        <button class="ch-sound" id="tauntBtn" title="Фразы фигур вкл/выкл">${ICON.tauntOff}</button>
         <button class="ch-sw" data-theme="green" title="Зелёная доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="classic" title="Чёрно-белая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
         <button class="ch-sw" data-theme="brown" title="Коричневая доска"><i class="l"></i><i class="d"></i><i class="d"></i><i class="l"></i></button>
@@ -573,6 +577,16 @@
       localStorage.setItem('chessSound', app.soundOn ? 'on' : 'off');
       $('soundBtn').innerHTML = app.soundOn ? ICON.soundOn : ICON.soundOff;
       if (app.soundOn) playMoveSound(false); // короткий пример
+    });
+    // Фразы фигур — по умолчанию выключены
+    app.tauntOn = localStorage.getItem('chessTaunt') === 'on';
+    $('tauntBtn').innerHTML = app.tauntOn ? ICON.taunt : ICON.tauntOff;
+    $('tauntBtn').classList.toggle('off', !app.tauntOn);
+    $('tauntBtn').addEventListener('click', () => {
+      app.tauntOn = !app.tauntOn;
+      localStorage.setItem('chessTaunt', app.tauntOn ? 'on' : 'off');
+      $('tauntBtn').innerHTML = app.tauntOn ? ICON.taunt : ICON.tauntOff;
+      $('tauntBtn').classList.toggle('off', !app.tauntOn);
     });
     app.view = localStorage.getItem('chessView') || '2d';
     applyView(app.view);
@@ -1442,9 +1456,10 @@
 
   /* ---- Облачко-подколка при взятии фигуры ---- */
   // Фраза зависит от того, какую фигуру съели
-  const TAUNT_BY = { p: 'Хочу ещё!', n: 'Я голоден!', b: 'Ха-ха!', r: 'Как вкусно!', q: 'Лашара!' };
+  const TAUNT_BY = { p: 'Хочу ещё!', n: 'Я голоден!', b: 'Ха-ха!', r: 'Как вкусно!', q: 'Лошара!' };
   let tauntEl = null, tauntTimer = 0;
   function showTaunt(sq, type) {
+    if (!app.tauntOn) return;   // фразы фигур можно выключить в настройках
     const cell = elBoard.querySelector(`.ch-sq[data-sq="${sq}"]`);
     if (!cell) return;
     if (!tauntEl) { tauntEl = document.createElement('div'); tauntEl.className = 'ch-taunt'; document.body.appendChild(tauntEl); }
