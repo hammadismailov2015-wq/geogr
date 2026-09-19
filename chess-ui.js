@@ -201,7 +201,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v140';
+  const APP_VERSION = 'v141';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -593,14 +593,14 @@
     $('themeBar').addEventListener('click', (e) => {
       const b = e.target.closest('.ch-sw');
       if (b) { app.theme = b.dataset.theme; localStorage.setItem('chessTheme', app.theme); applyTheme(app.theme); markActive('#themeBar .ch-sw', b);
-        if (app.state && !$('gameScreen').hidden) { renderBoard(); }   // перекрасить доску/фигуры (в т.ч. 3D) под тему
+        refreshActiveBoard();   // перекрасить доску/фигуры (в т.ч. 3D) под тему — на любом экране
         return; }
       const v = e.target.closest('.ch-vw');
       if (v) { app.view = v.dataset.view; localStorage.setItem('chessView', app.view); applyView(app.view); markActive('#themeBar .ch-vw', v);
         if (app.state && !$('gameScreen').hidden) { renderBoard(); renderPlayerBars(); updateClocks(); applyScreenFlip(); } return; }
       const tx = e.target.closest('.ch-tx');
       if (tx) { app.texture = tx.dataset.tex; localStorage.setItem('chessTexture', app.texture); applyTexture(app.texture); markActive('#themeBar .ch-tx', tx);
-        if (app.state && !$('gameScreen').hidden) { renderBoard(); } }
+        refreshActiveBoard(); }
     });
     app.texture = localStorage.getItem('chessTexture') || 'plain';
     applyTexture(app.texture);
@@ -1627,13 +1627,31 @@
       last: app.lastMove, checkSq: checkSq
     });
   }
+  // Перерисовать ту доску, что сейчас открыта (игра / урок / игра-повторение).
+  // Нужно при смене вида (2D↔3D), темы и текстуры — иначе на другом экране доска пустеет.
+  function refreshActiveBoard() {
+    if (!$('tutorScreen').hidden) {
+      if (!$('tutLesson').hidden && tut.state) renderTutBoard();
+      else if (!$('tutGame').hidden) renderTgBoard();
+    } else if (app.state && !$('gameScreen').hidden) {
+      renderBoard();
+    }
+  }
   function applyView(v) {
     document.body.classList.toggle('ch-3d', v === '3d');
     const real = (v === '3d') && !!window.Chess3D;
     document.body.classList.toggle('ch-3dreal', real);
+    if (real) ensure3D();
+    if (window.Chess3D && Chess3D.setVisible) Chess3D.setVisible(real);
     const el = $('board3d');
-    if (real) { ensure3D(); if (el) el.hidden = false; if (window.Chess3D) Chess3D.setVisible(true); update3D(); }
-    else { if (window.Chess3D && Chess3D.setVisible) Chess3D.setVisible(false); if (el) el.hidden = true; }
+    if (!$('tutorScreen').hidden) {
+      // на экране обучения обновляем учебную доску, а не игровую
+      refreshActiveBoard();
+    } else if (real) {
+      if (el) el.hidden = false; update3D();
+    } else {
+      if (el) el.hidden = true;
+    }
   }
 
   /* ========================================================
