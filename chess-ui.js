@@ -201,7 +201,7 @@
   /* ========================================================
      ЗАПУСК
      ======================================================== */
-  const APP_VERSION = 'v141';
+  const APP_VERSION = 'v142';
   document.addEventListener('DOMContentLoaded', () => {
     app.theme = localStorage.getItem('chessTheme') || 'classic';
     applyTheme(app.theme);
@@ -1622,6 +1622,7 @@
     if (C.inCheck(app.state, app.state.turn)) { for (let i = 0; i < 64; i++) { const p = app.state.board[i]; if (p && C.typeOf(p) === 'k' && C.colorOf(p) === app.state.turn) { checkSq = i; break; } } }
     Chess3D.update(app.state, {
       theme: bodyTheme(), texture: app.texture || 'plain', flip: rot,
+      screenFlip: localFlip,   // «Рядом»: на ходу чёрных разворачиваем картинку для игрока напротив
       selected: app.selected, legal: app.selected >= 0 ? app.legalFrom : [],
       occupied: (sq) => !!app.state.board[sq],
       last: app.lastMove, checkSq: checkSq

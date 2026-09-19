@@ -15,6 +15,7 @@
   let root, boardGroup, pieceGroup, hlGroup, sqMeshes = [];
   let container, hooks = {}, visible = false, needsRender = true;
   let targetRotY = 0, curRotY = 0, rotInit = false;   // плавный разворот доски
+  let screenFlip = false;   // «Рядом»: на ходу чёрных переворачиваем и саму картинку (для игрока с той стороны)
   const pieceCache = {};        // геометрии по типу
 
   // ---- Профили точёных фигур (правый силуэт: x=радиус, y=высота) ----
@@ -270,6 +271,8 @@
     const ar = camera.aspect || 1;
     const dist = ar < 0.85 ? 11.6 : 10.6;   // на узких экранах чуть дальше
     camera.position.set(0, dist * 1.02, dist);
+    // screenFlip — разворот всей картинки на 180° (для игрока, сидящего с другой стороны телефона)
+    camera.up.set(0, screenFlip ? -1 : 1, 0);
     camera.lookAt(0, 0.2, -0.3);
     camera.updateProjectionMatrix();
   }
@@ -328,6 +331,10 @@
     // ориентация доски (за чёрных / ход чёрных в «Рядом») — плавный поворот
     targetRotY = o.flip ? Math.PI : 0;
     if (!rotInit) { curRotY = targetRotY; root.rotation.y = curRotY; rotInit = true; }
+    // «Рядом»: разворот картинки на 180° для игрока напротив (клики остаются верными — raycast по камере).
+    // При передаче хода переворачиваем мгновенно и чисто (без спина доски) — как переворот реальной доски.
+    const sf = !!o.screenFlip;
+    if (sf !== screenFlip) { screenFlip = sf; positionCamera(); curRotY = targetRotY; if (root) root.rotation.y = curRotY; }
     // фигуры
     for (let i = pieceGroup.children.length - 1; i >= 0; i--) pieceGroup.remove(pieceGroup.children[i]);
     const b = state.board;
